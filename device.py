@@ -42,7 +42,7 @@ class Device:
 
   def __str__(self):
     ''' Dont print the actual min/max bounds vectors because too verbose. '''
-    return 'id=%s; len=%d; *bounds=%.3f/%.3f; cbounds=%s; params=%s\n' % \
+    return 'id=%s; len=%d; *bounds=%.3f/%.3f; cbounds=%s; params=%s' % \
       (self.id, len(self), self.lbounds.min(), self.hbounds.max(), self.cbounds, pformat(self.params))
 
   def __len__(self):
