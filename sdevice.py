@@ -35,7 +35,7 @@ class SDevice(Device):
     return -1*self.charge_costs(r) - r*p
 
   def u(self, r, p):
-    return self.uv(r,p).sum()
+    return self.uv(r, p).sum()
 
   def deriv(self, r, p):
     return -1*self.charge_costs_deriv(r) - p

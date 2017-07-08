@@ -50,7 +50,7 @@ class Device:
 
   def u(self, r, p):
     ''' Get scalar utility value for `r` consumption at price `p` '''
-    return np.zeros(len(self))
+    return 0
 
   def deriv(self, r, p):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
@@ -102,8 +102,8 @@ class Device:
     if len(bounds) != len(self):
       raise ValueError('bounds has wrong length (%d)' % len(bounds))
     bounds = np.array(bounds)
-    lbounds = np.array([b[0] for b in bounds])
-    hbounds = np.array([b[1] for b in bounds])
+    lbounds = np.array(bounds[:,0])
+    hbounds = np.array(bounds[:,1])
     if not np.vectorize(lambda v: v is None)(bounds).all() and not (hbounds - lbounds >= 0).all():
       raise ValueError('max bound must be >= min bound for all min/max bound pairs: %s' % (str(hbounds - lbounds),))
     self._bounds = bounds
