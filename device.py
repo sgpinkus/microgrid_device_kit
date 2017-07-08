@@ -48,11 +48,11 @@ class Device:
   def __len__(self):
     return self._len
 
-  def u(r, p):
+  def u(self, r, p):
     ''' Get scalar utility value for `r` consumption at price `p` '''
     return np.zeros(len(self))
 
-  def deriv(r, p):
+  def deriv(self, r, p):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
     return np.zeros(len(self))
 
@@ -66,11 +66,11 @@ class Device:
 
   @property
   def lbounds(self):
-    return np.array([b[0] for b in self.bounds])
+    return np.array(self.bounds[:,0])
 
   @property
   def hbounds(self):
-    return np.array([b[1] for b in self.bounds])
+    return np.array(self.bounds[:,1])
 
   @property
   def cbounds(self):

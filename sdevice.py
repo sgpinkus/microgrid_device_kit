@@ -1,5 +1,5 @@
 import numpy as np
-from .device import Device
+from lcl.device import Device
 
 
 class SDevice(Device):
