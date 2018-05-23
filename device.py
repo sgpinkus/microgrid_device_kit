@@ -1,24 +1,28 @@
-'''
-This file contains the base class for all device types `Device`, and some sub-classes of `Device`.
-Note Python3 @properties have been used throughout these classes. They mainly serve as very verbose,
-and slow way to protect a field, by only defining a getter. Setters are also sparingly defined.
-'''
 import re
 import numpy as np
 from pprint import pformat
 from lcl.projection import *
 
 class Device:
-  ''' Base class for any type of device (AKA appliance). Devices are all characterised by:
+  ''' Base class for any type of device (AKA appliance). Devices are all characterised by having:
 
-    - Operating over a price and resource vector of some fixed length `len`.
-    - Having a list of `len` low/high resource consumption `bounds`.
-    - Having optional cummulative bounds (`cbounds`) for resource consumption over `len`.
-    - Having a concave differentiable utility function `u`, which represents how much value the
-        device gets from consuming a given resource vector of length `len`.
+      - A fixed length `len` which is the number of timeslots the device consumes/produces some resource.
+      - A list of low/high resource consumption `bounds` of length `len`.
+      - Optional cummulative bounds (`cbounds`) for resource consumption over `len`.
+      - A concave differentiable utility function `u`, which represents how much value the device
+          gets from consuming/producing a given resource vector of length `len` at some price.
 
-    This class is more or less a dumb container for these settings. Sub classes should implement -
-    and vary primarily in the implementation of, the utility function.
+    This class is more or less a dumb container for these settings. Sub classes should implement
+    (and vary primarily in the implementation of), the utility function. Sub devices can also
+    implement more complex constraints than acheivable with bounds and cbounds. Constraints should
+    be convex but this is not currently enforced.
+
+    Device should be considered immutable. The available setters are all used on init.
+
+    Python3 @properties have been used throughout these classes. They mainly serve as very verbose,
+    and slow way to protect a field, by only defining a getter. Setters are also sparingly defined.
+
+    @todo deprecate price as a parameter to u(), deriv() (can just set price to 0 for now).
   '''
   _id = None              # The identifier of this device.
   _len = 0                # Fixed length of the following vectors / the planning window.
@@ -41,7 +45,7 @@ class Device:
     self.params = params
 
   def __str__(self):
-    ''' Dont print the actual min/max bounds vectors because too verbose. '''
+    ''' Print main settings. Dont print the actual min/max bounds vectors because its too verbose. '''
     return 'id=%s; len=%d; *bounds=%.3f/%.3f; cbounds=%s; params=%s' % \
       (self.id, len(self), self.lbounds.min(), self.hbounds.max(), self.cbounds, pformat(self.params))
 
@@ -53,7 +57,7 @@ class Device:
     return 0
 
   def deriv(self, r, p):
-    ''' Get jacobian vector of the utility at `r`, at price `p` '''
+    ''' Get jacobian vector of the utility at `r`, and price `p` '''
     return np.zeros(len(self))
 
   @property
@@ -146,6 +150,7 @@ class Device:
     return True
 
   def project(self, r):
+    ''' Project vector r onto own feasible region. I.e. make `r` feasible. '''
     return self._feasible_region.project(r)
 
   def to_list(self):
