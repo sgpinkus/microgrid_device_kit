@@ -12,15 +12,15 @@ class SDevice(Device):
   assuming the price is always +ve. The higher the price the more preferable it is. The cost has 3
   components that model:
 
-    - The cost of fast charging or discharging rates
-    - The cost from a large number of charge discharge cycles.
+    - The cost of fast charging or discharging rates.
+    - The cost from a large number of charge discharge cycles over a day.
     - The cost from deep discharge cycles.
 
-  There are six parameters to IDevice:
+  There are six parameters to SDevice:
 
-    - c1,c2,c3: coefficients for the first, second, third cost terms.
+    - c1,c2,c3: coefficients for the first, second, third cost terms listed above.
     - capacity: the storage capacity of the device.
-    - damage_depth: how deep is a deep discharge
+    - damage_depth: how deep is a deep discharge.
     - reserve: how much charge must the device be storing at the end of the planning window. We
         assume the device starts with this reserve as well.
   '''
@@ -41,12 +41,14 @@ class SDevice(Device):
     return -1*self.charge_costs_deriv(r) - p
 
   def charge_costs(self, r):
+    ''' Get total costs for flow vector `r`. '''
     cost1 = (self.c1*r**2)
     cost2 = self.flip_cost_at(r)
     cost3 = self.deep_damage_at(r)
     return cost1 + cost2 + cost3
 
   def charge_costs_deriv(self, r):
+    ''' Deriv of charge_costs(). '''
     cost1_deriv = self.c1*2*r
     cost2_deriv = self.c2*-1*np.hstack((r[1:],[r[len(r)-1]]))
     cost3_deriv = self.deep_damage_at_deriv(r)
@@ -56,15 +58,15 @@ class SDevice(Device):
     return self.reserve*self.capacity+r.cumsum()
 
   def flip_cost_at(self, r):
+    ''' Calculate total cost for flippyness in flow vector `r`. '''
     return self.c2*-1*np.array([r[i]*r[i+1] for i in range(0, len(r)-1)] + [0])
 
   def deep_damage_at(self, r):
+    ''' Calculate total cost for deep discharge in flow vector `r`. '''
     return self.c3*np.minimum((self.charge_at(r) - self.capacity*self.damage_depth), 0)**2
 
   def deep_damage_at_deriv(self, r):
-    ''' Partial dervis of deep_damage_at(). Chain rule with outer minimum() and
-    charge_at() w.r.t. r.
-    '''
+    ''' Partial dervis of deep_damage_at(). Chain rule with outer minimum() and charge_at() wrt `r`. '''
     d = np.zeros(len(r))
     c = self.c3*2*np.minimum((self.charge_at(r) - self.capacity*self.damage_depth), 0)
     for i in range(0, len(c)):
