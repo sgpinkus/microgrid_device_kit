@@ -71,6 +71,8 @@ class IDevice(Device):
   @params.setter
   def params(self, params):
     ''' Sanity check params.  '''
+    if params is None:
+      return
     if not isinstance(params, dict):
       raise ValueError('params to IDevice must be a dictionary')
     # Use preset params as defaults, ignore extras.

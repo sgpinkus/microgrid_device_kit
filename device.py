@@ -2,6 +2,7 @@ import re
 import numpy as np
 from pprint import pformat
 from lcl.projection import *
+from lcl.device import *
 
 
 class Device:
@@ -158,13 +159,23 @@ class Device:
     ''' Project vector r onto own feasible region. I.e. make `r` feasible. '''
     return self._feasible_region.project(r)
 
-  def to_list(self):
+  def to_dict(self):
     ''' Serialize '''
-    return (str(self.__class__), self.id, len(self), list(self.bounds), self.cbounds, self.params)
+    return {
+      'type': type(self).__name__,
+      'id': self.id,
+      'length': len(self),
+      'bounds': list(self.bounds),
+      'cbounds': self.cbounds,
+      'params': self.params
+    }
 
-  def fromlist(self, l):
-    ''' return l[0](l[1], l[2], np.array(l[3]), l[4], l[5]) '''
-    raise NotImplementedError()
+  @classmethod
+  def from_dict(cls, d):
+    ''' Just call constructor d['type'](**d.therest). @todo this dont work. '''
+    t = d['type']
+    del d['type']
+    return globals()[t](**d)
 
   @property
   def constraints(self):
