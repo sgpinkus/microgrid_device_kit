@@ -2,17 +2,22 @@ import numpy as np
 from lcl.device import Device
 
 class IDevice(Device):
-  ''' Overrides Device to provide a utility function based on instaneous resource consumptions
-  (actually it's summed up). The particular utility curve is described by 4 params but also
-  uses on min/max consumption setting as parameters to the utility function. All params may be 1D
-  nparrays of len(self) or scalars.
+  ''' Provide a utility function that is independent for each time slot, concave and increasing. The
+  particular utility curve is described by 4 params and also uses on min/max consumption bounds setting
+  For a given time slot, let r_min, r_max be the min max consumption as specified by Device.bounds
+  for the time slot. All params may be np arrays of len(self) or scalar.
+
+    - a is a -ve offset from zero at which the curve intersects the q_max
+    - b is the degree of the polynomial. Must be a +ve integer.
+    - c is a scaling factor: the range of utility is [0,c] over [q_min, q_max]
+    - d is an offset that defines where the root of the curve is.
 
   The value is indeterminate when x_h == x_l. We return 0 utility value in this case. Same for deriv().
   '''
-  _a = 0 # is a -ve offset at which the curve intersects the q_max
-  _b = 2 # defines the slopiness. Must be a +ve integer.
-  _c = 1 # Scaling factor. The range of utility is [0,c] over [q_min, q_max]
-  _d = 0 # An offset. Should be non -ve.
+  _a = 0
+  _b = 2
+  _c = 1
+  _d = 0
 
   @classmethod
   def _u(cls, x, a, b, c, d, x_l, x_h):

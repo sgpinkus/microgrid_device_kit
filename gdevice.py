@@ -3,18 +3,20 @@ from lcl.device import Device
 
 
 class GDevice(Device):
-  ''' Simple generator device. Strictly produces power. Cost of power is specified by some polynomial.
+  ''' Simple generator device. Strictly produces power. Cost of power is specified by a polynomial.
   Thermal generator generally have quadratic cost curves but polynomial allow arbitrary cost curves.
-  The single cost parameter is either a single array of polynomial cooefs or and array of such coeff
-  arrays (one for each timeslot). Cost is currently limited to being strictly separable in time slots.
-  Note generation is always indicate by negative values and cost functions should take this into account.
+  Device takes a single parameter cost which defines the coeffs for the polynomial at each timeslot.
+  `cost` can be a single array of coeffs or an array of len(self) arrays of coeffs (one for each
+  timeslot).
+
+  Generation is always indicated by negative values and cost functions should take this into account.
 
   Max generation capacity can be time variable by setting `lbounds`. We enforce that hbounds must
   be <=0 for this device (can't consume). Start up / shut down and min/max runtimes are not considered.
 
   Note for generators, `utility` is interpreted as profit (which is revenue - cost)
 
-  @todo Allow cost to be an array of arrays (one for each timeslot).
+  @todo Could just allow this to be used like IDevice.
   '''
   _cost = [0,]
 
