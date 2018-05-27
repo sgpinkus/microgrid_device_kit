@@ -1,5 +1,5 @@
 import numpy as np
-from lcl.device import Device
+from powermarket.device import Device
 
 class IDevice(Device):
   ''' Provide a utility function that is independent for each time slot, concave and increasing. The

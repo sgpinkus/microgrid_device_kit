@@ -1,8 +1,8 @@
 import re
 import numpy as np
 from pprint import pformat
-from lcl.projection import *
-from lcl.device import *
+from powermarket.projection import *
+from powermarket.device import *
 
 
 class Device:

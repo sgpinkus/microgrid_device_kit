@@ -1,5 +1,5 @@
 import numpy as np
-from lcl.device import Device, IDevice
+from powermarket.device import Device, IDevice
 
 
 class TDevice(IDevice):
