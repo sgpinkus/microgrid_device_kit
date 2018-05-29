@@ -19,28 +19,26 @@ class GDevice(Device):
   @todo Could just allow this to be used like IDevice.
   '''
   _cost = [0,]
+  _cost_function = None
 
   def uv(self, r, p):
     ''' Get utility vector for r, p. '''
-    return -1*p*r - self.cost(-r)
+    return -1*p*r - self._cost_function(-r)
 
   def u(self, r, p):
     return self.uv(r, p).sum()
 
   def deriv(self, r, p):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
-    return -1*p + self._deriv(-r)
+    return -1*p + self._deriv_function(-r)
 
   @property
   def bounds(self):
     return Device.bounds.fget(self)
 
   @property
-  def cbounds(self):
-    return self._cbounds
-
-  @property
   def cost(self):
+    ''' Return arrays of coeffs of cost function not an actual function. '''
     return self._cost
 
   @property
@@ -48,6 +46,10 @@ class GDevice(Device):
     return {
       'cost': self.cost,
     }
+
+  @property
+  def cbounds(self):
+    return self._cbounds
 
   @bounds.setter
   def bounds(self, bounds):
@@ -76,19 +78,17 @@ class GDevice(Device):
     ''' Sanity check params. Always called at init by contract. '''
     if not isinstance(params, dict):
       raise ValueError('params to GDevice must be a dictionary')
-    p = self.params
-    p.update(params)
-    self.cost = p['cost']
+    self.cost = params['cost']
 
   @cost.setter
   def cost(self, cost):
-    cost = np.array(cost)
-    if cost.ndim == 1:
-      self._cost = np.poly1d(cost)
-      self._deriv = np.poly1d(cost).deriv()
-    elif cost.ndim == 2:
-      cost = [np.poly1d(c) for c in cost]
-      self._cost = lambda r: np.array([c(r) for c, r in zip(cost, r)])
-      self._deriv = lambda r: np.array([c.deriv()(r) for c, r in zip(cost, r)])
+    if np.array(cost).ndim == 1:
+      self._cost_function = np.poly1d(cost)
+      self._deriv_function = np.poly1d(cost).deriv()
+    elif np.array(cost).ndim == 2:
+      _cost = [np.poly1d(c) for c in cost]
+      self._cost_function = lambda r: np.array([c(r) for c, r in zip(_cost, r)])
+      self._deriv_function = lambda r:np.array([c.deriv()(r) for c, r in zip(_cost, r)])
     else:
-      raise ValueError('cost param must be 1 or 2 dim array.')
+      raise ValueError('cost param must be array with 1 or 2 dimensions.')
+    self._cost = cost

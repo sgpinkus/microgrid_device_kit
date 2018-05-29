@@ -40,10 +40,6 @@ class Device:
     '''
     if type(id) != str or not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
       raise ValueError('id must be a non empty string matching ^(?i)[a-z0-9][a-z0-9_-]*$')
-    if not hasattr(bounds, '__len__'):
-      raise ValueError('bounds must be a sequence type')
-    if len(bounds) != length:
-      raise ValueError('bounds has incorrect length')
     self._len = length
     self._id = id
     self.bounds = bounds
@@ -96,6 +92,7 @@ class Device:
 
   @property
   def params(self):
+    ''' Get params in same format as passed in. '''
     return self._params
 
   @property
@@ -109,6 +106,11 @@ class Device:
 
   @bounds.setter
   def bounds(self, bounds):
+    ''' Set bounds. Can be input as a pair which will be repeated len times. Conversion is one way currently. '''
+    if not hasattr(bounds, '__len__'):
+      raise ValueError('bounds must be a sequence type')
+    if len(bounds) == 2:
+      bounds = np.array([bounds for i in range(0,len(self))])
     if len(bounds) != len(self):
       raise ValueError('bounds has wrong length (%d)' % len(bounds))
     bounds = np.array(bounds)
@@ -162,7 +164,6 @@ class Device:
   def to_dict(self):
     ''' Serialize '''
     return {
-      'type': type(self).__name__,
       'id': self.id,
       'length': len(self),
       'bounds': list(self.bounds),
@@ -172,10 +173,8 @@ class Device:
 
   @classmethod
   def from_dict(cls, d):
-    ''' Just call constructor d['type'](**d.therest). @todo this dont work. '''
-    t = d['type']
-    del d['type']
-    return globals()[t](**d)
+    ''' Just call constructor. Nothing special to do. '''
+    return cls(**d)
 
   @property
   def constraints(self):
