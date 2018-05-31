@@ -3,34 +3,38 @@ from powermarket.device import Device
 
 
 class GDevice(Device):
-  ''' Simple generator device. Strictly produces power. Cost of power is specified by a polynomial.
-  Thermal generator generally have quadratic cost curves but polynomial allow arbitrary cost curves.
-  Device takes a single parameter cost which defines the coeffs for the polynomial at each timeslot.
-  `cost` can be a single array of coeffs or an array of len(self) arrays of coeffs (one for each
-  timeslot).
+  ''' Simple generator device. Strictly produces power. Cost of power is specified by an arbitrary
+  polynomial. Thermal generators generally have quadratic cost curves but allow arbitrary cost curves.
+  Device takes a single parameter `cost`, which defines the coefficients of the polynomial at each
+  timeslot. `cost` can be a single array of coeffs or an array of len(self) arrays of coeffs (one for
+  each timeslot).
 
-  Generation is always indicated by negative values and cost functions should take this into account.
+  Generation is always indicated by negative values. However the cost function provided should define
+  *positive* costs over a *positive* range. Example [1,1,0] for cost(q) = q**2 + q
 
-  Max generation capacity can be time variable by setting `lbounds`. We enforce that hbounds must
-  be <=0 for this device (can't consume). Start up / shut down and min/max runtimes are not considered.
+  Time variable max generation capacity is specified by setting `lbounds`. GDevice enforces that
+  hbounds must be <=0 for this device (can never consume).
+
+  Cost function for all timeslots are independent. Start up / shut down and min/max runtimes are not
+  considered.
 
   Note for generators, `utility` is interpreted as profit (which is revenue - cost)
 
-  @todo Could just allow this to be used like IDevice.
+  @todo Could just allow arbitrary bounds. Then this could be used like IDevice too.
   '''
   _cost = [0,]
   _cost_function = None
 
   def uv(self, r, p):
     ''' Get utility vector for r, p. '''
-    return -1*p*r - self._cost_function(-r)
+    return -1*r*p - self._cost_function(-r)
 
   def u(self, r, p):
     return self.uv(r, p).sum()
 
   def deriv(self, r, p):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
-    return -1*p + self._deriv_function(-r)
+    return -p + self._deriv_function(-r)
 
   @property
   def bounds(self):
