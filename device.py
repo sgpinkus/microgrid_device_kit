@@ -135,7 +135,7 @@ class Device:
       raise ValueError('cbounds infeasible; min possible sum (%f) is > max cbounds (%f)' % (self.lbounds.sum(), cbounds[1]))
     if self.hbounds.sum() < cbounds[0]:
       raise ValueError('cbounds infeasible; max possible sum (%f) is < min cbounds (%f)' % (self.hbounds.sum(), cbounds[0]))
-    self._cbounds = cbounds
+    self._cbounds = tuple(cbounds)
     self._build_feasible_region()
 
   @params.setter
