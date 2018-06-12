@@ -6,6 +6,8 @@ class CDevice(Device):
   ''' Overrides Device to provide a utility function based on the sum resource consumption.
     The particular utility curve is described by 2 params. U = a(Q) + b. Since Q is summed up a,b are scalars.
   '''
+  _a = 0 # Slope
+  _b = 0 # Offset
 
   def u(self, r, p):
     return (self.a*r.sum() + self.b) - (r*p).sum()
@@ -15,22 +17,26 @@ class CDevice(Device):
 
   @property
   def params(self):
-    return Device.params.fget(self)
+    return {'a': self.a, 'b': self.b }
 
   @property
   def a(self):
-    return self.params[0]
+    return self._a
 
   @property
   def b(self):
-    return self.params[1]
+    return self._b
 
   @params.setter
   def params(self, params):
     ''' Sanity check params. '''
-    if len(params) != 2:
-      raise ValueError('params must be have size two')
-    (a,b) = params
+    a = b = None
+    if isinstance(params, dict):
+      (a, b) = (params['a'], params['b'])
+    elif hasattr(params, '__len__'):
+      (a,b) = params
+    else:
+      raise ValueError('params incorrect type')
     if a < 0 or b < 0:
       raise ValueError('params a and b must be >= 0')
-    self._params = params
+    (self._a, self._b) = (a, b)
