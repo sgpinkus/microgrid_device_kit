@@ -42,6 +42,7 @@ class SDevice(Device):
 
   def charge_costs(self, r):
     ''' Get total costs for flow vector `r`. '''
+    r = r.reshape((len(self),))
     cost1 = (self.c1*r**2)
     cost2 = self.flip_cost_at(r)
     cost3 = self.deep_damage_at(r)
@@ -49,6 +50,7 @@ class SDevice(Device):
 
   def charge_costs_deriv(self, r):
     ''' Deriv of charge_costs(). '''
+    r = r.reshape((len(self),))
     cost1_deriv = self.c1*2*r
     cost2_deriv = self.c2*-1*np.hstack((r[1:],[r[len(r)-1]]))
     cost3_deriv = self.deep_damage_at_deriv(r)
@@ -59,6 +61,7 @@ class SDevice(Device):
 
   def flip_cost_at(self, r):
     ''' Calculate total cost for flippyness in flow vector `r`. '''
+    r = r.reshape((len(self),))
     return self.c2*-1*np.array([r[i]*r[i+1] for i in range(0, len(r)-1)] + [0])
 
   def deep_damage_at(self, r):
