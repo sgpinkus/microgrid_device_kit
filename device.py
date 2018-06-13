@@ -25,8 +25,6 @@ class Device:
 
     Python3 @properties have been used throughout these classes. They mainly serve as very verbose,
     and slow way to protect a field, by only defining a getter. Setters are also sparingly defined.
-
-    @todo deprecate price as a parameter to u(), deriv() (can just set price to 0 for now).
   '''
   _id = None              # The identifier of this device.
   _len = 0                # Fixed length of the following vectors / the planning window.
