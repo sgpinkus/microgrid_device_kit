@@ -13,7 +13,7 @@ class CDevice(Device):
     return (self.a*r.sum() + self.b) - (r*p).sum()
 
   def deriv(self, r, p):
-    return self.a - p
+    return np.ones(len(self))*(self.a - p)
 
   @property
   def params(self):
