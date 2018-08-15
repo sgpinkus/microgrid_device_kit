@@ -14,27 +14,32 @@ class Device:
       - A concave differentiable utility function `u`, which represents how much value the device
           gets from consuming/producing a given resource vector of length `len` at some price.
 
-    This class is more or less a dumb container for the above settings. Sub
-    classes should implement (and vary primarily in the implementation of), the utility function.
-    Sub devices can also implement more complex constraints than acheivable with bounds and cbounds.
-    Constraints should be convex but this is not currently enforced. Note try to maintain:
+    This class is more or less a dumb container for the above settings. Sub classes should implement
+    (and vary primarily in the implementation of), the utility function.
+
+    Because the bounds and cbounds constraints are so common they are implemented in this base Device
+    class for convenience. Sub devices can implement more complex constraints than acheivable with
+    bounds` and cbounds. Constraints should be convex but this is not currently enforced. Note try
+    to maintain:
 
       - Device is stateless.
       - Device should be considered immutable (the currently available setters are all used on init).
-      - Device is serializable and and constructed from the serialization.
+      - Device is serializable and and constructable from the serialization.
 
-    Python3 @properties have been used throughout these classes. They mainly serve as very verbose,
-    and slow way to protect a field, by only defining a getter. Setters are also sparingly defined.
+    Note Python3 @properties have been used throughout these classes. They mainly serve as very
+    verbose and slow way to protect a field, by only defining a getter. Setters are sparingly defined.
   '''
   _id = None              # The identifier of this device.
   _len = 0                # Fixed length of the following vectors / the planning window.
   _bounds = None          # Vector of 2-tuple min/max bounds on r.
   _cbounds = None         # 2-Tuple cummulative min/max bounds. Cummulative bounds are optional.
   _feasible_region = None # Convex region representing *only* bounds and cbounds. Convenience.
+  _params = None
 
   def __init__(self, id, length, bounds, cbounds=None, params=None):
     ''' Initially set resource to closest feasible point to mid point between bounds. and price to
-    zero. Sub classes should override params.setter.
+    zero. Sub classes should just override `params.setter` not `__init__`.
+    @todo params should have just been **kwargs.
     '''
     if type(id) != str or not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
       raise ValueError('id must be a non empty string matching ^(?i)[a-z0-9][a-z0-9_-]*$')
@@ -140,7 +145,6 @@ class Device:
   def params(self, params):
     if params != None:
       raise ValueError()
-    self._params = params
 
   def is_feasible(self, r):
     ''' Check bounds and cbounds '''

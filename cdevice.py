@@ -31,12 +31,9 @@ class CDevice(Device):
   def params(self, params):
     ''' Sanity check params. '''
     a = b = None
-    if isinstance(params, dict):
-      (a, b) = (params['a'], params['b'])
-    elif hasattr(params, '__len__'):
-      (a,b) = params
-    else:
+    if not isinstance(params, dict):
       raise ValueError('params incorrect type')
+    (a, b) = (params['a'], params['b'])
     if a < 0 or b < 0:
       raise ValueError('params a and b must be >= 0')
     (self._a, self._b) = (a, b)
