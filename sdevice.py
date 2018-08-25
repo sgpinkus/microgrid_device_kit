@@ -1,4 +1,5 @@
 import numpy as np
+import numdifftools as nd
 from powermarket.device import Device
 
 
@@ -39,6 +40,10 @@ class SDevice(Device):
 
   def deriv(self, r, p):
     return -1*self.charge_costs_deriv(r) - p
+
+  def hess(self, r, p=0):
+    ''' @todo actually easy to deriv explicitly ... '''
+    return nd.Hessian(lambda x: self.u(x,0))(r)
 
   def charge_costs(self, r):
     ''' Get total costs for flow vector `r`. '''

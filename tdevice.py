@@ -1,4 +1,5 @@
 import numpy as np
+import numdifftools as nd
 from powermarket.device import Device, IDevice
 
 
@@ -42,6 +43,10 @@ class TDevice(IDevice):
     ''' @override deriv() to do r to t conversion. Chain rule to account for r2t().
     '''
     return self.dexponents()*self.deriv_t(self.r2t(r)) - p
+
+  def hess(self, r, p=0):
+    ''' @todo actually easy to deriv explicitly ... '''
+    return nd.Hessian(lambda x: self.u(x,0))(r)
 
   def uv_t(self, t):
     _uv = np.vectorize(IDevice._u, otypes=[float])

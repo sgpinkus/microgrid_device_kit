@@ -28,6 +28,9 @@ class PVDevice(Device):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
     return -1*p
 
+  def hess(self, r, p=0):
+    return np.zeros((len(self), len(self)))
+
   @property
   def bounds(self):
     return Device.bounds.fget(self)

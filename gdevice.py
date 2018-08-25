@@ -1,4 +1,5 @@
 import numpy as np
+import numdifftools as nd
 from powermarket.device import Device
 
 
@@ -35,6 +36,10 @@ class GDevice(Device):
   def deriv(self, r, p):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
     return -p + self._deriv_function(-r)
+
+  def hess(self, r, p=0):
+    ''' @todo actually easy to deriv explicitly ... '''
+    return nd.Hessian(lambda x: self.u(x,0))(r)
 
   @property
   def bounds(self):

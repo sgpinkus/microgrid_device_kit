@@ -1,4 +1,5 @@
 import numpy as np
+import numdifftools as nd
 from powermarket.device import Device
 
 class IDevice(Device):
@@ -47,6 +48,10 @@ class IDevice(Device):
   def deriv(self, r, p):
     _deriv = np.vectorize(IDevice._deriv, otypes=[float])
     return _deriv(r, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - p
+
+  def hess(self, r, p=0):
+    ''' @todo actually easy to deriv explicitly ... '''
+    return nd.Hessian(lambda x: self.u(x,0))(r)
 
   @property
   def params(self):

@@ -58,12 +58,18 @@ class Device:
     return self._len
 
   def u(self, r, p):
-    ''' Get scalar utility value for `r` consumption at price `p` '''
+    ''' Get scalar utility value for `r` consumption, at price (parameter) `p` '''
     return 0
 
   def deriv(self, r, p):
-    ''' Get jacobian vector of the utility at `r`, and price `p` '''
+    ''' Get jacobian vector of the utility at `r`, at price `p` '''
     return np.zeros(len(self))
+
+  def hess(self, r, p=0):
+    ''' Get hessian vector of the utility at `r`, at price `p`. With linear numeriare utility
+    price should drop out.
+    '''
+    return np.zeros((len(self), len(self)))
 
   @property
   def id(self):

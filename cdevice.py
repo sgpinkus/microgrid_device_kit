@@ -15,6 +15,9 @@ class CDevice(Device):
   def deriv(self, r, p):
     return np.ones(len(self))*(self.a - p)
 
+  def hess(self, r, p=0):
+    return np.zeros((len(self), len(self)))
+
   @property
   def params(self):
     return {'a': self.a, 'b': self.b }
