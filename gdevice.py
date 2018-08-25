@@ -23,23 +23,26 @@ class GDevice(Device):
 
   @todo Could just allow arbitrary bounds. Then this could be used like IDevice too.
   '''
-  _cost = [0,]
-  _cost_function = None
+  _cost_fn = None
+  _cost_d1_fn = None
+  _cost_d2_fn = None
 
   def uv(self, r, p):
     ''' Get utility vector for r, p. '''
-    return -1*r*p - self._cost_function(-r)
+    return -1*r*p - self._cost_fn(-r)
 
   def u(self, r, p):
     return self.uv(r, p).sum()
 
   def deriv(self, r, p):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
-    return -p + self._deriv_function(-r)
+    return -p + self._cost_d1_fn(-r)
 
   def hess(self, r, p=0):
-    ''' @todo actually easy to deriv explicitly ... '''
-    return nd.Hessian(lambda x: self.u(x,0))(r)
+    ''' Return hessian. Hessdiag == Hessian for the given utility function.
+    @todo actually easy to deriv explicitly ...
+    '''
+    return -1*np.diag(self._cost_d2_fn(-r))
 
   @property
   def bounds(self):
@@ -48,7 +51,7 @@ class GDevice(Device):
   @property
   def cost(self):
     ''' Return arrays of coeffs of cost function not an actual function. '''
-    return self._cost
+    return self._cost_fn.coeffs
 
   @property
   def params(self):
@@ -92,12 +95,38 @@ class GDevice(Device):
   @cost.setter
   def cost(self, cost):
     if np.array(cost).ndim == 1:
-      self._cost_function = np.poly1d(cost)
-      self._deriv_function = np.poly1d(cost).deriv()
+      self._cost_fn = np.poly1d(cost)
+      self._cost_d1_fn = self._cost_fn.deriv()
+      self._cost_d2_fn = self._cost_fn.deriv(2)
     elif np.array(cost).ndim == 2:
-      _cost = [np.poly1d(c) for c in cost]
-      self._cost_function = lambda r: np.array([c(r) for c, r in zip(_cost, r)])
-      self._deriv_function = lambda r:np.array([c.deriv()(r) for c, r in zip(_cost, r)])
+      self._cost_fn = poly2d(cost)
+      self._cost_d1_fn = self._cost_fn.deriv()
+      self._cost_d2_fn = self._cost_fn.deriv(2)
     else:
       raise ValueError('cost param must be array with 1 or 2 dimensions.')
-    self._cost = cost
+
+
+class poly2d():
+  ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. '''
+  _c = None
+  _f = None
+
+  def __init__(self, c):
+    ''' `c` should be an array of arrays. Each array the coeffs of a poly1d. '''
+    len(c)
+    [len(v) for v in c]
+    self._c = list(c)
+    self._f = lambda x: np.array([np.poly1d(c)(v) for c, v in zip(self._c, x)])
+
+  def __call__(self, x):
+    return self._f(x)
+
+  def __len__(self):
+    return len(self._c)
+
+  def deriv(self, n=1):
+    return poly2d([np.poly1d(c).deriv(n).coeffs for c in self._c])
+
+  @property
+  def coeffs(self):
+    return self._c

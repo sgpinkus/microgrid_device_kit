@@ -35,6 +35,9 @@ class TDevice(IDevice):
   _t_base =  None                 # temperature without out any consumption by heat engine. Derived value.
   _t_utility_base = 0             # utility of t_base pre calculated & used as offset.
 
+  def u(self, r, p):
+    return self.uv(r,p).sum()
+
   def uv(self, r, p):
     ''' @override uv() to do r to t conversion. '''
     return self.uv_t(self.r2t(r)) - r*p - self._t_utility_base
@@ -45,8 +48,11 @@ class TDevice(IDevice):
     return self.dexponents()*self.deriv_t(self.r2t(r)) - p
 
   def hess(self, r, p=0):
-    ''' @todo actually easy to deriv explicitly ... '''
-    return nd.Hessian(lambda x: self.u(x,0))(r)
+    ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far
+    Hessdiag is an OOM faster and works just as good if not better.
+    '''
+    # return nd.Hessian(lambda x: self.u(x,0))(r)
+    return np.diag(nd.Hessdiag(lambda x: self.u(x,0))(r))
 
   def uv_t(self, t):
     _uv = np.vectorize(IDevice._u, otypes=[float])

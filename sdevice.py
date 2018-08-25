@@ -42,7 +42,7 @@ class SDevice(Device):
     return -1*self.charge_costs_deriv(r) - p
 
   def hess(self, r, p=0):
-    ''' @todo actually easy to deriv explicitly ... '''
+    ''' Return hessian approximation. '''
     return nd.Hessian(lambda x: self.u(x,0))(r)
 
   def charge_costs(self, r):
