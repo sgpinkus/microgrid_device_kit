@@ -48,6 +48,7 @@ class Device:
     self.bounds = bounds
     self.cbounds = cbounds
     self.params = params
+    self._build_feasible_region()
 
   def __str__(self):
     ''' Print main settings. Dont print the actual min/max bounds vectors because its too verbose. '''

@@ -6,8 +6,9 @@ from .sdevice import SDevice
 from .pvdevice import PVDevice
 from .gdevice import GDevice
 from .udevice import UDevice
+from .vldevice import VLDevice
 
 
 __all__ = [
-  'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice', 'UDevice'
+  'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice', 'UDevice', 'VLDevice'
 ]
