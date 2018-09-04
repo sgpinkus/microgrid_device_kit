@@ -124,13 +124,13 @@ class SDevice(Device):
     Also impose that at EOD level is at least reserve.
     '''
     constraints = Device.constraints.fget(self)
-    min_level = -1*self.reserve*self.capacity
+    min_level = self.reserve*self.capacity
     max_level = self.capacity*(1 - self.reserve)
     for i in range(0, len(self)):
       mask = np.concatenate((np.ones(i+1), np.zeros(len(self)-i-1)))
       constraints += [{
         'type': 'ineq',
-        'fun': lambda r, mask=mask, min_level=min_level: r.dot(mask) - min_level,
+        'fun': lambda r, mask=mask, min_level=min_level: min_level + r.dot(mask),
         'jac': lambda r, mask=mask: mask
       },
       {
