@@ -17,13 +17,14 @@ class SDevice(Device):
     - The cost from a large number of charge discharge cycles over a day.
     - The cost from deep discharge cycles.
 
-  There are six parameters to SDevice:
+  There are seven parameters to SDevice:
 
     - c1,c2,c3: coefficients for the first, second, third cost terms listed above.
     - capacity: the storage capacity of the device.
     - damage_depth: how deep is a deep discharge.
     - reserve: how much charge must the device be storing at the end of the planning window. We
         assume the device starts with this reserve as well.
+    - efficiency: The round trip efficiency factor - [0,1]. Presumed to apply symmetrically to in/out flow.
   '''
   _c1 = 1
   _c2 = 0.1
@@ -31,6 +32,7 @@ class SDevice(Device):
   _capacity = 10
   _damage_depth = 0.2
   _reserve = 0.5
+  _efficiency = 1.0
 
   def uv(self, r, p):
     return -1*self.charge_costs(r) - r*p
@@ -106,6 +108,10 @@ class SDevice(Device):
     return self._damage_depth
 
   @property
+  def efficiency(self):
+    return self._efficiency
+
+  @property
   def params(self):
     return {
       'c1': self.c1,
@@ -113,7 +119,8 @@ class SDevice(Device):
       'c3': self.c3,
       'capacity': self.capacity,
       'reserve': self.reserve,
-      'damage_depth': self.damage_depth
+      'damage_depth': self.damage_depth,
+      'efficiency': self.efficiency
     }
 
   @property
@@ -126,35 +133,36 @@ class SDevice(Device):
     constraints = Device.constraints.fget(self)
     min_level = self.reserve*self.capacity
     max_level = self.capacity*(1 - self.reserve)
+    e = self.efficiency
     # Discrete integral always within [0,capacity]
     for i in range(0, len(self)):
       mask = np.concatenate((np.ones(i+1), np.zeros(len(self)-i-1)))
       constraints += [{
         'type': 'ineq',
-        'fun': lambda r, mask=mask, min_level=min_level: min_level + r.dot(mask),
-        'jac': lambda r, mask=mask: mask
+        'fun': lambda r, mask=mask, min_level=min_level: min_level + ((e**np.sign(r))*r).dot(mask),
+        'jac': lambda r, mask=mask: (e**np.sign(r))*mask
       },
       {
         'type': 'ineq',
-        'fun': lambda r, mask=mask, max_level=max_level: max_level - r.dot(mask),
-        'jac': lambda r, mask=mask: -1*mask
+        'fun': lambda r, mask=mask, max_level=max_level: max_level - ((e**np.sign(r))*r).dot(mask),
+        'jac': lambda r, mask=mask: -1*(e**np.sign(r))*mask
       }]
     # At least reserve left at end of window.
     constraints += [{
       'type': 'ineq',
-      'fun': lambda r, mask=np.ones(len(self)), min_level=0: r.dot(mask),
-      'jac': lambda r, mask=np.ones(len(self)): mask
+      'fun': lambda r, mask=np.ones(len(self)), min_level=0: ((e**np.sign(r))*r).dot(mask),
+      'jac': lambda r, mask=np.ones(len(self)): (e**np.sign(r))*mask
     },
     {
       'type': 'ineq',
-      'fun': lambda r, mask=mask, max_level=max_level: max_level - r.dot(mask),
-      'jac': lambda r, mask=np.ones(len(self)): -1*mask
+      'fun': lambda r, mask=mask, max_level=max_level: max_level - ((e**np.sign(r))*r).dot(mask),
+      'jac': lambda r, mask=np.ones(len(self)): -1*(e**np.sign(r))*mask
     }]
     return constraints
 
   @params.setter
   def params(self, params):
-    ''' Sanity check params. '''
+    ''' Sanity check params. Constraints also applied in individual setters.'''
     if not isinstance(params, dict):
       raise ValueError('params to SDevice must be a dictionary')
     p = self.params
@@ -169,6 +177,7 @@ class SDevice(Device):
     self.capacity = p['capacity']
     self.reserve = p['reserve']
     self.damage_depth = p['damage_depth']
+    self.efficiency = p['efficiency']
 
   @c1.setter
   def c1(self, c1):
@@ -200,12 +209,18 @@ class SDevice(Device):
 
   @reserve.setter
   def reserve(self, reserve):
-    if reserve < 0 or reserve > 1:
+    if not 0 <= reserve <= 1:
       raise ValueError('reserve must be in [0,1]')
     self._reserve = reserve
 
   @damage_depth.setter
   def damage_depth(self, damage_depth):
-    if damage_depth < 0 or damage_depth > 1:
+    if not 0 <= damage_depth <= 1:
       raise ValueError('damage_depth must be in [0,1]')
     self._damage_depth = damage_depth
+
+  @efficiency.setter
+  def efficiency(self, efficiency):
+    if not 0 < efficiency <= 1.0:
+      raise ValueError('efficiency factor must be in range (0, 1]')
+    self._efficiency = efficiency
