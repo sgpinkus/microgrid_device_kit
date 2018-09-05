@@ -126,6 +126,7 @@ class SDevice(Device):
     constraints = Device.constraints.fget(self)
     min_level = self.reserve*self.capacity
     max_level = self.capacity*(1 - self.reserve)
+    # Discrete integral always within [0,capacity]
     for i in range(0, len(self)):
       mask = np.concatenate((np.ones(i+1), np.zeros(len(self)-i-1)))
       constraints += [{
@@ -138,15 +139,16 @@ class SDevice(Device):
         'fun': lambda r, mask=mask, max_level=max_level: max_level - r.dot(mask),
         'jac': lambda r, mask=mask: -1*mask
       }]
-    constraints += [{ # At least reserve left at end of window.
-        'type': 'ineq',
-        'fun': lambda r, mask=np.ones(len(self)), min_level=0: r.dot(mask) - 0,
-        'jac': lambda r, mask=np.ones(len(self)): mask
-      },
-      {
-        'type': 'ineq',
-        'fun': lambda r, mask=mask, max_level=max_level: max_level - r.dot(mask),
-        'jac': lambda r, mask=mask: -1*mask
+    # At least reserve left at end of window.
+    constraints += [{
+      'type': 'ineq',
+      'fun': lambda r, mask=np.ones(len(self)), min_level=0: r.dot(mask),
+      'jac': lambda r, mask=np.ones(len(self)): mask
+    },
+    {
+      'type': 'ineq',
+      'fun': lambda r, mask=mask, max_level=max_level: max_level - r.dot(mask),
+      'jac': lambda r, mask=np.ones(len(self)): -1*mask
     }]
     return constraints
 
