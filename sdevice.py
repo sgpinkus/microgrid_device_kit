@@ -33,6 +33,7 @@ class SDevice(Device):
   _damage_depth = 0.2
   _reserve = 0.5
   _efficiency = 1.0
+  _sustainment = 1.0
 
   def uv(self, r, p):
     return -1*self.charge_costs(r) - r*p
@@ -63,9 +64,6 @@ class SDevice(Device):
     cost3_deriv = self.deep_damage_at_deriv(r)
     return cost1_deriv + cost2_deriv + cost3_deriv
 
-  def charge_at(self, r):
-    return self.reserve*self.capacity+r.cumsum()
-
   def flip_cost_at(self, r):
     ''' Calculate total cost for flippyness in flow vector `r`. '''
     r = r.reshape((len(self),))
@@ -82,6 +80,30 @@ class SDevice(Device):
     for i in range(0, len(c)):
       d += c[i]*np.hstack((np.ones(i+1), np.zeros(len(c)-i-1)))
     return d
+
+  def charge_at(self, r):
+    ''' Return SoC vector given the RoC vector `r`. No check is made to ensure `r` is feasible. '''
+    sm = self.sustainment_matrix()
+    e = self.efficiency
+    s = self.sustainment
+    soc =  self.base()*(s**np.arange(1,len(self)+1)) + ((r*(e**np.sign(r)))*sm).cumsum(axis=1).diagonal()
+    return soc
+
+  def charge_at_lossless(self, r):
+    ''' Return SoC vector given the RoC vector `r`. No check is made to ensure r is feasible. '''
+    return self.base()+r.cumsum()
+
+  def sustainment_matrix(self):
+    ''' Returns a matrix with coefficients for how much of the input from the i-th timeslot eff in
+    the j-th timeslot, j >= i, when non perfect sustainment (i.e. some decay) is considered.
+    To get the actual SoC given a efficiency corrected RoC vector, r, use  r*m
+    '''
+    l = len(self)
+    exp = np.array([i.cumsum() for i in np.triu(np.ones((l, l)), 1)]).transpose()
+    return np.tril(self.sustainment**exp)
+
+  def base(self):
+    return self.reserve*self.capacity
 
   @property
   def c1(self):
@@ -112,6 +134,10 @@ class SDevice(Device):
     return self._efficiency
 
   @property
+  def sustainment(self):
+    return self._sustainment
+
+  @property
   def params(self):
     return {
       'c1': self.c1,
@@ -120,7 +146,8 @@ class SDevice(Device):
       'capacity': self.capacity,
       'reserve': self.reserve,
       'damage_depth': self.damage_depth,
-      'efficiency': self.efficiency
+      'efficiency': self.efficiency,
+      'sustainment': self.sustainment
     }
 
   @property
@@ -131,33 +158,36 @@ class SDevice(Device):
     Also impose that at EOD level is at least reserve.
     '''
     constraints = Device.constraints.fget(self)
-    min_level = self.reserve*self.capacity
-    max_level = self.capacity*(1 - self.reserve)
+    reserve = self.capacity*self.reserve
+    base = self.base()
     e = self.efficiency
+    s = self.sustainment
+    sustainment_matrix = self.sustainment_matrix()
     # Discrete integral always within [0,capacity]
     for i in range(0, len(self)):
-      mask = np.concatenate((np.ones(i+1), np.zeros(len(self)-i-1)))
-      constraints += [{
-        'type': 'ineq',
-        'fun': lambda r, mask=mask, min_level=min_level: min_level + ((e**np.sign(r))*r).dot(mask),
-        'jac': lambda r, mask=mask: (e**np.sign(r))*mask
-      },
+      mask = sustainment_matrix[i]
+      constraints += [
+        # SoC >=0
+        {
+          'type': 'ineq',
+          'fun': lambda r, mask=mask, i=i: base*(s**(i+1)) + ((e**np.sign(r))*r).dot(mask),
+          'jac': lambda r, mask=mask: (e**np.sign(r))*mask
+        },
+        # SoC <= capacity
+        {
+          'type': 'ineq',
+          'fun': lambda r, mask=mask, i=i: self.capacity - (base*(s**(i+1)) + ((e**np.sign(r))*r).dot(mask)),
+          'jac': lambda r, mask=mask: -1*(e**np.sign(r))*mask
+        }
+      ]
+    # At least reserve left at end of window.
+    constraints += [
       {
         'type': 'ineq',
-        'fun': lambda r, mask=mask, max_level=max_level: max_level - ((e**np.sign(r))*r).dot(mask),
-        'jac': lambda r, mask=mask: -1*(e**np.sign(r))*mask
-      }]
-    # At least reserve left at end of window.
-    constraints += [{
-      'type': 'ineq',
-      'fun': lambda r, mask=np.ones(len(self)), min_level=0: ((e**np.sign(r))*r).dot(mask),
-      'jac': lambda r, mask=np.ones(len(self)): (e**np.sign(r))*mask
-    },
-    {
-      'type': 'ineq',
-      'fun': lambda r, mask=mask, max_level=max_level: max_level - ((e**np.sign(r))*r).dot(mask),
-      'jac': lambda r, mask=np.ones(len(self)): -1*(e**np.sign(r))*mask
-    }]
+        'fun': lambda r, mask=sustainment_matrix[len(self)-1]: (base*(s**(i+1)) + ((e**np.sign(r))*r).dot(mask)) - reserve,
+        'jac': lambda r, mask=sustainment_matrix[len(self)-1]: (e**np.sign(r))*mask
+      },
+    ]
     return constraints
 
   @params.setter
@@ -178,6 +208,7 @@ class SDevice(Device):
     self.reserve = p['reserve']
     self.damage_depth = p['damage_depth']
     self.efficiency = p['efficiency']
+    self.sustainment = p['sustainment']
 
   @c1.setter
   def c1(self, c1):
@@ -224,3 +255,9 @@ class SDevice(Device):
     if not 0 < efficiency <= 1.0:
       raise ValueError('efficiency factor must be in range (0, 1]')
     self._efficiency = efficiency
+
+  @sustainment.setter
+  def sustainment(self, sustainment):
+    if not 0 < sustainment <= 1.0:
+      raise ValueError('sustainment must be in range (0, 1]')
+    self._sustainment = sustainment
