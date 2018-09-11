@@ -163,6 +163,9 @@ class SDevice(Device):
     e = self.efficiency
     s = self.sustainment
     sustainment_matrix = self.sustainment_matrix()
+    def soc(r, i):
+      mask = sustainment_matrix[i]
+      return base*(s**(i+1)) + ((e**np.sign(r))*r).dot(mask)
     # Discrete integral always within [0,capacity]
     for i in range(0, len(self)):
       mask = sustainment_matrix[i]
@@ -170,13 +173,13 @@ class SDevice(Device):
         # SoC >=0
         {
           'type': 'ineq',
-          'fun': lambda r, mask=mask, i=i: base*(s**(i+1)) + ((e**np.sign(r))*r).dot(mask),
+          'fun': lambda r, i=i: soc(r, i),
           'jac': lambda r, mask=mask: (e**np.sign(r))*mask
         },
         # SoC <= capacity
         {
           'type': 'ineq',
-          'fun': lambda r, mask=mask, i=i: self.capacity - (base*(s**(i+1)) + ((e**np.sign(r))*r).dot(mask)),
+          'fun': lambda r, i=i: self.capacity - soc(r, i),
           'jac': lambda r, mask=mask: -1*(e**np.sign(r))*mask
         }
       ]
@@ -184,7 +187,7 @@ class SDevice(Device):
     constraints += [
       {
         'type': 'ineq',
-        'fun': lambda r, mask=sustainment_matrix[len(self)-1]: (base*(s**(i+1)) + ((e**np.sign(r))*r).dot(mask)) - reserve,
+        'fun': lambda r: soc(r, len(self)-1) - reserve,
         'jac': lambda r, mask=sustainment_matrix[len(self)-1]: (e**np.sign(r))*mask
       },
     ]
