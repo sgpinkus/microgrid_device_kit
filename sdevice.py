@@ -34,6 +34,7 @@ class SDevice(Device):
   _reserve = 0.5
   _efficiency = 1.0
   _sustainment = 1.0
+  _rate_clip = None
 
   def uv(self, r, p):
     return -1*self.charge_costs(r) - r*p
@@ -138,6 +139,10 @@ class SDevice(Device):
     return self._sustainment
 
   @property
+  def rate_clip(self):
+    return self._rate_clip
+
+  @property
   def params(self):
     return {
       'c1': self.c1,
@@ -147,7 +152,8 @@ class SDevice(Device):
       'reserve': self.reserve,
       'damage_depth': self.damage_depth,
       'efficiency': self.efficiency,
-      'sustainment': self.sustainment
+      'sustainment': self.sustainment,
+      'rate_clip': self.rate_clip
     }
 
   @property
@@ -183,6 +189,24 @@ class SDevice(Device):
           'jac': lambda r, mask=mask: -1*(e**np.sign(r))*mask
         }
       ]
+    # RoC varies linearly as SoC varies capacity. rate_clip must be >=1
+    if self.rate_clip:
+      for i in range(0, len(self)):
+        mask = sustainment_matrix[i]
+        constraints += [
+          # RoC <= Rate_Clip*Max_RoC*((capacity-SoC)/capacity)
+          {
+            'type': 'ineq',
+            'fun': lambda r, i=i: self.rate_clip*self.hbounds[i]*((self.capacity - soc(r, i))/self.capacity) - r[i],
+            # 'jac': lambda r, mask=mask: (e**np.sign(r))*mask
+          },
+          # RoC >= Rate_Clip*Min_RoC*((SoC)/capacity)
+          {
+            'type': 'ineq',
+            'fun': lambda r, i=i: r[i] - self.rate_clip*self.lbounds[i]*((soc(r, i))/self.capacity),
+            # 'jac': lambda r, mask=mask: (e**np.sign(r))*mask
+          },
+        ]
     # At least reserve left at end of window.
     constraints += [
       {
@@ -212,6 +236,7 @@ class SDevice(Device):
     self.damage_depth = p['damage_depth']
     self.efficiency = p['efficiency']
     self.sustainment = p['sustainment']
+    self.rate_clip = p['rate_clip']
 
   @c1.setter
   def c1(self, c1):
@@ -264,3 +289,9 @@ class SDevice(Device):
     if not 0 < sustainment <= 1.0:
       raise ValueError('sustainment must be in range (0, 1]')
     self._sustainment = sustainment
+
+  @rate_clip.setter
+  def rate_clip(self, rate_clip):
+    if rate_clip is not None and not rate_clip >= 1.0:
+      raise ValueError('rate_clip must be >1')
+    self._rate_clip = rate_clip
