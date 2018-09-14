@@ -30,7 +30,7 @@ class SDevice(Device):
   _c2 = 0.1
   _c3 = 0.01
   _capacity = 10
-  _damage_depth = 0.2
+  _damage_depth = 0.0
   _reserve = 0.5
   _efficiency = 1.0
   _sustainment = 1.0
