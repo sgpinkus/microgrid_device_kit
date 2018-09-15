@@ -1,7 +1,7 @@
 import numpy as np
 import numdifftools as nd
 from powermarket.device import Device
-
+from powermarket.device.utils import base_soc, soc, sustainment_matrix
 
 class SDevice(Device):
   ''' Storage device. Behaviour is determined by settings but typically storage device draws and supplies resource.
@@ -34,6 +34,7 @@ class SDevice(Device):
   _reserve = 0.5
   _efficiency = 1.0
   _sustainment = 1.0
+  _sustainment_matrix = None
   _rate_clip = None
 
   def uv(self, r, p):
@@ -84,24 +85,11 @@ class SDevice(Device):
 
   def charge_at(self, r):
     ''' Return SoC vector given the RoC vector `r`. No check is made to ensure `r` is feasible. '''
-    sm = self.sustainment_matrix()
-    e = self.efficiency
-    s = self.sustainment
-    soc =  self.base()*(s**np.arange(1,len(self)+1)) + ((r*(e**np.sign(r)))*sm).cumsum(axis=1).diagonal()
-    return soc
+    return base_soc(self.base(), s=self.sustainment, l=len(self)) + soc(r, s=self.sustainment, e=self.efficiency)
 
   def charge_at_lossless(self, r):
     ''' Return SoC vector given the RoC vector `r`. No check is made to ensure r is feasible. '''
     return self.base()+r.cumsum()
-
-  def sustainment_matrix(self):
-    ''' Returns a matrix with coefficients for how much of the input from the i-th timeslot eff in
-    the j-th timeslot, j >= i, when non perfect sustainment (i.e. some decay) is considered.
-    To get the actual SoC given a efficiency corrected RoC vector, r, use  r*m
-    '''
-    l = len(self)
-    exp = np.array([i.cumsum() for i in np.triu(np.ones((l, l)), 1)]).transpose()
-    return np.tril(self.sustainment**exp)
 
   def base(self):
     return self.reserve*self.capacity
@@ -168,7 +156,7 @@ class SDevice(Device):
     base = self.base()
     e = self.efficiency
     s = self.sustainment
-    sustainment_matrix = self.sustainment_matrix()
+    sustainment_matrix = self._sustainment_matrix
     def soc(r, i):
       mask = sustainment_matrix[i]
       return base*(s**(i+1)) + ((e**np.sign(r))*r).dot(mask)
@@ -224,8 +212,8 @@ class SDevice(Device):
       raise ValueError('params to SDevice must be a dictionary')
     p = self.params
     p.update(params)
-    if p['c1'] <= p['c2']:
-      raise ValueError('c1 must be greater than c2')
+    if p['c2'] > 0 and p['c2'] >= p['c1']:
+      raise ValueError('c1 must be greater than c2 if c2 is not zero')
     if p['c1'] < 0 or p['c2'] < 0:
       raise ValueError('cost coefficients must be non -ve')
     self._c1 = p['c1']
@@ -289,6 +277,7 @@ class SDevice(Device):
     if not 0 < sustainment <= 1.0:
       raise ValueError('sustainment must be in range (0, 1]')
     self._sustainment = sustainment
+    self._sustainment_matrix = sustainment_matrix(sustainment, len(self))
 
   @rate_clip.setter
   def rate_clip(self, rate_clip):

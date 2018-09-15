@@ -137,7 +137,7 @@ class Device:
     if cbounds == None:
       self._cbounds = None
       return
-    if len(cbounds) != 2:
+    if not hasattr(cbounds, '__len__') or len(cbounds) != 2:
       raise ValueError('len(cbounds) must be 2')
     if cbounds[1] - cbounds[0] < 0:
       raise ValueError('max cbound (%f) must be >= min cbound (%f)' % (cbounds[1], cbounds[0]))

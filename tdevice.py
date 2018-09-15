@@ -1,18 +1,18 @@
 import numpy as np
 import numdifftools as nd
 from powermarket.device import Device, IDevice
-
+from powermarket.device.utils import soc, base_soc, sustainment_matrix
 
 class TDevice(IDevice):
   ''' Represents a heating or cooling device. Or really any device who's utility is based on a
-  set point that behaves like thermodynamics. The utility curve is the same as IDevice, but based on
+  point that behaves like thermodynamics. The utility curve is the same as IDevice, but based on
   instaneous temperature not resource consumption directly, and with two restrictions on parameters:
 
     IDevice.a is always 0.
     IDevice.b must be even. This is just a quick fix. May change to allow odd in future.
 
-  Note if one doesn't care about the temperature at a given time, set IDevice.c to zero. If one cares
-  a little, set IDevice.c a little.
+  Recall IDevice.c is a scaling factor for utility. Thus if one doesn't care about the temperature
+  at a given time, set IDevice.c to zero. If one cares a little, set IDevice.c a little.
 
   The instaneous temperature is dependent on resource consumption at all times before a given time.
   Under the hood, the thermodynamics are modelled by a simple discrete exponential equation:
@@ -25,6 +25,9 @@ class TDevice(IDevice):
   other parameters. So we haven't implemented them as hard constraints. The min|max temp inputs are
   actually just parameters to the utility function not hard constraints. Specifically the diff
   between t_optimal and t_min or t_max (symmetrically) is `c` units of utility (@see IDevice.c).
+
+  @todo this doesn't really need to extend IDevice. It just uses a classs method from IDevice for its
+  utility curve.
   '''
   _t_external = None              # External temperature vectors of `len` length.
   _t_init = None                  # The initial (and final) temperature T0.
@@ -34,6 +37,7 @@ class TDevice(IDevice):
   _t_b = None                     # Factor expressing thermal efficiency of this heat engine device.
   _t_base =  None                 # temperature without out any consumption by heat engine. Derived value.
   _t_utility_base = 0             # utility of t_base pre calculated & used as offset.
+  _sustainment_matrix = None      # stashed for use in deriv.
 
   def u(self, r, p):
     return self.uv(r,p).sum()
@@ -43,9 +47,8 @@ class TDevice(IDevice):
     return self.uv_t(self.r2t(r)) - r*p - self._t_utility_base
 
   def deriv(self, r, p):
-    ''' @override deriv() to do r to t conversion. Chain rule to account for r2t().
-    '''
-    return self.dexponents()*self.deriv_t(self.r2t(r)) - p
+    ''' @override deriv() to do r to t conversion. Chain rule to account for r2t(). '''
+    return self._t_b*self._sustainment_matrix.cumsum(axis=1).diagonal()*self.deriv_t(self.r2t(r)) - p
 
   def hess(self, r, p=0):
     ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far
@@ -66,21 +69,7 @@ class TDevice(IDevice):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer
     (t_base), thermal loss (t_a) and efficiency of device (t_b).
     '''
-    t = np.array(self._t_base)
-    for i in range(0,len(r)):
-      for j in range(0,i+1):
-        t[i] += self._t_b*r[j]*(1-self._t_a)**(i-j)
-    return t
-
-  def dexponents(self):
-    e = np.zeros(len(self))
-    for i in range(0, len(self)):
-      e[i] = self.exponents(i).sum()
-    return e*self._t_b
-
-  def exponents(self, i):
-    ''' Convenience helper method to get decaying terms at the i-th.'''
-    return np.array([(1-self._t_a)**(i-j) for j in range(0,i+1)])
+    return self.t_base + soc(r, s=(1- self.t_a), e=self.t_b)
 
   @property
   def params(self):
@@ -166,18 +155,16 @@ class TDevice(IDevice):
     self._t_utility_base = self.uv_t(self._t_base)
     self.t_act_min = (self.t_optimal - self.t_range) - self.t_base # Derived for convenience only.
     self.t_act_max = (self.t_optimal + self.t_range) - self.t_base # Derived for convenience only.
+    self._sustainment_matrix = sustainment_matrix((1 - self.t_a), len(self))
 
   def _make_t_base(self, t_external, t_a, t_init):
       ''' Calculate the base temperature, that occurs with no heat engine activity. This is used in
       utility calculation. Note `t_init` is the temperature in the last time-slot of last planning
       window, *not* the first time-slot of this planning window.
       '''
-      t_base = np.zeros(len(t_external)+1)
-      t_base[0] = t_init
-      for i in range(1,len(t_external)+1):
-        t_base[i] = t_base[i-1] + t_a*(t_external[i-1] - t_base[i-1])
-      t_base = t_base[1:]
+      t_base = base_soc(t_init, s=(1 - self.t_a), l=len(self)) + soc(t_external, s=(1 - self.t_a), e=self.t_a)
       return t_base
+
 
 class ContrainedTDevice(TDevice):
   ''' This class overrides TDevice in an attempt to actually implement the temperature constraints,
