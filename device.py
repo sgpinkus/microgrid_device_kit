@@ -59,16 +59,19 @@ class Device:
     return self._len
 
   def u(self, r, p):
-    ''' Get scalar utility value for `r` consumption, at price (parameter) `p` '''
-    return 0
+    ''' Get scalar utility value for `r` consumption, at price (parameter) `p`. This base Device's
+    utility function makes an assumption device cares linearly about costs. Generally all sub devices
+    should do this too.
+    '''
+    return (-r*p).sum()
 
   def deriv(self, r, p):
-    ''' Get jacobian vector of the utility at `r`, at price `p` '''
-    return np.zeros(len(self)) - p
+    ''' Get jacobian vector of the utility at `r`, at price `p`, which is just -p. '''
+    return -p
 
   def hess(self, r, p=0):
-    ''' Get hessian vector of the utility at `r`, at price `p`. With linear numeriare utility
-    price should drop out.
+    ''' Get hessian vector of the utility at `r`, at price `p`. With linear utility for the numeriare
+    price drops out.
     '''
     return np.zeros((len(self), len(self)))
 

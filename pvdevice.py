@@ -19,17 +19,7 @@ class PVDevice(Device):
 
   def uv(self, r, p):
     ''' Utility is profit which = revenue since costs are zero. '''
-    return -1*r*p
-
-  def u(self, r, p):
-    return self.uv(r, p).sum()
-
-  def deriv(self, r, p):
-    ''' Get jacobian vector of the utility at `r`, at price `p` '''
-    return -1*p
-
-  def hess(self, r, p=0):
-    return np.zeros((len(self), len(self)))
+    return -r*p
 
   @property
   def bounds(self):
