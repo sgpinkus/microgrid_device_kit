@@ -1,5 +1,5 @@
 import numpy as np
-
+from copy import deepcopy
 
 def base_soc(b, s, l):
   ''' Apply decay to scalar b over times l, at rate 1-s '''
@@ -26,3 +26,18 @@ def sustainment_matrix(s, l):
 def power_matrix(l):
   ''' Returns a lower triangular matrix, that can be used in a power series. '''
   return np.array([i.cumsum() for i in np.triu(np.ones((l, l)), 1)]).transpose()
+
+
+def care2bounds(device):
+  ''' The bounds style used by Device is same a scipy minimize, but it's annoying. This function
+  converts `care` array, plus `bounds` 2-tuple to Device.bounds style bounds.
+  '''
+  device = deepcopy(device)
+  care = device['care']
+  bounds = device['bounds']
+  del device['care']
+  if len(bounds) == 2:
+    device['bounds'] = np.stack((care*bounds[0], care*bounds[1]), axis=1)
+  else: # Assume bounds is a vector
+    device['bounds'] = np.stack((care*bounds, care*bounds), axis=1)
+  return device

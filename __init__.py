@@ -7,8 +7,9 @@ from .pvdevice import PVDevice
 from .gdevice import GDevice
 from .udevice import UDevice
 from .vldevice import VLDevice
-
+from .utils import care2bounds
 
 __all__ = [
-  'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice', 'UDevice', 'VLDevice'
+  'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice', 'UDevice', 'VLDevice',
+  'care2bounds'
 ]
