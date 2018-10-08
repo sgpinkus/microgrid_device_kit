@@ -3,6 +3,7 @@ import numdifftools as nd
 from powermarket.device import Device, IDevice
 from powermarket.device.utils import soc, base_soc, sustainment_matrix
 
+
 class TDevice(IDevice):
   ''' Represents a heating or cooling device. Or really any device who's utility is based on a
   point that behaves like thermodynamics. The utility curve is the same as IDevice, but based on
@@ -35,12 +36,12 @@ class TDevice(IDevice):
   _t_range = None                 # The +/- range min/max temp.
   _t_a = None                     # Factor expressing thermal conductivity to external environment.
   _t_b = None                     # Factor expressing thermal efficiency of this heat engine device.
-  _t_base =  None                 # temperature without out any consumption by heat engine. Derived value.
+  _t_base = None                 # temperature without out any consumption by heat engine. Derived value.
   _t_utility_base = 0             # utility of t_base pre calculated & used as offset.
   _sustainment_matrix = None      # stashed for use in deriv.
 
   def u(self, r, p):
-    return self.uv(r,p).sum()
+    return self.uv(r, p).sum()
 
   def uv(self, r, p):
     ''' @override uv() to do r to t conversion. '''
@@ -55,7 +56,7 @@ class TDevice(IDevice):
     Hessdiag is an OOM faster and works just as good if not better.
     '''
     # return nd.Hessian(lambda x: self.u(x,0))(r)
-    return np.diag(nd.Hessdiag(lambda x: self.u(x,0))(r))
+    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(r))
 
   def uv_t(self, t):
     _uv = np.vectorize(IDevice._u, otypes=[float])
@@ -69,7 +70,7 @@ class TDevice(IDevice):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer
     (t_base), thermal loss (t_a) and efficiency of device (t_b).
     '''
-    return self.t_base + soc(r, s=(1- self.t_a), e=self.t_b)
+    return self.t_base + soc(r, s=(1 - self.t_a), e=self.t_b)
 
   @property
   def params(self):
@@ -153,8 +154,8 @@ class TDevice(IDevice):
     self._t_range = p['t_range']
     self._t_base = self._make_t_base(self.t_external, self.t_a, self.t_init)
     self._t_utility_base = self.uv_t(self._t_base)
-    self.t_act_min = (self.t_optimal - self.t_range) - self.t_base # Derived for convenience only.
-    self.t_act_max = (self.t_optimal + self.t_range) - self.t_base # Derived for convenience only.
+    self.t_act_min = (self.t_optimal - self.t_range) - self.t_base  # Derived for convenience only.
+    self.t_act_max = (self.t_optimal + self.t_range) - self.t_base  # Derived for convenience only.
     self._sustainment_matrix = sustainment_matrix((1 - self.t_a), len(self))
 
   def _make_t_base(self, t_external, t_a, t_init):
@@ -205,11 +206,11 @@ class ContrainedTDevice(TDevice):
 
   def min_constraint_deriv(self, r, i):
     ''' Derivative of `min_constraint()`. '''
-    return np.pad(self._t_b*self.exponents(i), (0,len(r)-i-1), 'constant')
+    return np.pad(self._t_b*self.exponents(i), (0, len(r)-i-1), 'constant')
 
   def max_constraint_deriv(self, r, i):
     ''' Derivative of `max_constraint()`. '''
-    return np.pad(-1*self._t_b*self.exponents(i), (0,len(r)-i-1), 'constant')
+    return np.pad(-1*self._t_b*self.exponents(i), (0, len(r)-i-1), 'constant')
 
   @property
   def constraints(self):
@@ -232,11 +233,11 @@ class ContrainedTDevice(TDevice):
         constraints += [{
           'type': 'ineq',
           'fun': lambda r, i=i: self.min_constraint(r, i),
-          'jac': lambda r, i=i: self.min_constraint_deriv(r,i)
+          'jac': lambda r, i=i: self.min_constraint_deriv(r, i)
         },
         {
           'type': 'ineq',
           'fun': lambda r, i=i: self.max_constraint(r, i),
-          'jac': lambda r, i=i: self.max_constraint_deriv(r,i)
+          'jac': lambda r, i=i: self.max_constraint_deriv(r, i)
         }]
     return constraints

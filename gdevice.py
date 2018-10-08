@@ -70,8 +70,8 @@ class GDevice(Device):
     if len(bounds) != len(self):
       raise ValueError('bounds has wrong length (%d)' % len(bounds))
     bounds = np.array(bounds)
-    lbounds = np.array(bounds[:,0])
-    hbounds = np.array(bounds[:,1])
+    lbounds = np.array(bounds[:, 0])
+    hbounds = np.array(bounds[:, 1])
     if not (hbounds <= 0).all():
       raise ValueError('hbounds must be all zeros')
     Device.bounds.fset(self, bounds)

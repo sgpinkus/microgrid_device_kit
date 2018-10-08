@@ -6,8 +6,8 @@ class CDevice(Device):
   ''' Overrides Device to provide a utility function based on the sum resource consumption.
     The particular utility curve is described by 2 params. U = a(Q) + b. Since Q is summed up a,b are scalars.
   '''
-  _a = 0 # Slope
-  _b = 0 # Offset
+  _a = 0  # Slope
+  _b = 0  # Offset
 
   def u(self, r, p):
     return (self.a*r.sum() + self.b) - (r*p).sum()
@@ -20,7 +20,7 @@ class CDevice(Device):
 
   @property
   def params(self):
-    return {'a': self.a, 'b': self.b }
+    return {'a': self.a, 'b': self.b}
 
   @property
   def a(self):

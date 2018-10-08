@@ -2,6 +2,7 @@ import numpy as np
 import numdifftools as nd
 from powermarket.device import Device
 
+
 class IDevice(Device):
   ''' Provides a utility function that is independent for each time slot, concave, and increasing.
   The particular utility curve is described by 4 params and *also* uses on min/max consumption bounds
@@ -28,8 +29,8 @@ class IDevice(Device):
     ''' The utility function on scalar. '''
     if(x_l == x_h):
       return 0
-    n = lambda x: ((x-x_l)/(x_h-x_l))*(1-a) # Normalize x to [0, 1-a]
-    s = c/(1-a**b) # Scaling factor
+    n = lambda x: ((x-x_l)/(x_h-x_l))*(1-a)  # Normalize x to [0, 1-a]
+    s = c/(1-a**b)  # Scaling factor
     return s*(-1*(1 - n(x))**b + 1) + d
 
   @classmethod
@@ -37,8 +38,8 @@ class IDevice(Device):
     ''' The derivative of utility function on scalar. '''
     if(x_l == x_h):
       return 0
-    n = lambda x: ((x-x_l)/(x_h-x_l))*(1-a) # Normalize x to [0, 1-a]
-    s = c/(1-a**b) # Scaling factor
+    n = lambda x: ((x-x_l)/(x_h-x_l))*(1-a)  # Normalize x to [0, 1-a]
+    s = c/(1-a**b)  # Scaling factor
     return ((1-a)/(x_h-x_l))*b*s*((1 - n(x))**(b-1))
 
   def uv(self, r, p):
@@ -46,7 +47,7 @@ class IDevice(Device):
     return _uv(r, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - r*p
 
   def u(self, r, p):
-    return self.uv(r,p).sum()
+    return self.uv(r, p).sum()
 
   def deriv(self, r, p):
     _deriv = np.vectorize(IDevice._deriv, otypes=[float])
@@ -54,7 +55,7 @@ class IDevice(Device):
 
   def hess(self, r, p=0):
     ''' Return Hessian diagonal approximation. @todo write IDevice._hess(cls, ...). '''
-    return np.diag(nd.Hessdiag(lambda x: self.u(x,0))(r))
+    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(r))
 
   @property
   def params(self):
@@ -87,14 +88,14 @@ class IDevice(Device):
     p = IDevice.params.fget(self)
     p.update({k: v for k, v in params.items() if k in IDevice.params.fget(self).keys()})
     p = {k: np.array(v) for k, v in p.items()}
-    for k,v in p.items():
+    for k, v in p.items():
       if not (v.ndim == 0 or len(v) == len(self)):
         raise ValueError('params are required to have same length as device (%d)' % (len(self),))
       if not (v >= 0).all():
         raise ValueError('param %s must be >= 0' % (k,))
-    (a,b,c,d) = (p['a'], p['b'], p['c'], p['d'])
+    (a, b, c, d) = (p['a'], p['b'], p['c'], p['d'])
     if not (a <= self.hbounds - self.lbounds).all():
       raise ValueError('param a (offset) cannot be larger than extent of domain')
     if not (b > 0).all():
       raise ValueError('param b must be > 0')
-    (self._a, self._b, self._c, self._d) = (a,b,c,d)
+    (self._a, self._b, self._c, self._d) = (a, b, c, d)

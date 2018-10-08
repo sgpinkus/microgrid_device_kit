@@ -3,6 +3,7 @@ import numdifftools as nd
 from powermarket.device import Device
 from powermarket.device.utils import base_soc, soc, sustainment_matrix
 
+
 class SDevice(Device):
   ''' Storage device. Behaviour is determined by settings but typically storage device draws and supplies resource.
   The utility function has a cost and a reward component:
@@ -48,7 +49,7 @@ class SDevice(Device):
 
   def hess(self, r, p=0):
     ''' Return hessian approximation. '''
-    return nd.Hessian(lambda x: self.u(x,0))(r)
+    return nd.Hessian(lambda x: self.u(x, 0))(r)
 
   def charge_costs(self, r):
     ''' Get total costs for flow vector `r`. '''
@@ -62,7 +63,7 @@ class SDevice(Device):
     ''' Deriv of charge_costs(). '''
     r = r.reshape((len(self),))
     cost1_deriv = self.c1*2*r
-    cost2_deriv = self.c2*-1*np.hstack((r[1:],[r[len(r)-1]]))
+    cost2_deriv = self.c2*-1*np.hstack((r[1:], [r[len(r)-1]]))
     cost3_deriv = self.deep_damage_at_deriv(r)
     return cost1_deriv + cost2_deriv + cost3_deriv
 

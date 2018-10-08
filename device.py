@@ -33,7 +33,7 @@ class Device:
   _len = 0                # Fixed length of the following vectors / the planning window.
   _bounds = None          # Vector of 2-tuple min/max bounds on r.
   _cbounds = None         # 2-Tuple cummulative min/max bounds. Cummulative bounds are optional.
-  _feasible_region = None # Convex region representing *only* bounds and cbounds. Convenience.
+  _feasible_region = None  # Convex region representing *only* bounds and cbounds. Convenience.
   _params = None
 
   def __init__(self, id, length, bounds, cbounds=None, params=None):
@@ -41,7 +41,7 @@ class Device:
     zero. Sub classes should just override `params.setter` not `__init__`.
     @todo params should have just been **kwargs.
     '''
-    if type(id) != str or not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
+    if not isinstance(id, str) or not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
       raise ValueError('id must be a non empty string matching ^(?i)[a-z0-9][a-z0-9_-]*$')
     self._len = length
     self._id = id
@@ -85,11 +85,11 @@ class Device:
 
   @property
   def lbounds(self):
-    return np.array(self.bounds[:,0])
+    return np.array(self.bounds[:, 0])
 
   @property
   def hbounds(self):
-    return np.array(self.bounds[:,1])
+    return np.array(self.bounds[:, 1])
 
   @property
   def cbounds(self):
@@ -123,12 +123,12 @@ class Device:
     if not hasattr(bounds, '__len__'):
       raise ValueError('bounds must be a sequence type')
     if len(bounds) == 2:
-      bounds = np.array([bounds for i in range(0,len(self))])
+      bounds = np.array([bounds for i in range(0, len(self))])
     if len(bounds) != len(self):
       raise ValueError('bounds has wrong length (%d)' % len(bounds))
     bounds = np.array(bounds)
-    lbounds = np.array(bounds[:,0])
-    hbounds = np.array(bounds[:,1])
+    lbounds = np.array(bounds[:, 0])
+    hbounds = np.array(bounds[:, 1])
     if not np.vectorize(lambda v: v is None)(bounds).all() and not (hbounds - lbounds >= 0).all():
       raise ValueError('max bound must be >= min bound for all min/max bound pairs: %s' % (str(hbounds - lbounds),))
     self._bounds = bounds

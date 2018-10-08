@@ -1,9 +1,10 @@
 import numpy as np
 from copy import deepcopy
 
+
 def base_soc(b, s, l):
   ''' Apply decay to scalar b over times l, at rate 1-s '''
-  return b*(s**np.arange(1,l+1))
+  return b*(s**np.arange(1, l+1))
 
 
 def soc(r, s, e):
@@ -19,7 +20,7 @@ def sustainment_matrix(s, l):
   the opposite of decay, sustainment (s) or 1 means zero loss.
   '''
   if s == 1:
-    return np.tril(np.ones((l,l)))
+    return np.tril(np.ones((l, l)))
   return np.tril(s**power_matrix(l))
 
 
@@ -38,6 +39,6 @@ def care2bounds(device):
   del device['care']
   if len(bounds) == 2:
     device['bounds'] = np.stack((care*bounds[0], care*bounds[1]), axis=1)
-  else: # Assume bounds is a vector
+  else:  # Assume bounds is a vector
     device['bounds'] = np.stack((care*bounds, care*bounds), axis=1)
   return device
