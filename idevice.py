@@ -27,7 +27,7 @@ class IDevice(Device):
   @classmethod
   def _u(cls, x, a, b, c, d, x_l, x_h):
     ''' The utility function on scalar. '''
-    if(x_l == x_h):
+    if x_l == x_h:
       return 0
     n = lambda x: ((x-x_l)/(x_h-x_l))*(1-a)  # Normalize x to [0, 1-a]
     s = c/(1-a**b)  # Scaling factor
@@ -36,7 +36,7 @@ class IDevice(Device):
   @classmethod
   def _deriv(cls, x, a, b, c, d, x_l, x_h):
     ''' The derivative of utility function on scalar. '''
-    if(x_l == x_h):
+    if x_l == x_h:
       return 0
     n = lambda x: ((x-x_l)/(x_h-x_l))*(1-a)  # Normalize x to [0, 1-a]
     s = c/(1-a**b)  # Scaling factor

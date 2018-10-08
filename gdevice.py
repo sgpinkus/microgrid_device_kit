@@ -1,5 +1,4 @@
 import numpy as np
-import numdifftools as nd
 from powermarket.device import Device
 from .poly2d import poly2d
 
@@ -81,7 +80,7 @@ class GDevice(Device):
     ''' @override don't allow cbounds
     @todo to allow -ve cbounds.
     '''
-    if cbounds == None:
+    if cbounds is None:
       self._cbounds = None
     else:
       raise ValueError('cbounds not allowed for GDevice currently')

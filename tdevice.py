@@ -1,6 +1,6 @@
 import numpy as np
 import numdifftools as nd
-from powermarket.device import Device, IDevice
+from powermarket.device import IDevice
 from powermarket.device.utils import soc, base_soc, sustainment_matrix
 
 
@@ -76,12 +76,12 @@ class TDevice(IDevice):
   def params(self):
     p = IDevice.params.fget(self)
     p.update({
-        't_external': self.t_external,
-        't_init': self.t_init,
-        't_optimal': self.t_optimal,
-        't_range': self.t_range,
-        't_a': self.t_a,
-        't_b': self.t_b
+      't_external': self.t_external,
+      't_init': self.t_init,
+      't_optimal': self.t_optimal,
+      't_range': self.t_range,
+      't_a': self.t_a,
+      't_b': self.t_b
     })
     return p
 
@@ -159,12 +159,12 @@ class TDevice(IDevice):
     self._sustainment_matrix = sustainment_matrix((1 - self.t_a), len(self))
 
   def _make_t_base(self, t_external, t_a, t_init):
-      ''' Calculate the base temperature, that occurs with no heat engine activity. This is used in
-      utility calculation. Note `t_init` is the temperature in the last time-slot of last planning
-      window, *not* the first time-slot of this planning window.
-      '''
-      t_base = base_soc(t_init, s=(1 - self.t_a), l=len(self)) + soc(t_external, s=(1 - self.t_a), e=self.t_a)
-      return t_base
+    ''' Calculate the base temperature, that occurs with no heat engine activity. This is used in
+    utility calculation. Note `t_init` is the temperature in the last time-slot of last planning
+    window, *not* the first time-slot of this planning window.
+    '''
+    t_base = base_soc(t_init, s=(1 - t_a), l=len(self)) + soc(t_external, s=(1 - t_a), e=t_a)
+    return t_base
 
 
 class ContrainedTDevice(TDevice):

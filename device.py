@@ -2,7 +2,6 @@ import re
 import numpy as np
 from pprint import pformat
 from powermarket.projection import *
-from powermarket.device import *
 
 
 class Device:
@@ -137,7 +136,7 @@ class Device:
   @cbounds.setter
   def cbounds(self, cbounds):
     ''' Set cbounds ensuring they are feasible wrt (l|h)bounds. '''
-    if cbounds == None:
+    if cbounds is None:
       self._cbounds = None
       return
     if not hasattr(cbounds, '__len__') or len(cbounds) != 2:
@@ -153,7 +152,7 @@ class Device:
 
   @params.setter
   def params(self, params):
-    if params != None:
+    if params is not None:
       raise ValueError()
 
   def is_feasible(self, r):
