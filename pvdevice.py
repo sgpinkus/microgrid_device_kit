@@ -17,9 +17,9 @@ class PVDevice(Device):
 
   '''
 
-  def uv(self, r, p):
+  def uv(self, s, p):
     ''' Utility is profit which = revenue since costs are zero. '''
-    return -r*p
+    return -s*p
 
   @property
   def bounds(self):

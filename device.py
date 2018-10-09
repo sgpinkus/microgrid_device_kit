@@ -2,10 +2,11 @@ import re
 import numpy as np
 from pprint import pformat
 from powermarket.projection import *
+from powermarket.device import BaseDevice
 
 
-class Device:
-  ''' Base class for any type of device (AKA appliance). Devices are all characterised by having:
+class Device(BaseDevice):
+  ''' Base class for any type of device. Devices are all characterised by having:
 
       - A fixed length `len` which is the number of timeslots the device consumes/produces some resource.
       - A list of low/high resource consumption `bounds` of length `len`.
@@ -57,19 +58,19 @@ class Device:
   def __len__(self):
     return self._len
 
-  def u(self, r, p):
-    ''' Get scalar utility value for `r` consumption, at price (parameter) `p`. This base Device's
+  def u(self, s, p):
+    ''' Get scalar utility value for `s` consumption, at price (parameter) `p`. This base Device's
     utility function makes an assumption device cares linearly about costs. Generally all sub devices
     should do this too.
     '''
-    return (-r*p).sum()
+    return (-s*p).sum()
 
-  def deriv(self, r, p):
-    ''' Get jacobian vector of the utility at `r`, at price `p`, which is just -p. '''
+  def deriv(self, s, p):
+    ''' Get jacobian vector of the utility at `s`, at price `p`, which is just -p. '''
     return -p
 
-  def hess(self, r, p=0):
-    ''' Get hessian vector of the utility at `r`, at price `p`. With linear utility for the numeriare
+  def hess(self, s, p=0):
+    ''' Get hessian vector of the utility at `s`, at price `p`. With linear utility for the numeriare
     price drops out.
     '''
     return np.zeros((len(self), len(self)))
@@ -77,6 +78,10 @@ class Device:
   @property
   def id(self):
     return self._id
+
+  @property
+  def shape(self):
+    return (1, len(self))
 
   @property
   def bounds(self):
@@ -95,26 +100,28 @@ class Device:
     return self._cbounds
 
   @property
-  def minsum(self):
-    return self.cbounds[0] if self.cbounds is not None else self.lbounds.sum()
-
-  @property
-  def maxsum(self):
-    return self.cbounds[1] if self.cbounds is not None else self.hbounds.sum()
+  def constraints(self):
+    ''' Get scipy.optimize.minimize style constraint list for this device.
+    Contraints at this level are just cbounds. bounds constraints are generally handled separately.
+    '''
+    constraints = []
+    if self.cbounds:
+      constraints += [{
+        'type': 'ineq',
+        'fun': lambda s: s.dot(np.ones(len(self))) - self.cbounds[0],
+        'jac': lambda s: np.ones(len(self))
+      },
+      {
+        'type': 'ineq',
+        'fun': lambda s: self.cbounds[1] - s.dot(np.ones(len(self))),
+        'jac': lambda s: -1*np.ones(len(self))
+      }]
+    return constraints
 
   @property
   def params(self):
     ''' Get params in same format as passed in. '''
     return self._params
-
-  @property
-  def feasible_region(self):
-    return self._feasible_region
-
-  @property
-  def care_time(self):
-    ''' (lbounds == hbouds) && (lbounds == 0) '''
-    return np.array(((self.lbounds != 0) | (self.lbounds != self.hbounds)), dtype=float)
 
   @bounds.setter
   def bounds(self, bounds):
@@ -155,22 +162,8 @@ class Device:
     if params is not None:
       raise ValueError()
 
-  def is_feasible(self, r):
-    ''' Check bounds and cbounds '''
-    if not (r - self.bounds[0] >= 0).all():
-      return False
-    if not (r - self.bounds[1] <= 0).all():
-      return False
-    if self.cbounds:
-      if self.cbounds[0] != None and r.sum() < self.cbounds[0]:
-        return False
-      if self.cbounds[1] != None and r.sum() > self.cbounds[1]:
-        return False
-    return True
-
-  def project(self, r):
-    ''' Project vector r onto own feasible region. I.e. make `r` feasible. '''
-    return self._feasible_region.project(r)
+  def project(self, s):
+    return self._feasible_region.project(s.reshape(len(self)))
 
   def to_dict(self):
     ''' Serialize '''
@@ -181,30 +174,6 @@ class Device:
       'cbounds': self.cbounds,
       'params': self.params
     }
-
-  @classmethod
-  def from_dict(cls, d):
-    ''' Just call constructor. Nothing special to do. '''
-    return cls(**d)
-
-  @property
-  def constraints(self):
-    ''' Get scipy.optimize.minimize style constraint list for this device.
-    Contraints at this level are just cbounds. bounds constraints are generally handled separately.
-    '''
-    constraints = []
-    if self.cbounds:
-      constraints += [{
-        'type': 'ineq',
-        'fun': lambda r: r.dot(np.ones(len(self))) - self.cbounds[0],
-        'jac': lambda r: np.ones(len(self))
-      },
-      {
-        'type': 'ineq',
-        'fun': lambda r: self.cbounds[1] - r.dot(np.ones(len(self))),
-        'jac': lambda r: -1*np.ones(len(self))
-      }]
-    return constraints
 
   def _build_feasible_region(self):
     region = HyperCube(self.bounds)

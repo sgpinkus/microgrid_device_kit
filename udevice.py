@@ -8,14 +8,14 @@ class UDevice(Device):
   '''
   _f = 0
 
-  def u(self, r, p):
-    return self._f(r) - (r*p).sum()
+  def u(self, s, p):
+    return self._f(s) - (s*p).sum()
 
-  def deriv(self, r, p):
-    return self._f.deriv()(r) - p
+  def deriv(self, s, p):
+    return self._f.deriv()(s) - p
 
-  def hess(self, r, p=0):
-    return self._f.hess()(r)
+  def hess(self, s, p=0):
+    return self._f.hess()(s)
 
   @property
   def params(self):

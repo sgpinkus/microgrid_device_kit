@@ -42,20 +42,20 @@ class IDevice(Device):
     s = c/(1-a**b)  # Scaling factor
     return ((1-a)/(x_h-x_l))*b*s*((1 - n(x))**(b-1))
 
-  def uv(self, r, p):
+  def uv(self, s, p):
     _uv = np.vectorize(IDevice._u, otypes=[float])
-    return _uv(r, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - r*p
+    return _uv(s, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - s*p
 
-  def u(self, r, p):
-    return self.uv(r, p).sum()
+  def u(self, s, p):
+    return self.uv(s, p).sum()
 
-  def deriv(self, r, p):
+  def deriv(self, s, p):
     _deriv = np.vectorize(IDevice._deriv, otypes=[float])
-    return _deriv(r, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - p
+    return _deriv(s, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - p
 
-  def hess(self, r, p=0):
+  def hess(self, s, p=0):
     ''' Return Hessian diagonal approximation. @todo write IDevice._hess(cls, ...). '''
-    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(r))
+    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s.reshape(len(self))))
 
   @property
   def params(self):

@@ -9,13 +9,13 @@ class CDevice(Device):
   _a = 0  # Slope
   _b = 0  # Offset
 
-  def u(self, r, p):
-    return (self.a*r.sum() + self.b) - (r*p).sum()
+  def u(self, s, p):
+    return (self.a*s.sum() + self.b) - (s*p).sum()
 
-  def deriv(self, r, p):
+  def deriv(self, s, p):
     return np.ones(len(self))*(self.a - p)
 
-  def hess(self, r, p=0):
+  def hess(self, s, p=0):
     return np.zeros((len(self), len(self)))
 
   @property

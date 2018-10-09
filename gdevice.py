@@ -27,22 +27,22 @@ class GDevice(Device):
   _cost_d1_fn = None
   _cost_d2_fn = None
 
-  def uv(self, r, p):
-    ''' Get utility vector for r, p. '''
-    return -1*r*p - self._cost_fn(-r)
+  def uv(self, s, p):
+    ''' Get utility vector for s, p. '''
+    return -1*s*p - self._cost_fn(-s)
 
-  def u(self, r, p):
-    return self.uv(r, p).sum()
+  def u(self, s, p):
+    return self.uv(s, p).sum()
 
-  def deriv(self, r, p):
+  def deriv(self, s, p):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
-    return -p + self._cost_d1_fn(-r)
+    return -p + self._cost_d1_fn(-s)
 
-  def hess(self, r, p=0):
+  def hess(self, s, p=0):
     ''' Return hessian. Hessdiag == Hessian for the given utility function.
     @todo actually easy to deriv explicitly ...
     '''
-    return -1*np.diag(self._cost_d2_fn(-r))
+    return -1*np.diag(self._cost_d2_fn(-s))
 
   @property
   def bounds(self):

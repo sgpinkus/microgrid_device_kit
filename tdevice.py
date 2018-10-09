@@ -40,23 +40,23 @@ class TDevice(IDevice):
   _t_utility_base = 0             # utility of t_base pre calculated & used as offset.
   _sustainment_matrix = None      # stashed for use in deriv.
 
-  def u(self, r, p):
-    return self.uv(r, p).sum()
+  def u(self, s, p):
+    return self.uv(s, p).sum()
 
-  def uv(self, r, p):
+  def uv(self, s, p):
     ''' @override uv() to do r to t conversion. '''
-    return self.uv_t(self.r2t(r)) - r*p - self._t_utility_base
+    return self.uv_t(self.r2t(s)) - s*p - self._t_utility_base
 
-  def deriv(self, r, p):
+  def deriv(self, s, p):
     ''' @override deriv() to do r to t conversion. Chain rule to account for r2t(). '''
-    return self._t_b*self._sustainment_matrix.cumsum(axis=1).diagonal()*self.deriv_t(self.r2t(r)) - p
+    return self._t_b*self._sustainment_matrix.cumsum(axis=1).diagonal()*self.deriv_t(self.r2t(s)) - p
 
-  def hess(self, r, p=0):
+  def hess(self, s, p=0):
     ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far
     Hessdiag is an OOM faster and works just as good if not better.
     '''
     # return nd.Hessian(lambda x: self.u(x,0))(r)
-    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(r))
+    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s))
 
   def uv_t(self, t):
     _uv = np.vectorize(IDevice._u, otypes=[float])

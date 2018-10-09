@@ -38,18 +38,18 @@ class SDevice(Device):
   _sustainment_matrix = None
   _rate_clip = None
 
-  def uv(self, r, p):
-    return -1*self.charge_costs(r) - r*p
+  def uv(self, s, p):
+    return -1*self.charge_costs(s) - s*p
 
-  def u(self, r, p):
-    return self.uv(r, p).sum()
+  def u(self, s, p):
+    return self.uv(s, p).sum()
 
-  def deriv(self, r, p):
-    return -1*self.charge_costs_deriv(r) - p
+  def deriv(self, s, p):
+    return -1*self.charge_costs_deriv(s) - p
 
-  def hess(self, r, p=0):
+  def hess(self, s, p=0):
     ''' Return hessian approximation. '''
-    return nd.Hessian(lambda x: self.u(x, 0))(r)
+    return nd.Hessian(lambda x: self.u(x, 0))(s.reshape(len(self)))
 
   def charge_costs(self, r):
     ''' Get total costs for flow vector `r`. '''
