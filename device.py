@@ -6,28 +6,7 @@ from powermarket.device import BaseDevice
 
 
 class Device(BaseDevice):
-  ''' Base class for any type of device. Devices are all characterised by having:
-
-      - A fixed length `len` which is the number of timeslots the device consumes/produces some resource.
-      - A list of low/high resource consumption `bounds` of length `len`.
-      - Optional cummulative bounds (`cbounds`) for resource consumption over `len`.
-      - A concave differentiable utility function `u`, which represents how much value the device
-          gets from consuming/producing a given resource vector of length `len` at some price.
-
-    This class is more or less a dumb container for the above settings. Sub classes should implement
-    (and vary primarily in the implementation of), the utility function.
-
-    Because the bounds and cbounds constraints are so common they are implemented in this base Device
-    class for convenience. Sub devices can implement more complex constraints than acheivable with
-    bounds` and cbounds. Constraints should be convex but this is not currently enforced. Note try
-    to maintain:
-
-      - Device is stateless.
-      - Device should be considered immutable (the currently available setters are all used on init).
-      - Device is serializable and and constructable from the serialization.
-
-    Note Python3 @properties have been used throughout these classes. They mainly serve as very
-    verbose and slow way to protect a field, by only defining a getter. Setters are sparingly defined.
+  ''' BaseDevice implementation for single Device.
   '''
   _id = None              # The identifier of this device.
   _len = 0                # Fixed length of the following vectors / the planning window.
@@ -85,6 +64,17 @@ class Device(BaseDevice):
   @property
   def shape(self):
     return (1, len(self))
+
+  @property
+  def shapes(self):
+    return [self.shape]
+
+  @property
+  def partition(self):
+    ''' Returns array of (offset, length) tuples for each sub-device's mapping onto this device's `s` '''
+    p = self.shapes[:,0]
+    ps = [0] + list(p.cumsum())[0:-1]
+    return np.array(tuple(zip(ps, p)), dtype=int)
 
   @property
   def bounds(self):

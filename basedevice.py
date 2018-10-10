@@ -13,7 +13,7 @@ class BaseDevice(ABC):
 
       - A fixed length, `len`, which is the number of slots during which the device consumes or
         produces some resource.
-      - A shape which is (`N`,`len`), N is 1 for normal devices, but accounts for a device potentially
+      - A shape which is (`N`,`len`), N is 1 for atomic devices, but accounts for a device potentially
         being a composite.
       - A list of low/high resource consumption `bounds` of length `N`*`len`.
       - A concave differentiable utility function `u()`, which represents how much value the device
@@ -22,14 +22,18 @@ class BaseDevice(ABC):
     This class is more or less a dumb container for the above settings. Sub classes should implement
     (and vary primarily in the implementation of), the utility function.
 
-    Constraints should be convex but this is not currently enforced. Try to maintain:
+    This class declares the necessary interfaces to treat a BaseDevice as a composite, __iter__(),
+    shapes(), partition().
 
-      - Device is stateless.
+    Constraints should be convex but this is not currently enforced. Rule should be:
+
       - Device should be considered immutable (the currently available setters are all used on init).
       - Device is serializable and and constructable from the serialization.
 
     Note Python3 @properties have been used throughout these classes. They mainly serve as very
     verbose and slow way to protect a field, by only defining a getter. Setters are sparingly defined.
+
+    @todo rename DeviceSpace
   '''
 
   @abstractmethod
@@ -38,9 +42,6 @@ class BaseDevice(ABC):
 
   @abstractmethod
   def __iter__(self):
-    ''' BaseDevice may or may not be a composite of other devices. An atomic device should just yield
-    itself.
-    '''
     yield self
 
   @abstractmethod
@@ -70,6 +71,19 @@ class BaseDevice(ABC):
   @property
   @abstractmethod
   def shape(self):
+    ''' Overall shape of this device '''
+    pass
+
+  @property
+  @abstractmethod
+  def shapes(self):
+    ''' Array of shapes of sub devices. '''
+    pass
+
+  @property
+  @abstractmethod
+  def partition(self):
+    ''' Returns array of (offset, length) tuples for each sub-device's mapping onto this device's `s` '''
     pass
 
   @property
@@ -128,7 +142,7 @@ class BaseDevice(ABC):
         logger.warn(ol)
       else:
         raise OptimizationException(ol)
-    s_next = s + ol.x*(s_next - s)
+    s_next = (s + ol.x*(s_next - s)).reshape(self.shape)
     return (s_next, ol)
 
   def solve(self, p, s0=None, solver_options={}):
@@ -167,7 +181,7 @@ class BaseDevice(ABC):
     )
     if not o.success:
       raise OptimizationException(o)
-    return (o.x, o)
+    return ((o.x).reshape(self.shape), o)
 
   @classmethod
   def from_dict(cls, d):

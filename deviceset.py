@@ -27,7 +27,7 @@ class DeviceSet(BaseDevice):
     if not (np.vectorize(lambda a: len(a))(np.array(devices)) == len(devices[0])).all():
       raise ValueError('Devices have miss-matched lengths')
     if id is not None and not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
-      raise ValueError('id must be a non empty string matching ^(?i)[a-z0-9][a-z0-9_-]*$')
+      raise ValueError('id must be string matching ^(?i)[a-z0-9][a-z0-9_-]*$ of None. Given "%s"' % (id,))
     if id is None:
       id = str(uuid.uuid4())[0:8]
     self._id = id
@@ -83,17 +83,14 @@ class DeviceSet(BaseDevice):
 
   @property
   def shape(self):
-    ''' Overall shape of this device '''
     return (self.shapes.sum(axis=0)[0], len(self))
 
   @property
   def shapes(self):
-    ''' Array of shapes of sub devices. '''
     return np.array(tuple([d.shape for d in self.devices]))
 
   @property
   def partition(self):
-    ''' Returns array of (offset, length) tuples for each sub-device's mapping onto this device's `s` '''
     p = self.shapes[:,0]
     ps = [0] + list(p.cumsum())[0:-1]
     return np.array(tuple(zip(ps, p)), dtype=int)
@@ -142,12 +139,12 @@ class DeviceSet(BaseDevice):
       for i in range(0, len(self)): # for each time
         constraints += [{
           'type': 'ineq',
-          'fun': lambda s, i=i: s.reshape(shape)[:, i].dot(np.ones(shape[0])) - self.sbounds[0],
+          'fun': lambda s, i=i: s.reshape(shape)[:, i].dot(np.ones(shape[0])) - self.sbounds[i][0],
           'jac': lambda s, i=i: zero_mask(s.reshape(shape), lambda r: np.ones(shape[0]), col=i).reshape(flat_shape)
         },
         {
           'type': 'ineq',
-          'fun': lambda s, i=i: self.sbounds[1] - s.reshape(shape)[:, i].dot(np.ones(shape[0])),
+          'fun': lambda s, i=i: self.sbounds[i][1] - s.reshape(shape)[:, i].dot(np.ones(shape[0])),
           'jac': lambda s, i=i: zero_mask(s.reshape(shape), lambda r: -1*np.ones(shape[0]), col=i).reshape(flat_shape)
         }]
     return constraints
