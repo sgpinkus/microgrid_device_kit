@@ -39,7 +39,11 @@ class DeviceSet(BaseDevice):
     return self._len
 
   def __str__(self):
-    return self.to_string(1)
+    return '\n'.join([str(d) for d in self.devices])
+
+  def __iter__(self):
+    for d in self.devices:
+      yield d
 
   def u(self, s, p):
     ''' Get the sum of the utility of current solution accross all devices as scalar. '''

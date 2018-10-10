@@ -1,4 +1,4 @@
-from .basedevice import BaseDevice
+from .basedevice import *
 from .device import Device
 from .cdevice import CDevice
 from .idevice import IDevice
@@ -13,5 +13,5 @@ from .utils import care2bounds
 
 __all__ = [
   'BaseDevice', 'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice',
-  'UDevice', 'VLDevice', 'DeviceSet', 'care2bounds'
+  'UDevice', 'VLDevice', 'DeviceSet', 'care2bounds', 'zero_mask', 'project', 'OptimizationException'
 ]

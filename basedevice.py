@@ -37,6 +37,13 @@ class BaseDevice(ABC):
     pass
 
   @abstractmethod
+  def __iter__(self):
+    ''' BaseDevice may or may not be a composite of other devices. An atomic device should just yield
+    itself.
+    '''
+    yield self
+
+  @abstractmethod
   def u(self, s, p):
     ''' Scalar utility for `s` at `p`. `s` should have the same shape as this Device. '''
     pass
