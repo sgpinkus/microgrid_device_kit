@@ -13,5 +13,6 @@ from .utils import care2bounds
 
 __all__ = [
   'BaseDevice', 'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice',
-  'UDevice', 'VLDevice', 'DeviceSet', 'care2bounds', 'zero_mask', 'project', 'OptimizationException'
+  'UDevice', 'VLDevice', 'DeviceSet', 'care2bounds', 'zero_mask', 'project', 'OptimizationException',
+  'leaf_devices'
 ]

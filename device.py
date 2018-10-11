@@ -37,9 +37,6 @@ class Device(BaseDevice):
   def __len__(self):
     return self._len
 
-  def __iter__(self):
-    yield self
-
   def u(self, s, p):
     ''' Get scalar utility value for `s` consumption, at price (parameter) `p`. This base Device's
     utility function makes an assumption device cares linearly about costs. Generally all sub devices
