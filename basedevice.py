@@ -158,7 +158,7 @@ class BaseDevice(ABC):
     @see http://www.pyopt.org/reference/optimizers.slsqp.html
     @see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     '''
-    _solver_options = {'ftol': 5e-6, 'maxiter': 500}
+    _solver_options = {'ftol': 1e-6, 'maxiter': 500}
     _solver_options.update(solver_options)
     # logger.info(_solver_options)
     s0 = s0 if s0 is not None else self.project(np.zeros(self.shape))

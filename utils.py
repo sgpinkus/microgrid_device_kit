@@ -9,8 +9,11 @@ def base_soc(b, s, l):
 
 def soc(r, s, e):
   ''' Get "state of charge" or rather state of something. This is basically calculating a discrete
-  integral for all values between [0,len(r)] given r, some sustainment and efficiency factors.
+  integral for all values between [0,len(r)] given r, some sustainment `s` and efficiency `e` factors.
   '''
+  r = np.array(r)
+  if len(r.shape) != 1:
+    raise ValueError('Input value must have vector shape not %s' % (r.shape,))
   sm = sustainment_matrix(s, len(r))
   return ((r*(e**np.sign(r)))*sm).cumsum(axis=1).diagonal()
 

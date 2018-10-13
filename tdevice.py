@@ -36,7 +36,7 @@ class TDevice(IDevice):
   _t_range = None                 # The +/- range min/max temp.
   _t_a = None                     # Factor expressing thermal conductivity to external environment.
   _t_b = None                     # Factor expressing thermal efficiency of this heat engine device.
-  _t_base = None                 # temperature without out any consumption by heat engine. Derived value.
+  _t_base = None                  # temperature without out any consumption by heat engine. Derived value.
   _t_utility_base = 0             # utility of t_base pre calculated & used as offset.
   _sustainment_matrix = None      # stashed for use in deriv.
 
@@ -70,7 +70,7 @@ class TDevice(IDevice):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer
     (t_base), thermal loss (t_a) and efficiency of device (t_b).
     '''
-    return self.t_base + soc(r, s=(1 - self.t_a), e=self.t_b)
+    return self.t_base + soc(r.reshape(len(self)), s=(1 - self.t_a), e=self.t_b)
 
   @property
   def params(self):
