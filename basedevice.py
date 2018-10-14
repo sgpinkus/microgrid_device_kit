@@ -219,7 +219,7 @@ def project(p, x0, bounds=[], constraints=[], solver_options={}):
   ''' Find the point in feasible region closest to p. '''
   p = p.flatten()
   options = {
-    'ftol': 1e-10,
+    'ftol': 1e-9,
     'disp': False,
     'maxiter': 200
   }

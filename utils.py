@@ -1,3 +1,4 @@
+import functools
 import numpy as np
 from copy import deepcopy
 
@@ -18,6 +19,7 @@ def soc(r, s, e):
   return ((r*(e**np.sign(r)))*sm).cumsum(axis=1).diagonal()
 
 
+@functools.lru_cache()
 def sustainment_matrix(s, l):
   ''' Returns a matrix with coefficients for basically thermal-ish decay. Note "sustainment" is
   the opposite of decay, sustainment (s) or 1 means zero loss.
@@ -27,6 +29,7 @@ def sustainment_matrix(s, l):
   return np.tril(s**power_matrix(l))
 
 
+@functools.lru_cache()
 def power_matrix(l):
   ''' Returns a lower triangular matrix, that can be used in a power series. '''
   return np.array([i.cumsum() for i in np.triu(np.ones((l, l)), 1)]).transpose()

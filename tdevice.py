@@ -30,26 +30,26 @@ class TDevice(IDevice):
   @todo this doesn't really need to extend IDevice. It just uses a classs method from IDevice for its
   utility curve.
   '''
-  _t_external = None              # External temperature vectors of `len` length.
-  _t_init = None                  # The initial (and final) temperature T0.
-  _t_optimal = None               # The scalar ideal temperature TC. It's assumed ideal temperature is time invariant.
-  _t_range = None                 # The +/- range min/max temp.
-  _t_a = None                     # Factor expressing thermal conductivity to external environment.
-  _t_b = None                     # Factor expressing thermal efficiency of this heat engine device.
-  _t_base = None                  # temperature without out any consumption by heat engine. Derived value.
-  _t_utility_base = 0             # utility of t_base pre calculated & used as offset.
-  _sustainment_matrix = None      # stashed for use in deriv.
+  t_external = None              # External temperature vectors of `len` length.
+  t_init = None                  # The initial (and final) temperature T0.
+  t_optimal = None               # The scalar ideal temperature TC. It's assumed ideal temperature is time invariant.
+  t_range = None                 # The +/- range min/max temp.
+  t_a = None                     # Factor expressing thermal conductivity to external environment.
+  t_b = None                     # Factor expressing thermal efficiency of this heat engine device.
+  t_base = None                  # temperature without out any consumption by heat engine. Derived value.
+  t_utility_base = 0             # utility of t_base pre calculated & used as offset.
+  sustainment_matrix = None      # stashed for use in deriv.
 
   def u(self, s, p):
     return self.uv(s, p).sum()
 
   def uv(self, s, p):
     ''' @override uv() to do r to t conversion. '''
-    return self.uv_t(self.r2t(s)) - s*p - self._t_utility_base
+    return self.uv_t(self.r2t(s)) - s*p - self.t_utility_base
 
   def deriv(self, s, p):
     ''' @override deriv() to do r to t conversion. Chain rule to account for r2t(). '''
-    return self._t_b*self._sustainment_matrix.cumsum(axis=1).diagonal()*self.deriv_t(self.r2t(s)) - p
+    return self.t_b*self.sustainment_matrix.cumsum(axis=1).diagonal()*self.deriv_t(self.r2t(s)) - p
 
   def hess(self, s, p=0):
     ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far
@@ -59,12 +59,10 @@ class TDevice(IDevice):
     return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s))
 
   def uv_t(self, t):
-    _uv = np.vectorize(IDevice._u, otypes=[float])
-    return _uv(t, self.a, self.b, self.c, self.d, self.t_min, self.t_optimal)
+    return np.vectorize(IDevice._u, otypes=[float])(t, self.a, self.b, self.c, self.d, self.t_min, self.t_optimal)
 
   def deriv_t(self, t):
-    _deriv = np.vectorize(IDevice._deriv, otypes=[float])
-    return _deriv(t, self.a, self.b, self.c, self.d, self.t_min, self.t_optimal)
+    return np.vectorize(IDevice._deriv, otypes=[float])(t, self.a, self.b, self.c, self.d, self.t_min, self.t_optimal)
 
   def r2t(self, r):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer
@@ -84,34 +82,6 @@ class TDevice(IDevice):
       't_b': self.t_b
     })
     return p
-
-  @property
-  def t_external(self):
-    return self._t_external
-
-  @property
-  def t_init(self):
-    return self._t_init
-
-  @property
-  def t_optimal(self):
-    return self._t_optimal
-
-  @property
-  def t_range(self):
-    return self._t_range
-
-  @property
-  def t_a(self):
-    return self._t_a
-
-  @property
-  def t_b(self):
-    return self._t_b
-
-  @property
-  def t_base(self):
-    return self._t_base
 
   @property
   def t_min(self):
@@ -146,17 +116,17 @@ class TDevice(IDevice):
       raise ValueError('thermal efficiency must not be 0')
     if p['t_a'] < 0 or p['t_a'] > 1:
       raise ValueError('heat transfer coefficient must be in [0,1]')
-    self._t_a = p['t_a']
-    self._t_b = p['t_b']
-    self._t_external = p['t_external']
-    self._t_init = p['t_init']
-    self._t_optimal = p['t_optimal']
-    self._t_range = p['t_range']
-    self._t_base = self._make_t_base(self.t_external, self.t_a, self.t_init)
-    self._t_utility_base = self.uv_t(self._t_base)
+    self.t_a = p['t_a']
+    self.t_b = p['t_b']
+    self.t_external = p['t_external']
+    self.t_init = p['t_init']
+    self.t_optimal = p['t_optimal']
+    self.t_range = p['t_range']
+    self.t_base = self._make_t_base(self.t_external, self.t_a, self.t_init)
+    self.t_utility_base = self.uv_t(self.t_base)
     self.t_act_min = (self.t_optimal - self.t_range) - self.t_base  # Derived for convenience only.
     self.t_act_max = (self.t_optimal + self.t_range) - self.t_base  # Derived for convenience only.
-    self._sustainment_matrix = sustainment_matrix((1 - self.t_a), len(self))
+    self.sustainment_matrix = sustainment_matrix((1 - self.t_a), len(self))
 
   def _make_t_base(self, t_external, t_a, t_init):
     ''' Calculate the base temperature, that occurs with no heat engine activity. This is used in
@@ -181,12 +151,12 @@ class ContrainedTDevice(TDevice):
     a bit if-y and doesn't actually work all the time!
     @see constraints
     '''
-    v = self._t_b*(self.exponents(i)*r[0:i+1]).sum() + self._t_base[i] - self.t_min
+    v = self.t_b*(self.exponents(i)*r[0:i+1]).sum() + self.t_base[i] - self.t_min
     if v >= 0:
       return v
-    elif self._t_b < 0 and self.lbounds[i] - r[i] + self._precision >= 0:
+    elif self.t_b < 0 and self.lbounds[i] - r[i] + self._precision >= 0:
       return self._precision
-    elif self._t_b > 0 and r[i] - self.hbounds[i] + self._precision >= 0:
+    elif self.t_b > 0 and r[i] - self.hbounds[i] + self._precision >= 0:
       return self._precision
     return v
 
@@ -195,22 +165,22 @@ class ContrainedTDevice(TDevice):
     parameters and/or consumption constraints.
     @see min_constraint(), constraints.
     '''
-    v = self.t_max - self._t_b*(self.exponents(i)*r[0:i+1]).sum() - self._t_base[i]
+    v = self.t_max - self.t_b*(self.exponents(i)*r[0:i+1]).sum() - self.t_base[i]
     if v >= 0:
       return v
-    elif self._t_b < 0 and r[i] - self.hbounds[i] + self._precision >= 0:
+    elif self.t_b < 0 and r[i] - self.hbounds[i] + self._precision >= 0:
       return self._precision
-    elif self._t_b > 0 and self.lbounds[i] - r[i] + self._precision >= 0:
+    elif self.t_b > 0 and self.lbounds[i] - r[i] + self._precision >= 0:
       return self._precision
     return v
 
   def min_constraint_deriv(self, r, i):
     ''' Derivative of `min_constraint()`. '''
-    return np.pad(self._t_b*self.exponents(i), (0, len(r)-i-1), 'constant')
+    return np.pad(self.t_b*self.exponents(i), (0, len(r)-i-1), 'constant')
 
   def max_constraint_deriv(self, r, i):
     ''' Derivative of `max_constraint()`. '''
-    return np.pad(-1*self._t_b*self.exponents(i), (0, len(r)-i-1), 'constant')
+    return np.pad(-1*self.t_b*self.exponents(i), (0, len(r)-i-1), 'constant')
 
   @property
   def constraints(self):

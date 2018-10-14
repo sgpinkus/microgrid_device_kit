@@ -19,10 +19,10 @@ class IDevice(Device):
 
   The utility value is indeterminate when r_max == r_min. We return 0 in this case. Same for deriv().
   '''
-  _a = 0
-  _b = 2
-  _c = 1
-  _d = 0
+  a = 0
+  b = 2
+  c = 1
+  d = 0
 
   @classmethod
   def _u(cls, x, a, b, c, d, x_l, x_h):
@@ -43,15 +43,13 @@ class IDevice(Device):
     return ((1-a)/(x_h-x_l))*b*s*((1 - n(x))**(b-1))
 
   def uv(self, s, p):
-    _uv = np.vectorize(IDevice._u, otypes=[float])
-    return _uv(s, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - s*p
+    return np.vectorize(IDevice._u, otypes=[float])(s, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - s*p
 
   def u(self, s, p):
     return self.uv(s, p).sum()
 
   def deriv(self, s, p):
-    _deriv = np.vectorize(IDevice._deriv, otypes=[float])
-    return _deriv(s, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - p
+    return np.vectorize(IDevice._deriv, otypes=[float])(s, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - p
 
   def hess(self, s, p=0):
     ''' Return Hessian diagonal approximation. @todo write IDevice._hess(cls, ...). '''
@@ -59,23 +57,7 @@ class IDevice(Device):
 
   @property
   def params(self):
-    return {'a': self._a, 'b': self._b, 'c': self._c, 'd': self._d}
-
-  @property
-  def a(self):
-    return self._a
-
-  @property
-  def b(self):
-    return self._b
-
-  @property
-  def c(self):
-    return self._c
-
-  @property
-  def d(self):
-    return self._d
+    return {'a': self.a, 'b': self.b, 'c': self.c, 'd': self.d}
 
   @params.setter
   def params(self, params):
@@ -98,4 +80,4 @@ class IDevice(Device):
       raise ValueError('param a (offset) cannot be larger than extent of domain')
     if not (b > 0).all():
       raise ValueError('param b must be > 0')
-    (self._a, self._b, self._c, self._d) = (a, b, c, d)
+    (self.a, self.b, self.c, self.d) = (a, b, c, d)
