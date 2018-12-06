@@ -41,7 +41,7 @@ class ADevice(Device):
       return
     if not isinstance(params, dict):
       raise ValueError('params incorrect type')
-    _params = self.params
+    _params = ADevice.params.fget(self)
     _params.update(params)
     if not hasattr(_params['f'], '__call__') and hasattr(_params['f'], 'deriv') and hasattr(_params['f'], 'hess'):
       raise ValueError('Invalid parameter type for \'f\' [%s]' % (type(f)))
