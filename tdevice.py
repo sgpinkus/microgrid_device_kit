@@ -34,8 +34,8 @@ class TDevice(IDevice):
   t_init = None                  # The initial (and final) temperature T0.
   t_optimal = None               # The scalar ideal temperature TC. It's assumed ideal temperature is time invariant.
   t_range = None                 # The +/- range min/max temp.
-  t_a = None                     # Factor expressing thermal conductivity to external environment.
-  t_b = None                     # Factor expressing thermal efficiency of this heat engine device.
+  t_a = None                     # Thermal loss factor to external environment.
+  t_b = None                     # Thermal efficiency factor.
   t_base = None                  # temperature without out any consumption by heat engine. Derived value.
   t_utility_base = 0             # utility of t_base pre calculated & used as offset.
   sustainment_matrix = None      # stashed for use in deriv.
@@ -49,7 +49,8 @@ class TDevice(IDevice):
 
   def deriv(self, s, p):
     ''' @override deriv() to do r to t conversion. Chain rule to account for r2t(). '''
-    return self.t_b*self.sustainment_matrix.cumsum(axis=1).diagonal()*self.deriv_t(self.r2t(s)) - p
+    dt = self.deriv_t(self.r2t(s))
+    return (self.sustainment_matrix*dt.reshape(24,1)).sum(axis=0)*self.t_b - p
 
   def hess(self, s, p=0):
     ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far

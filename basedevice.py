@@ -158,9 +158,15 @@ class BaseDevice(ABC):
     @see http://www.pyopt.org/reference/optimizers.slsqp.html
     @see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     '''
-    _solver_options = {'ftol': 1e-6, 'maxiter': 500}
+    class OptDebugCb():
+      i = 0
+      @classmethod
+      def cb(cls, device, x):
+        print('step=%d' % (cls.i,), device.u(x, 0))
+        cls.i += 1
+    _solver_options = {'ftol': 1e-6, 'maxiter': 500, 'disp': False}
     _solver_options.update(solver_options)
-    # logger.info(_solver_options)
+    logger.debug(_solver_options)
     s0 = s0 if s0 is not None else self.project(np.zeros(self.shape))
 
     if (self.bounds[:, 0] == self.bounds[:, 1]).all():
@@ -173,6 +179,7 @@ class BaseDevice(ABC):
       bounds = self.bounds,
       constraints = self.constraints,
       options = _solver_options,
+      # callback=lambda x: OptDebugCb.cb(self, x),
     )
     if not o.success:
       raise OptimizationException(o)
