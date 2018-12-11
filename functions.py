@@ -85,3 +85,24 @@ class TemporalVariance():
   def com(r):
     ''' Center of Mass. Merely weighted avg of time-slots. '''
     return np.average(np.arange(len(r)), weights=r)
+
+
+class CobbDouglas():
+  ''' Cobb Douglas *with* constant returns to scale. '''
+
+  def __init__(self, a, c=1):
+    self.a = a # Cobb Douglas coefficients.
+    self.c = c # Scalar coefficient.
+
+  def __call__(self, r):
+    return self.c*CobbDouglas.cobb_douglas(r, self.a)
+
+  def deriv(self):
+    return nd.Jacobian(lambda x: self.c*CobbDouglas.cobb_douglas(x, self.a))
+
+  def hess(self):
+    return nd.Hessian(lambda x: self.c*CobbDouglas.cobb_douglas(x, self.a))
+
+  @staticmethod
+  def cobb_douglas(r, a):
+    return (r**(a/a.sum())).prod()
