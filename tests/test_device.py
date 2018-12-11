@@ -7,7 +7,8 @@ import unittest
 from unittest import TestCase
 from device import *
 from device import utils
-from device.poly2d import *
+from device.utils import sustainment_matrix
+from device.functions import poly2d
 
 
 np.set_printoptions(
@@ -526,7 +527,7 @@ class TestUtil(TestCase):
 
   def test_sustainment_matrix(self):
     sustainment = 0.5
-    m = utils.sustainment_matrix(sustainment, 24)
+    m = sustainment_matrix(sustainment, 24)
     self.assertTrue(m.shape == (24, 24))
     self.assertTrue((m.diagonal() == np.ones(24)).all())
 

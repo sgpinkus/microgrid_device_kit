@@ -1,6 +1,6 @@
 import numpy as np
 from device import Device
-from .poly2d import poly2d
+from .functions import poly2d
 
 
 class GDevice(Device):

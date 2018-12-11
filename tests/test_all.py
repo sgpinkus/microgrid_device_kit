@@ -1,6 +1,7 @@
 import sys
-import os
-sys.path.append(os.path.dirname(os.path.realpath(__file__ + '/../')))
+from os.path import dirname, realpath
+sys.path.append(dirname(realpath(__file__ + '/../../')))
+sys.path.append(dirname(realpath(__file__ + '/../')))
 import unittest
 from unittest import TestCase
 from test_projection import *
