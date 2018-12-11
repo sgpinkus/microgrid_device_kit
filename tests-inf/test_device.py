@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from powermarket.network import Network
 from powermarket.agent import DeviceAgent
 from device import *
-from powermarket.tests.test_device import *
+from device.tests.test_device import *
 
 np_printoptions = {
   'linewidth': 1e6,
