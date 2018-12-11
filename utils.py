@@ -48,3 +48,19 @@ def care2bounds(device):
   else:  # Assume bounds is a vector
     device['bounds'] = np.stack((care*bounds, care*bounds), axis=1)
   return device
+
+
+def on2bounds(device, l):
+  ''' Convert on, and bounds pair to powermarket style bounds '''
+  device = deepcopy(device)
+  on = device['on']
+  bounds = device['bounds']
+  on_vector = np.zeros(l)
+  del device['on']
+  for i in range(0, len(on), 2):
+    on_vector[on[i]:on[i+1]+1] = 1
+  if len(bounds) == 2:
+    device['bounds'] = np.stack((on_vector*bounds[0], on_vector*bounds[1]), axis=1)
+  else:  # Assume bounds is a vector
+    device['bounds'] = np.stack((on_vector*bounds, on_vector*bounds), axis=1)
+  return device
