@@ -4,7 +4,6 @@ import numpy as np
 from copy import deepcopy
 from scipy.optimize import minimize
 from powermarket.device import *
-from powermarket.projection import *
 from logging import debug, info, warn, exception, error
 
 
