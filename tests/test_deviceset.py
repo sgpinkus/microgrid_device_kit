@@ -5,8 +5,8 @@ import numpy as np
 from copy import deepcopy
 import unittest
 from unittest import TestCase
-from device_kit import *
-from device_kit.tests.test_device import test_device, test_cdevice, test_idevice
+from device import *
+from device.tests.test_device import test_device, test_cdevice, test_idevice
 
 
 np.set_printoptions(

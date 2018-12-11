@@ -5,9 +5,9 @@ import numpy as np
 from copy import deepcopy
 import unittest
 from unittest import TestCase
-from device_kit import *
-from device_kit import utils
-from device_kit.poly2d import *
+from device import *
+from device import utils
+from device.poly2d import *
 
 
 np.set_printoptions(

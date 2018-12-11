@@ -1,5 +1,5 @@
 import numpy as np
-from device_kit import Device
+from device import Device
 
 
 class VLDevice(Device):

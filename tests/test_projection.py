@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.realpath(__file__ + '/../')))
 from unittest import TestCase
-from device_kit.projection import *
+from device.projection import *
 import numpy
 
 

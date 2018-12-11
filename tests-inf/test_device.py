@@ -6,7 +6,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from powermarket.network import Network
 from powermarket.agent import DeviceAgent
-from device_kit import *
+from device import *
 from powermarket.tests.test_device import *
 
 np_printoptions = {

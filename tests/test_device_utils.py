@@ -5,8 +5,8 @@ import numpy as np
 from copy import deepcopy
 import unittest
 from unittest import TestCase
-from device_kit.utils import *
-from device_kit.poly2d import *
+from device.utils import *
+from device.poly2d import *
 
 
 class TestBaseDevice(TestCase):

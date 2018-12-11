@@ -5,7 +5,7 @@ import os
 
 version = '0.1'
 setup(
-    name='device_kit',
+    name='device',
     version=version,
     description="",
     classifiers=[
@@ -16,8 +16,8 @@ setup(
     author='Sam Pinkus',
     author_email='sgpinkus@gmail.com',
     license='',
-    packages=['device_kit', 'device_kit.parser'],
-    package_dir={'device_kit': '.'},
+    packages=['device', 'device.parser'],
+    package_dir={'device': '.'},
     include_package_data=True,
     zip_safe=False,
     install_requires=[

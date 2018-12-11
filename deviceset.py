@@ -3,7 +3,7 @@ import uuid
 import numpy as np
 from copy import deepcopy
 from scipy.optimize import minimize
-from device_kit import *
+from device import *
 from logging import debug, info, warn, exception, error
 
 
