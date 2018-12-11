@@ -5,9 +5,9 @@ import numpy as np
 from copy import deepcopy
 import unittest
 from unittest import TestCase
-from powermarket.device import utils
-from powermarket.device import *
-from powermarket.device.poly2d import *
+from device_kit import *
+from device_kit import utils
+from device_kit.poly2d import *
 
 
 np.set_printoptions(

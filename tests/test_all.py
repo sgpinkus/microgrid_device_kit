@@ -5,8 +5,6 @@ import unittest
 from unittest import TestCase
 from test_projection import *
 from test_device import *
-from test_agent import *
-from test_network import *
 
 
 if __name__ == "__main__":

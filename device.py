@@ -1,8 +1,8 @@
 import re
 import numpy as np
 from pprint import pformat
-from powermarket.projection import *
-from powermarket.device import BaseDevice
+from device_kit.projection import *
+from device_kit import BaseDevice
 
 
 class Device(BaseDevice):

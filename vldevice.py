@@ -1,5 +1,5 @@
 import numpy as np
-from powermarket.device import Device
+from device_kit import Device
 
 
 class VLDevice(Device):

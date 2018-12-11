@@ -6,7 +6,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from powermarket.network import Network
 from powermarket.agent import DeviceAgent
-from powermarket.device import *
+from device_kit import *
 from powermarket.tests.test_device import *
 
 np_printoptions = {
@@ -158,29 +158,6 @@ class TestGDevice():
     print(d._cost_function(2*np.ones(len(d))))
 
   @classmethod
-  def test_device_agent(cls):
-    d = DeviceAgent(cls.get_test_device(1))
-    for i in np.linspace(0, 5, 21):
-      d.solve(p=ones*i)
-      print('p', d.p)
-      print('r', d.r)
-      print('d', d.deriv(d.r, d.p))
-      print('---')
-
-  @classmethod
-  def test_plot(cls):
-    x = np.linspace(0, -5, 100)
-    d = DeviceAgent(cls.get_test_device())
-    plt.plot(x, np.vectorize(lambda r: d.u(r*ones, ones))(x), label='0')
-    d = DeviceAgent(cls.get_test_device(1))
-    plt.plot(x, np.vectorize(lambda r: d.u(r*ones, ones))(x), label='1')
-    d = DeviceAgent(cls.get_test_device(2))
-    plt.plot(x, np.vectorize(lambda r: d.u(r*ones, ones))(x), label='2')
-    plt.legend()
-    plt.ylim(-100, None)
-    plt.show()
-
-  @classmethod
   def get_test_device(cls, i=0):
     return GDevice('test', 24, np.stack((-10*ones, zeros), axis=1), None, {'cost': cls.test_costs[i]})
 
@@ -192,15 +169,6 @@ class TestPVDevice():
     d = cls.get_test_device()
     print(d)
     print(d.bounds, d.lbounds, d.hbounds)
-
-  @classmethod
-  def test_device_agent(cls):
-    d = DeviceAgent(cls.get_test_device())
-    print(d)
-    d.update(np.zeros(len(d)))
-    print(d)
-    d.update(np.ones(len(d)))
-    print(d)
 
   @classmethod
   def get_test_device(cls):
@@ -244,30 +212,6 @@ class TestSDevice():
     plt.plot(ax, np.vectorize(lambda x: a.u(s=x*np.ones(len(a))))(ax))
     plt.show()
 
-  def test_cd_solution(self):
-    a = DeviceAgent(
-      SDevice(
-        'battery',
-        24,
-        np.stack((np.ones(24)*-5, np.ones(24)*5), axis=1),
-        None,
-        {'c1': 1, 'c2': 0.5, 'c3': 0.2, 'capacity': 5}
-      )
-    )
-    print(a)
-    p = np.cos(np.linspace(0, 2*np.pi, 24))*5+5
-    a.update(p)
-    print('Charge:')
-    print(['%.3f' % (c,) for c in a.charge_at(a.r)])
-    print('Damage:')
-    print(a.deep_damage_at(a.r))
-    plt.axhline(0)
-    plt.plot(p, label='price')
-    plt.plot(a.r, label='consumption')
-    plt.xlim(0, 23)
-    plt.legend()
-    plt.show()
-
   def test_charge_at(self):
     sustainments = [1, 0.99, 0.98, 0.95, 0.90, 0.80]
     d = SDevice(*test_sdevice)
@@ -292,16 +236,6 @@ class TestSDevice():
       plt.grid(True, zorder=5)
       plt.show()
 
-  def get_test_device(self):
-    return DeviceAgent(
-      SDevice(
-        'battery',
-        24,
-        np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
-        None,
-        {'c1': 0.1, 'c2': 0.05, 'c3': 0.001}
-      )
-    )
 
 TestSDevice().test_all()
 # TestIDevice().test_all()

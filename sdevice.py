@@ -1,7 +1,7 @@
 import numpy as np
 import numdifftools as nd
-from powermarket.device import Device
-from powermarket.device.utils import base_soc, soc, sustainment_matrix
+from device_kit import Device
+from device_kit.utils import base_soc, soc, sustainment_matrix
 
 
 class SDevice(Device):

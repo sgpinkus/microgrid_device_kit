@@ -1,6 +1,6 @@
 import numpy as np
-from powermarket.device import Device
-from powermarket.device.poly2d import poly2d
+from device_kit import Device
+from device_kit.poly2d import poly2d
 
 
 class F():
