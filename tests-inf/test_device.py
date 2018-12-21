@@ -154,12 +154,10 @@ class TestIDevice2():
     plt.plot(ax, np.vectorize(deriv)(ax))
     plt.axvline(bounds[0], label='min', color='k')
     plt.axvline(bounds[1], label='max', color='k')
-    plt.title(json.dumps(str(d.params)))
+    plt.title(str(d.params))
     plt.legend()
     plt.grid(True)
     plt.show()
-
-
 
 
 class TestCDevice():
@@ -170,6 +168,23 @@ class TestCDevice():
     print(a)
     print(a.u(np.zeros(len(a)), np.zeros(len(a))), a.deriv(np.zeros(len(a)), np.zeros(len(a))))
     print(a.hbounds.sum())
+
+
+class TestCDevice2():
+
+  def test_all(self):
+    bounds = [100, 200]
+    cbounds = [3000, 4000]
+    params = {'d_0': 0.1, 'd_1': 0.5}
+    d = CDevice2('cdevice2', 24, np.stack((np.ones(24)*bounds[0], np.ones(24)*bounds[1]), axis=1), cbounds, params)
+    ax = np.linspace(cbounds[0]/24-10, cbounds[1]/24+10)
+    u = lambda x: d.u(x*np.ones(24), 0)
+    deriv = lambda x: d.derive(x*np.ones(24), 0)
+    plt.axvline(cbounds[0]/24, label='min', color='k')
+    plt.axvline(cbounds[1]/24, label='max', color='k')
+    plt.plot(ax, np.vectorize(u)(ax))
+    plt.title(str(d.params))
+    plt.show()
 
 
 class TestGDevice():

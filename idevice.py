@@ -24,8 +24,8 @@ class IDevice(Device):
   c = 1
   d = 0
 
-  @classmethod
-  def _u(cls, x, a, b, c, d, x_l, x_h):
+  @staticmethod
+  def _u(x, a, b, c, d, x_l, x_h):
     ''' The utility function on scalar. '''
     if x_l == x_h:
       return 0
@@ -33,8 +33,8 @@ class IDevice(Device):
     s = c/(1-a**b)  # Scaling factor
     return s*(-1*(1 - n(x))**b + 1) + d
 
-  @classmethod
-  def _deriv(cls, x, a, b, c, d, x_l, x_h):
+  @staticmethod
+  def _deriv(x, a, b, c, d, x_l, x_h):
     ''' The derivative of utility function on scalar. '''
     if x_l == x_h:
       return 0
@@ -52,7 +52,7 @@ class IDevice(Device):
     return np.vectorize(IDevice._deriv, otypes=[float])(s, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - p
 
   def hess(self, s, p=0):
-    ''' Return Hessian diagonal approximation. @todo write IDevice._hess(cls, ...). '''
+    ''' Return Hessian diagonal approximation. @todo write IDevice._hess(...). '''
     return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s.reshape(len(self))))
 
   @property
