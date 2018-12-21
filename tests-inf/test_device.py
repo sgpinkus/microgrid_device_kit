@@ -4,10 +4,9 @@ from numpy.random import rand
 from pprint import pprint
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from powermarket.network import Network
-from powermarket.agent import DeviceAgent
 from device import *
 from device.tests.test_device import *
+
 
 np_printoptions = {
   'linewidth': 1e6,
@@ -68,16 +67,20 @@ class TestIDevice():
       None,
       params,
     )
+    TestIDevice.plot_idevice(d)
+    plt.show()
+
+  @staticmethod
+  def plot_idevice(d):
     ax = np.linspace(-0.5, 1.5)
     plt.plot(ax, np.vectorize(lambda x: d.u(x, np.zeros(24)))(ax))
     plt.axvline(0, label='min', color='k')
     plt.axvline(1, label='max', color='k')
-    plt.axvline(1+params['a'], label='a', color='orange')
-    plt.axhline(params['d'], label='d', color='red')
-    plt.title(json.dumps(params))
+    plt.axvline(1+d.params['a'], label='a', color='orange')
+    plt.axhline(d.params['d'], label='d', color='red')
+    plt.title(str(d.params))
     plt.legend()
     plt.grid(True)
-    plt.show()
 
   def test_utility(self):
     num = 6
@@ -126,6 +129,37 @@ class TestIDevice():
       plt.plot(d[:,:, i][:, 0], d[:,:, i][:, 1], '-', color=colors[i%len(colors)])
     plt.xlim(0, 3)
     plt.show()
+
+
+class TestIDevice2():
+
+  def test_all(self):
+    params = {'d_0': 0.1, 'd_1': 0.5}
+    bounds = [100, 200]
+    d = IDevice2(
+      'idevice2',
+      24,
+      np.stack((np.ones(24)*bounds[0], np.ones(24)*bounds[1]), axis=1),
+      None,
+      params
+    )
+    u = lambda x: d.u(x, 0)/24
+    deriv = lambda x: d.deriv(x, 0).sum()/24
+    ax = np.linspace(bounds[0]-50, bounds[1]+50)
+    print(ax)
+    print(np.vectorize(u)(ax))
+    print(np.vectorize(deriv)(ax))
+    print(deriv(d.lbounds), deriv(d.hbounds))
+    plt.plot(ax, np.vectorize(u)(ax))
+    plt.plot(ax, np.vectorize(deriv)(ax))
+    plt.axvline(bounds[0], label='min', color='k')
+    plt.axvline(bounds[1], label='max', color='k')
+    plt.title(json.dumps(str(d.params)))
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
 
 
 class TestCDevice():
@@ -237,5 +271,5 @@ class TestSDevice():
       plt.show()
 
 
-TestSDevice().test_all()
-# TestIDevice().test_all()
+# TestSDevice().test_all()
+TestIDevice2().test_all()

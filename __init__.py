@@ -1,4 +1,6 @@
 from .basedevice import *
+from .deviceset import DeviceSet
+from .utils import care2bounds
 from .device import Device
 from .cdevice import CDevice
 from .idevice import IDevice
@@ -8,11 +10,10 @@ from .pvdevice import PVDevice
 from .gdevice import GDevice
 from .adevice import ADevice
 from .vldevice import VLDevice
-from .deviceset import DeviceSet
-from .utils import care2bounds
+from .idevice2 import IDevice2
 
 __all__ = [
+  'DeviceSet', 'care2bounds', 'zero_mask', 'project', 'OptimizationException', 'leaf_devices',
   'BaseDevice', 'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice',
-  'ADevice', 'VLDevice', 'DeviceSet', 'care2bounds', 'zero_mask', 'project', 'OptimizationException',
-  'leaf_devices'
+  'ADevice', 'VLDevice', 'IDevice2'
 ]

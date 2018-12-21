@@ -4,7 +4,7 @@ from device import Device
 
 
 class IDevice(Device):
-  ''' Provides a utility function that is independent for each time slot, concave, and increasing.
+  ''' Provides a utility function that is additively separable, concave, and increasing.
   The particular utility curve is described by 4 params and *also* uses on min/max consumption bounds
   setting. All params may be ndarrays of len(self), or scalars.
 
@@ -12,12 +12,12 @@ class IDevice(Device):
   for the time slot.
 
     - a is a -ve offset from the peak of the utility curve at which it intersects the r_max. This
-        means the gradient of the curve is always <= 0 at r_max.
+        means the gradient of the curve is always >= 0 at r_max.
     - b is the degree of the polynomial. Must be a +ve integer.
-    - c is a scaling factor: the range of utility is [0,c] over [r_min, r_max]
+    - c is a scaling factor: the range of utility is [0,c] over [r_min, r_max], if a, d are both 0.
     - d is an offset that defines where the root of the curve is.
 
-  The utility value is indeterminate when r_max == r_min. We return 0 in this case. Same for deriv().
+  The utility value is indeterminate when r_max == r_min, but returns 0 in this case. Same for deriv.
   '''
   a = 0
   b = 2
