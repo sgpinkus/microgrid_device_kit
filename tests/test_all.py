@@ -6,6 +6,7 @@ import unittest
 from unittest import TestCase
 from test_projection import *
 from test_device import *
+from test_deviceset import *
 
 
 if __name__ == "__main__":

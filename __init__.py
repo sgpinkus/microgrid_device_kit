@@ -14,7 +14,7 @@ from .idevice2 import IDevice2
 from .cdevice2 import CDevice2
 
 __all__ = [
-  'DeviceSet', 'care2bounds', 'zero_mask', 'project', 'OptimizationException', 'leaf_devices',
+  'DeviceSet', 'care2bounds', 'zero_mask', 'project', 'OptimizationException',
   'BaseDevice', 'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice',
   'ADevice', 'VLDevice', 'IDevice2', 'CDevice2'
 ]

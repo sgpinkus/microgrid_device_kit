@@ -185,26 +185,26 @@ class BaseDevice(ABC):
       raise OptimizationException(o)
     return ((o.x).reshape(self.shape), o)
 
+  def leaf_devices(self):
+    ''' Iterate over flat list of (fqid, device) tuples for leaf devices from an input BaseDevice.
+    fqid is the id of the leaf device prepended with the dot separated ids of parents. The input device
+    may be atomic or a composite. The function distinguishes between them via support for iteration.
+    '''
+    def _leaf_devices(device, fqid, s='.'):
+      try:
+        for sub_device in device:
+          for item in _leaf_devices(sub_device, fqid + s + sub_device.id, s):
+            yield item
+      except:
+          yield (fqid, device)
+    for item in _leaf_devices(self, self.id, '.'):
+      yield item
+
+
   @classmethod
   def from_dict(cls, d):
     ''' Just call constructor. Nothing special to do. '''
     return cls(**d)
-
-
-def leaf_devices(device: BaseDevice):
-  ''' Iterate over flat list of (fqid, device) tuples for leaf devices from an input BaseDevice.
-  fqid is the id of the leaf device prepended with the dot separated ids of parents. The input device
-  may be atomic or a composite. The function distinguishes between them via support for iteration.
-  '''
-  def _leaf_devices(device, fqid, s='.'):
-    try:
-      for sub_device in device:
-        for item in _leaf_devices(sub_device, fqid + s + sub_device.id, s):
-          yield item
-    except:
-        yield (fqid, device)
-  for item in _leaf_devices(device, device.id, '.'):
-    yield item
 
 
 def zero_mask(x, fn=None, row=None, col=None, cnt=1):
