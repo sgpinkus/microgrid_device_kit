@@ -63,6 +63,9 @@ class TestDeviceSet(TestCase):
     self.assertTrue((d.partition[:,1] == 4).all())
     self.assertEqual(d.bounds.shape, (8*24, 2))
 
+  def test_leaf_devices(self):
+    d = DeviceSet(self.devices, id="foo", sbounds=(0,100))
+    self.assertEqual(len(list(d.leaf_devices())), 4)
 
 if __name__ == '__main__':
     unittest.main()
