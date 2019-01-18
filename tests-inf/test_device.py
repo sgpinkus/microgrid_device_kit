@@ -134,7 +134,7 @@ class TestIDevice():
 class TestIDevice2():
 
   def test_all(self):
-    params = {'d_0': 0.1, 'd_1': 0.5}
+    params = {'d_0': 0.1, 'd_1': 1}
     bounds = [100, 200]
     d = IDevice2(
       'idevice2',
@@ -151,10 +151,12 @@ class TestIDevice2():
     print(np.vectorize(deriv)(ax))
     print(deriv(d.lbounds), deriv(d.hbounds))
     plt.plot(ax, np.vectorize(u)(ax))
-    plt.plot(ax, np.vectorize(deriv)(ax))
+    # plt.plot(ax, np.vectorize(deriv)(ax))
     plt.axvline(bounds[0], label='min', color='k')
     plt.axvline(bounds[1], label='max', color='k')
-    plt.title(str(d.params))
+    # plt.title(str(d.params))
+    plt.xlabel('Consumption')
+    plt.ylabel('Utility ($)')
     plt.legend()
     plt.grid(True)
     plt.show()
