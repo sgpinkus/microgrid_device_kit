@@ -6,7 +6,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from device import *
 from device.tests.test_device import *
-
+from device.blobdevice import TemporalVariance
 
 np_printoptions = {
   'linewidth': 1e6,
@@ -17,6 +17,8 @@ np_printoptions = {
   },
 }
 np.set_printoptions(**np_printoptions)
+
+colors = ['red', 'black', 'lime', 'navy', 'fuchsia', 'green', 'yellow', 'blue', 'orange', 'purple']
 
 
 class TestDevice():
@@ -175,6 +177,10 @@ class TestCDevice():
 class TestCDevice2():
 
   def test_all(self):
+    self.test_basics()
+    self.test_curve()
+
+  def test_basics(self):
     bounds = [100, 200]
     cbounds = [3000, 4000]
     params = {'d_0': 0.1, 'd_1': 0.5}
@@ -188,6 +194,22 @@ class TestCDevice2():
     plt.title(str(d.params))
     plt.show()
 
+  def test_curve(self):
+    d = CDevice2('test', 10, [0, 2], [0,10], params={'d_0': 0.1})
+    f = lambda x: d.u(x, 0)
+    a_min, a_max = 1e6, -1e6
+    for i in range(5):
+      x1, x2 = np.random.random(10), np.random.random(10)
+      y1, y2  = f(x1), f(x2)
+      l = lambda a: f(x1 + a*(x2-x1))
+      ax = np.linspace(y1, y2, 100)
+      a_min, a_max = min(a_min, y1, y2), max(a_max, y1, y2)
+
+      plt.plot(ax, np.vectorize(l)(np.linspace(0,1,100)), color=colors[i%10])
+      plt.plot(ax, ax, color=colors[i%10])
+      plt.plot(np.linspace(a_min, a_max, 100), np.linspace(a_min, a_max, 100), color='gray', ls='-.')
+    plt.title('Random CDevice2 1D utility function projections over x1 -> x2')
+    plt.show()
 
 class TestGDevice():
   ''' Test GDevice basics. '''
@@ -288,5 +310,26 @@ class TestSDevice():
       plt.show()
 
 
+class TestBlobDevice():
+  ''' Prove visually blob device utility function is strictly concave '''
+
+  def test_all(self):
+    f = lambda x: -1*TemporalVariance(10)(x)
+    a_min, a_max = 1e6, -1e6
+    for i in range(5):
+      x1, x2 = np.random.random(10), np.random.random(10)
+      y1, y2  = f(x1), f(x2)
+      l = lambda a: f(x1 + a*(x2-x1))
+      ax = np.linspace(y1, y2, 100)
+      a_min, a_max = min(a_min, y1, y2), max(a_max, y1, y2)
+      plt.plot(ax, np.vectorize(l)(np.linspace(0,1,100)), color=colors[i%10])
+      plt.plot(ax, ax, color=colors[i%10])
+      plt.plot(np.linspace(a_min, a_max, 100), np.linspace(a_min, a_max, 100), color='gray', ls='-.')
+    plt.title('Random BlobDevice 1D utility function projections over x1 -> x2')
+    plt.show()
+
+
 # TestSDevice().test_all()
-TestIDevice2().test_all()
+#TestIDevice2().test_all()
+TestCDevice2().test_all()
+TestBlobDevice().test_all()

@@ -1,8 +1,8 @@
 import numpy as np
 from numpy import stack, hstack, zeros, ones
 import numdifftools as nd
-from powermarket.device import ADevice
-from powermarket.device.functions import *
+from device import ADevice
+from device.functions import *
 
 
 class BlobDevice(ADevice):

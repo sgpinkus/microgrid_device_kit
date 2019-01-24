@@ -12,9 +12,10 @@ from .adevice import ADevice
 from .vldevice import VLDevice
 from .idevice2 import IDevice2
 from .cdevice2 import CDevice2
+from .blobdevice import BlobDevice
 
 __all__ = [
   'DeviceSet', 'care2bounds', 'zero_mask', 'project', 'OptimizationException',
   'BaseDevice', 'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice',
-  'ADevice', 'VLDevice', 'IDevice2', 'CDevice2'
+  'ADevice', 'VLDevice', 'IDevice2', 'CDevice2', 'BlobDevice'
 ]
