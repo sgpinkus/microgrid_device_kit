@@ -45,5 +45,7 @@ class TemporalVariance():
 
   @staticmethod
   def com(r):
-    ''' Center of Mass. Merely weighted avg of time-slots. '''
+    ''' Center of Mass. Merely the r weighted avg of time-slots. '''
+    if (r == 0).all():
+      return 0
     return np.average(np.arange(len(r)), weights=r)

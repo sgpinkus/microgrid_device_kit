@@ -28,7 +28,7 @@ class DeviceSet(BaseDevice):
     if id is not None and not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
       raise ValueError('id must be string matching ^(?i)[a-z0-9][a-z0-9_-]*$ of None. Given "%s"' % (id,))
     if id is None:
-      id = str(uuid.uuid4())[0:8]
+      id = str(uuid.uuid4())[0:6]
     self._id = id
     self._devices = devices
     self._len = len(devices[0])

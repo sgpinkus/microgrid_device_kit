@@ -7,7 +7,6 @@ class F():
   ''' Default null function for ADevice '''
 
 
-
 class ADevice(Device):
   ''' Device that takes an arbitrary utility function and constraints. '''
   f = np.poly1d([0])

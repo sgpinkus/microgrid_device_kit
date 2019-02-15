@@ -311,13 +311,18 @@ class TestSDevice():
 
 
 class TestBlobDevice():
-  ''' Prove visually blob device utility function is strictly concave '''
+  ''' Dis-prove visually blob device utility function is strictly concave. '''
 
   def test_all(self):
-    f = lambda x: -1*TemporalVariance(10)(x)
+    self.test_random_pairs()
+    self.test_inertia_more()
+
+  def test_random_pairs(self):
+    d = BlobDevice('blob', 5, np.stack((np.zeros(5), np.ones(5)), axis=1))
+    f = lambda x: d.u(x, 0)
     a_min, a_max = 1e6, -1e6
-    for i in range(5):
-      x1, x2 = np.random.random(10), np.random.random(10)
+    for i in range(10):
+      x1, x2 = np.random.random(5)/10, np.random.random(5)/10
       y1, y2  = f(x1), f(x2)
       l = lambda a: f(x1 + a*(x2-x1))
       ax = np.linspace(y1, y2, 100)
@@ -325,11 +330,25 @@ class TestBlobDevice():
       plt.plot(ax, np.vectorize(l)(np.linspace(0,1,100)), color=colors[i%10])
       plt.plot(ax, ax, color=colors[i%10])
       plt.plot(np.linspace(a_min, a_max, 100), np.linspace(a_min, a_max, 100), color='gray', ls='-.')
-    plt.title('Random BlobDevice 1D utility function projections over x1 -> x2')
+    plt.title('BlobDevice utility function over the line between two random points x1 -> x2')
+    plt.show()
+
+  def test_inertia_more(self):
+    ''' over the positive real valued vector space the minimum value of inertia is 0. The
+    minimum value of any "impulse" point is also 0 regardless it's scale. So the function has a
+    continuum of minima and is everywhere else concave. '''
+    x1 = np.eye(10,1).reshape(10)
+    x2 = np.x2 = np.roll(x1, 1)
+    f = lambda a: TemporalVariance.inertia((1-a)*x1+a*x2)
+    ax = np.linspace(0,1,100)
+    plt.plot(ax, np.vectorize(f)(ax))
+    plt.show()
+    x2 *= 0
+    plt.plot(ax, np.vectorize(f)(ax))
     plt.show()
 
 
 # TestSDevice().test_all()
-#TestIDevice2().test_all()
-TestCDevice2().test_all()
+# TestIDevice2().test_all()
+# TestCDevice2().test_all()
 TestBlobDevice().test_all()
