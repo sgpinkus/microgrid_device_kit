@@ -1,51 +1,51 @@
 import numpy as np
 from numpy import stack, hstack, zeros, ones
 import numdifftools as nd
-from device import ADevice
-from device.functions import *
+from powermarket.device import ADevice
+from powermarket.device.functions import *
 
 
 class BlobDevice(ADevice):
   ''' Overrides ADevice but constraint and f are not params. Only c is '''
   c = 1
+  w = None
 
   @property
   def params(self):
-    return {'c': self.c}
+    return {'c': self.c, 'w': self.w}
 
   @params.setter
   def params(self, params):
     params = {} if params is None else params
     self.c = params['c'] if 'c' in params else 1
-    params['f'] = TemporalVariance(self.c)
+    self.w = params['w']
+    params['f'] = WindowPenalty(c=self.c, w=self.w)
     ADevice.params.fset(self, params)
 
 
-class TemporalVariance():
-  ''' Callable preference function suitable for ADevice.f
+class WindowPenalty():
+  ''' Equivalent to moment of inertia if time is distance and consumption is mass. Inertia is bad.
   @todo define deriv() and hess() numerically.
   '''
 
-  def __init__(self, c=1):
-    self.c = c # Scalar coefficient.
+  def __init__(self, w, c=0.1):
+    self.c = c
+    self.w = w
 
   def __call__(self, r):
-    return -self.c*TemporalVariance.inertia(r)
+    return -self.c*(WindowPenalty.weights(r, self.w)*r).sum()
 
   def deriv(self):
-    return nd.Jacobian(lambda x: -self.c*TemporalVariance.inertia(x))
+    return lambda x: -self.c*WindowPenalty.weights(x, self.w)
 
   def hess(self):
-    return nd.Hessian(lambda x: -self.c*TemporalVariance.inertia(x))
+    return lambda x: np.zeros((len(x), len(x)))
 
   @staticmethod
-  def inertia(r):
-    t = np.arange(len(r))
-    return (((t - TemporalVariance.com(r))**2)*r).sum()
+  def weights(r, w):
+    return np.maximum(0, np.abs(np.arange(len(r)) - WindowPenalty.com(r)) - w/2)
 
   @staticmethod
   def com(r):
-    ''' Center of Mass. Merely the r weighted avg of time-slots. '''
-    if (r == 0).all():
-      return 0
+    ''' Center of Mass. Merely weighted avg of time-slots. '''
     return np.average(np.arange(len(r)), weights=r)
