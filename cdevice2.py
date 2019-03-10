@@ -1,5 +1,5 @@
 import numpy as np
-from device import Device, IDevice2
+from device_kit import Device, IDevice2
 
 
 class CDevice2(Device):

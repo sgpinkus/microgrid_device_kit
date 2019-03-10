@@ -4,9 +4,9 @@ from numpy.random import rand
 from pprint import pprint
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from device import *
-from device.tests.test_device import *
-from device.blobdevice import TemporalVariance
+from device_kit import *
+from device_kit.tests.test_device import *
+from device_kit.blobdevice import TemporalVariance
 
 np_printoptions = {
   'linewidth': 1e6,
