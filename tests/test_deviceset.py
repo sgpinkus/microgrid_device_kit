@@ -5,8 +5,8 @@ import numpy as np
 from copy import deepcopy
 import unittest
 from unittest import TestCase
-from device import *
-from device.tests.test_device import test_device, test_cdevice, test_idevice
+from device_kit import *
+from device_kit.tests.test_device import test_device, test_cdevice, test_idevice
 
 
 np.set_printoptions(
@@ -31,7 +31,7 @@ class TestDeviceSet(TestCase):
   def test_basic_properties(self):
     d = DeviceSet(self.devices)
     self.assertEqual(len(d), 24)
-    self.assertEqual(len(d.id), 8)
+    self.assertEqual(len(d.id), 6)
     self.assertEqual(d.devices, self.devices)
     self.assertEqual(d.shape, (4, 24))
     self.assertTrue((d.partition[:,1] == 1).all())

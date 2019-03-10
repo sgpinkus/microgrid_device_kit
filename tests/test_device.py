@@ -5,10 +5,10 @@ import numpy as np
 from copy import deepcopy
 import unittest
 from unittest import TestCase
-from device import *
-from device import utils
-from device.utils import sustainment_matrix
-from device.functions import poly2d
+from device_kit import *
+from device_kit import utils
+from device_kit.utils import sustainment_matrix
+from device_kit.functions import poly2d
 
 
 np.set_printoptions(

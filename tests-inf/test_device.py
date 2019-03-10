@@ -4,10 +4,9 @@ from numpy.random import rand
 from pprint import pprint
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from device import *
-from device.tests.test_device import *
-from device.blobdevice import TemporalVariance
-from device.windowdevice import *
+from device_kit import *
+from device_kit.tests.test_device import *
+from device_kit.blobdevice import TemporalVariance
 
 np_printoptions = {
   'linewidth': 1e6,
@@ -149,8 +148,10 @@ class TestIDevice2():
     u = lambda x: d.u(x, 0)/24
     deriv = lambda x: d.deriv(x, 0).sum()/24
     ax = np.linspace(bounds[0]-50, bounds[1]+50)
-    print('u[100,200] = ', u(bounds[0]), u(bounds[1]))
-    print('u`[100,200] = ', deriv(bounds[0]), deriv(bounds[1]))
+    print(ax)
+    print(np.vectorize(u)(ax))
+    print(np.vectorize(deriv)(ax))
+    print(deriv(d.lbounds), deriv(d.hbounds))
     plt.plot(ax, np.vectorize(u)(ax))
     # plt.plot(ax, np.vectorize(deriv)(ax))
     plt.axvline(bounds[0], label='min', color='k')
@@ -320,7 +321,7 @@ class TestBlobDevice():
     d = BlobDevice('blob', 5, np.stack((np.zeros(5), np.ones(5)), axis=1))
     f = lambda x: d.u(x, 0)
     a_min, a_max = 1e6, -1e6
-    for i in range(100):
+    for i in range(10):
       x1, x2 = np.random.random(5)/10, np.random.random(5)/10
       y1, y2  = f(x1), f(x2)
       l = lambda a: f(x1 + a*(x2-x1))
@@ -329,7 +330,7 @@ class TestBlobDevice():
       plt.plot(ax, np.vectorize(l)(np.linspace(0,1,100)), color=colors[i%10])
       plt.plot(ax, ax, color=colors[i%10])
       plt.plot(np.linspace(a_min, a_max, 100), np.linspace(a_min, a_max, 100), color='gray', ls='-.')
-    plt.title('BlobDevice utility between x100 random pair of points')
+    plt.title('BlobDevice utility function over the line between two random points x1 -> x2')
     plt.show()
 
   def test_inertia_more(self):
@@ -341,39 +342,14 @@ class TestBlobDevice():
     f = lambda a: TemporalVariance.inertia((1-a)*x1+a*x2)
     ax = np.linspace(0,1,100)
     plt.plot(ax, np.vectorize(f)(ax))
-    plt.title('Value of BlobDevice cost function between two impulses')
     plt.show()
     x2 *= 0
     plt.plot(ax, np.vectorize(f)(ax))
     plt.show()
 
 
-class TestWindowDevice():
-  ''' '''
-
-  def test_all(self):
-    ''' '''
-    x = np.array(list('1111000000'), dtype=float)
-    f = lambda a: -1*WindowPenalty(5)(a*y + (1-a)*x)
-    ax = np.linspace(0,1,40)
-    for i in range(10):
-      y = np.roll(x, i)
-      print(x,y)
-      plt.plot(np.vectorize(f)(ax))
-    plt.show()
-    x = np.roll(x,4)
-    for i in range(-4,4):
-      y = np.roll(x, i)
-      print(x,y)
-      plt.plot(np.vectorize(f)(ax))
-    plt.show()
-    for i in range(10):
-      y = np.random.random(10)
-      print(x,y)
-      plt.plot(np.vectorize(f)(ax))
-    plt.show()
 
 # TestSDevice().test_all()
-TestIDevice2().test_all()
+# TestIDevice2().test_all()
 # TestCDevice2().test_all()
-# TestWindowDevice().test_all()
+TestBlobDevice().test_all()

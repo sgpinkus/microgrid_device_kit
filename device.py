@@ -1,8 +1,8 @@
 import re
 import numpy as np
 from pprint import pformat
-from device import BaseDevice
-from device.projection import *
+from device_kit import BaseDevice
+from device_kit.projection import *
 
 
 class Device(BaseDevice):

@@ -207,39 +207,6 @@ class BaseDevice(ABC):
     return cls(**d)
 
 
-def zero_mask(x, fn=None, row=None, col=None, cnt=1):
-  if row is None and col is None:
-    raise ValueError('row or col argument must be supplied');
-  if row is not None and col is not None:
-    raise ValueError('row and col arguments are mutually exclusive')
-  i = x[row:row+cnt,:] if row is not None else x[:, col:col+cnt]
-  o = fn(i).reshape(i.shape)
-  r = np.zeros(x.shape)
-  if row is not None:
-    r[row:row+cnt,:] = o
-  else:
-    r[:, col:col+cnt] = o
-  return r
-
-
-def project(p, x0, bounds=[], constraints=[], solver_options={}):
-  ''' Find the point in feasible region closest to p. '''
-  p = p.flatten()
-  options = {
-    'ftol': 1e-9,
-    'disp': False,
-    'maxiter': 200
-  }
-  options.update(solver_options)
-  o = minimize(lambda s, p=p: ((s - p)**2).sum(), x0, method='SLSQP',
-    jac=lambda s, p=p: 2*(s - p),
-    options = options,
-    bounds = bounds,
-    constraints = constraints
-  )
-  return (o.x.reshape(x0.shape), o)
-
-
 class OptimizationException(Exception):  # pragma: no cover
   ''' Some type of optimization error. '''
   o = None # An optional optimization method specific status report (i.e. OptimizeResult).

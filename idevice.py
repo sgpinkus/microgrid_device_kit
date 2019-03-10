@@ -1,6 +1,6 @@
 import numpy as np
 import numdifftools as nd
-from device import Device
+from device_kit import Device
 
 
 class IDevice(Device):

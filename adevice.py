@@ -1,6 +1,6 @@
 import numpy as np
-from device import Device
-from device.functions import poly2d
+from device_kit import Device
+from device_kit.functions import poly2d
 
 
 class F():
