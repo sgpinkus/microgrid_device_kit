@@ -149,10 +149,8 @@ class TestIDevice2():
     u = lambda x: d.u(x, 0)/24
     deriv = lambda x: d.deriv(x, 0).sum()/24
     ax = np.linspace(bounds[0]-50, bounds[1]+50)
-    print(ax)
-    print(np.vectorize(u)(ax))
-    print(np.vectorize(deriv)(ax))
-    print(deriv(d.lbounds), deriv(d.hbounds))
+    print('u[100,200] = ', u(bounds[0]), u(bounds[1]))
+    print('u`[100,200] = ', deriv(bounds[0]), deriv(bounds[1]))
     plt.plot(ax, np.vectorize(u)(ax))
     # plt.plot(ax, np.vectorize(deriv)(ax))
     plt.axvline(bounds[0], label='min', color='k')
@@ -376,6 +374,6 @@ class TestWindowDevice():
     plt.show()
 
 # TestSDevice().test_all()
-# TestIDevice2().test_all()
+TestIDevice2().test_all()
 # TestCDevice2().test_all()
 # TestWindowDevice().test_all()

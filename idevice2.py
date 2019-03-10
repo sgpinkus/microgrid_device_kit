@@ -22,30 +22,23 @@ class IDevice2(Device):
     ''' The utility function on scalar. '''
     if x_l == x_h:
       return 0
-    return d_1*(x_h - x_l)*np.poly1d([-1/2, 1, 0])(IDevice2.xs(x, d_1, d_0, x_l, x_h))
+    return (x_h - x_l)*np.poly1d([(d_0 - d_1)/2, d_1, 0])(IDevice2.scale(x, x_l, x_h))
 
   @staticmethod
   def _deriv(x, d_1, d_0, x_l, x_h):
     ''' The derivative of utility function on scalar. '''
     if x_l == x_h:
       return 0
-    return d_1*np.poly1d([-1/2, 1, 0]).deriv()(IDevice2.xs(x, d_1, d_0, x_l, x_h))
+    return np.poly1d([(d_0 - d_1)/2, d_1, 0]).deriv()(IDevice2.scale(x, x_l, x_h))
 
   @staticmethod
   def _hess(x, d_1, d_0, x_l, x_h):
     ''' The derivative of utility function on scalar. '''
-    if x_l == x_h:
-      return 0
-    return d_1*np.poly1d([-1/2, 1, 0]).deriv(2)(IDevice2.xs(x, d_1, d_0, x_l, x_h))
-
+    return np.zeros((len(self), len(self)))
 
   @staticmethod
   def scale(x, x_l, x_h):
     return (x - x_l)/(x_h - x_l)
-
-  @staticmethod
-  def xs(x, d_1, d_0, x_l, x_h):
-    return ((x - x_l)/(x_h - x_l))*(1 - (d_0/d_1))
 
   def uv(self, s, p):
     return np.vectorize(IDevice2._u, otypes=[float])(s, self.d_1, self.d_0, self.lbounds, self.hbounds) - s*p
