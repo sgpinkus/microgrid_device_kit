@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from scipy.optimize import minimize
 from abc import ABC, abstractmethod
+from .utils import project
 
 
 logger = logging.getLogger(__name__)

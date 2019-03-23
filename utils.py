@@ -1,6 +1,7 @@
 import functools
 import numpy as np
 from copy import deepcopy
+from scipy.optimize import minimize
 
 
 def base_soc(b, s, l):
