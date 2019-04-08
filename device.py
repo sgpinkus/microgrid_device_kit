@@ -46,7 +46,7 @@ class Device(BaseDevice):
 
   def deriv(self, s, p):
     ''' Get jacobian vector of the utility at `s`, at price `p`, which is just -p. '''
-    return -p
+    return -p*np.ones(len(self))
 
   def hess(self, s, p=0):
     ''' Get hessian vector of the utility at `s`, at price `p`. With linear utility for the numeriare

@@ -56,8 +56,7 @@ class TDevice(IDevice):
     ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far
     Hessdiag is an OOM faster and works just as good if not better.
     '''
-    # return nd.Hessian(lambda x: self.u(x,0))(r)
-    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s))
+    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s.reshape(len(self))))
 
   def uv_t(self, t):
     return np.vectorize(IDevice._u, otypes=[float])(t, self.a, self.b, self.c, self.d, self.t_min, self.t_optimal)

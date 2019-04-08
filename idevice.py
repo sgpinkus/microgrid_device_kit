@@ -49,7 +49,7 @@ class IDevice(Device):
     return self.uv(s, p).sum()
 
   def deriv(self, s, p):
-    return np.vectorize(IDevice._deriv, otypes=[float])(s, self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - p
+    return np.vectorize(IDevice._deriv, otypes=[float])(s.reshape(len(self)), self.a, self.b, self.c, self.d, self.lbounds, self.hbounds) - p
 
   def hess(self, s, p=0):
     ''' Return Hessian diagonal approximation. @todo write IDevice._hess(...). '''

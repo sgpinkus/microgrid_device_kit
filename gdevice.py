@@ -36,13 +36,13 @@ class GDevice(Device):
 
   def deriv(self, s, p):
     ''' Get jacobian vector of the utility at `r`, at price `p` '''
-    return -p + self._cost_d1_fn(-s)
+    return self._cost_d1_fn(-s.reshape(len(self))) - p
 
   def hess(self, s, p=0):
     ''' Return hessian. Hessdiag == Hessian for the given utility function.
     @todo actually easy to deriv explicitly ...
     '''
-    return -1*np.diag(self._cost_d2_fn(-s))
+    return -1*np.diag(self._cost_d2_fn(-s.reshape(len(self))))
 
   @property
   def bounds(self):

@@ -26,15 +26,19 @@ class IDevice2(Device):
 
   @staticmethod
   def _deriv(x, d_1, d_0, x_l, x_h):
-    ''' The derivative of utility function on scalar. '''
+    ''' The derivative of utility function on a scalar. Returned valus is expansion of:
+         np.poly1d([(d_0 - d_1)/2, d_1, 0]).deriv()(IDevice2.scale(x, x_l, x_h))
+    '''
     if x_l == x_h:
       return 0
-    return np.poly1d([(d_0 - d_1)/2, d_1, 0]).deriv()(IDevice2.scale(x, x_l, x_h))
+    return (d_0 - d_1)*IDevice2.scale(x, x_l, x_h) + d_1
 
   @staticmethod
   def _hess(x, d_1, d_0, x_l, x_h):
-    ''' The derivative of utility function on scalar. '''
-    return np.zeros((len(self), len(self)))
+    ''' The 2nd derivative of utility function on a scalar. '''
+    if x_l == x_h:
+      return 0
+    return (d_0 - d_1)/(x_h - x_l)
 
   @staticmethod
   def scale(x, x_l, x_h):
@@ -47,10 +51,10 @@ class IDevice2(Device):
     return self.uv(s, p).sum()
 
   def deriv(self, s, p):
-    return np.vectorize(IDevice2._deriv, otypes=[float])(s, self.d_1, self.d_0, self.lbounds, self.hbounds) - p
+    return np.vectorize(IDevice2._deriv, otypes=[float])(s.reshape(len(self)), self.d_1, self.d_0, self.lbounds, self.hbounds) - p
 
   def hess(self, s, p=0):
-    return np.diag(np.vectorize(IDevice2._hess, otypes=[float])(s, self.d_1, self.d_0, self.lbounds, self.hbounds))
+    return np.diag(np.vectorize(IDevice2._hess, otypes=[float])(s.reshape(len(self)), self.d_1, self.d_0, self.lbounds, self.hbounds))
 
   @property
   def params(self):

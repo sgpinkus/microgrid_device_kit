@@ -37,7 +37,6 @@ test_device = [
   [(0.11098505, 0.73401641), (0.16957934, 0.20297378), (0.06926077, 0.41622013), (0.36589927, 0.91650255), (0.24329407, 0.65472194), (0.29358734, 0.61163406), (0.08356067, 0.67125244), (0.10659574, 0.68789302), (0.36779274, 0.60779149), (0.40205272, 1.37443838), (0.77592892, 1.05536045), (0.80435839, 1.37691422), (0.34357759, 0.89649611), (0.36303363, 0.48074482), (0.97522713, 1.10429662), (0.50986841, 0.76206089), (0.86281828, 1.34641641), (0.22111678, 0.92726414), (0.68289869, 0.99868162), (0.01570868, 0.13552611), (0.80499837, 0.84452731), (0.28573255, 0.64946374), (0.71161904, 1.62050741), (0.62565335, 1.46114493)],
   (1, 24),
 ]
-
 # Device Simple
 test_device_simple = [
   'test_device_simple',
@@ -45,7 +44,6 @@ test_device_simple = [
   np.stack((np.zeros(24), np.ones(24)*10), axis=1),
   (10, 24),
 ]
-
 # CDevice
 test_cdevice = [
   'test_cdevice',
@@ -54,7 +52,6 @@ test_cdevice = [
   (-100, 100),
   {'a': 2, 'b': 0}
 ]
-
 # CDevice2
 test_cdevice_2 = [
   'test_cdevice_2',
@@ -63,7 +60,6 @@ test_cdevice_2 = [
   (15, 20),
   {'a': 1, 'b': 0}
 ]
-
 # IDevice
 test_idevice_mins = np.concatenate((
   np.zeros(6),
@@ -85,11 +81,9 @@ test_idevice = [
     'd': 0,
   }
 ]
-
 # IDevice 2
 test_idevice_cbound = deepcopy(test_idevice)
 test_idevice_cbound[3] = (0, 4)
-
 # IDevice 3 - Simple
 test_idevice_simple = [
   'test_idevice',
@@ -98,7 +92,6 @@ test_idevice_simple = [
   None,
   {}
 ]
-
 # SDevice
 test_sdevice = [
   'test_sdevice',
@@ -107,7 +100,6 @@ test_sdevice = [
   None,
   {'c1': 1, 'c2': 0, 'c3': 0, 'capacity': 10, 'reserve': 0.5, 'damage_depth': 0.2}
 ]
-
 # SDevice
 test_sdevice_1 = [
   'test_sdevice',
@@ -116,8 +108,6 @@ test_sdevice_1 = [
   None,
   {'c1': 1, 'c2': 0, 'c3': 0, 'capacity': 10, 'reserve': 0.5, 'damage_depth': 0.2}
 ]
-
-
 # TDevice
 test_tdevice = [
   'test_tdevice',
@@ -136,7 +126,6 @@ test_tdevice = [
     'b': 2
   }
 ]
-
 # GDevice
 test_gdevice = [
   'gas',
@@ -145,7 +134,6 @@ test_gdevice = [
   None,
   {'cost': [1., 1., 0]}
 ]
-
 # GDevice with time varying cost curve.
 test_gdevice_tv = [
   'gas',
@@ -154,6 +142,24 @@ test_gdevice_tv = [
   None,
   {'cost': np.concatenate((np.ones((12, 4))*[0.00045, 0.0058, 0.024, 0], np.ones((12, 4))*[0.73, 0.58, 0.024, 1]))}
 ]
+# IDevice2
+test_idevice2 = [
+  'test_idevice2',
+  24,
+  np.stack((test_idevice_mins, test_idevice_maxs), axis=1),
+  None,
+  {'d_0': 0.1, 'd_1': 1.0}
+]
+
+# CDevice2
+test_cdevice2 = [
+  'test_cdevice2',
+  24,
+  np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
+  (-100, 100),
+  {'d_0': 0.1, 'd_1': 1.0}
+]
+
 
 
 class TestBaseDevice(TestCase):
@@ -234,31 +240,6 @@ class TestBaseDevice(TestCase):
     self.assertTrue((np.abs((r - np.ones(24)*(10/24))) <= 1e-6).all())
 
 
-class TestHessDevice(TestCase):
-  ''' Test hess() on all in-built devices - (I,C,S,G,PV,T)Device '''
-
-  @unittest.skip('Time')
-  def test_hess(self):
-    test_devices = [
-      Device(*test_device),
-      CDevice(*test_cdevice),
-      TestPVDevice.get_test_device(),
-      GDevice(*test_gdevice),
-      IDevice(*test_idevice),
-      SDevice(*test_sdevice),
-      TDevice(*test_tdevice),
-    ]
-    l = len(test_devices[0])
-    hess = np.zeros((l, l))
-    r = np.random.random(l)
-    for d in test_devices:
-      print(d.__class__)
-      h = d.hess(r)
-      print(h)
-      hess += h
-    print(hess)
-
-
 class TestCDevice(TestCase):
   ''' Test cummulative utility device CDevice. '''
 
@@ -329,6 +310,9 @@ class TestIDevice(TestCase):
     _test_device[4] = 100
     with self.assertRaises(ValueError):
       device = Device(*_test_device)
+
+  def test_utility(self):
+    pass
 
 
 class TestTDevice(TestCase):
@@ -521,6 +505,37 @@ class TestSDevice(TestCase):
   @classmethod
   def get_test_device(cls):
     return SDevice(*deepcopy(test_sdevice))
+
+
+class TestMostDevices(TestCase):
+  ''' Test things on all known devices.
+  @todo Maybe make this the base case, init a common device in sub-classes.
+  '''
+  test_devices = [
+      Device(*test_device),
+      CDevice(*test_cdevice),
+      CDevice2(*test_cdevice2),
+      TestPVDevice.get_test_device(),
+      GDevice(*test_gdevice),
+      IDevice(*test_idevice),
+      IDevice2(*test_idevice2),
+      SDevice(*test_sdevice),
+      TDevice(*test_tdevice),
+    ]
+
+  def test_deriv(self):
+    l = len(TestMostDevices.test_devices[0])
+    r = np.random.random(l)
+    for d in TestMostDevices.test_devices:
+      self.assertEqual(len(d.deriv(r, 0)), l)
+      self.assertEqual(len(d.deriv(r.reshape(1, l), 0)), l)
+
+  def test_hess(self):
+    l = len(TestMostDevices.test_devices[0])
+    r = np.random.random(l)
+    for d in TestMostDevices.test_devices:
+      self.assertEqual(d.hess(r).shape, (l, l))
+      self.assertEqual(d.hess(r.reshape(1, l)).shape, (l, l))
 
 
 class TestUtil(TestCase):

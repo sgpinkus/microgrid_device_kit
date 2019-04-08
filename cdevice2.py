@@ -14,7 +14,7 @@ class CDevice2(Device):
     return IDevice2._deriv(s.sum(), self.d_1, self.d_0, self.cbounds[0], self.cbounds[1])*np.ones(len(self)) - p
 
   def hess(self, s, p=0):
-    return np.diag(IDevice2._hess(s.sum(), self.d_1, self.d_0, self.bounds[0], self.cbounds[1]))
+    return np.eye(len(self))*IDevice2._hess(s.sum(), self.d_1, self.d_0, self.cbounds[0], self.cbounds[1])
 
   @property
   def params(self):
