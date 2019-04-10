@@ -173,9 +173,9 @@ class BaseDevice(ABC):
     if (self.bounds[:, 0] == self.bounds[:, 1]).all():
       return (self.lbounds, None)
     o = minimize(
-      lambda s, p=p: -1*self.u(s, p),
+      lambda s, p=p: -1*self.u(s, p) + ((s.reshape(s0.shape)-s0)**2).sum(),
       s0,
-      jac=lambda s, p=p: -1*self.deriv(s, p),
+      jac=lambda s, p=p: -1*self.deriv(s, p) + 2*((s.reshape(s0.shape)-s0)),
       method='SLSQP',
       bounds = self.bounds,
       constraints = self.constraints,
