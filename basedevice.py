@@ -142,7 +142,7 @@ class BaseDevice(ABC):
     s_next = (s + ol.x*(s_next - s)).reshape(self.shape)
     return (s_next, ol)
 
-  def solve(self, p, s0=None, solver_options={}):
+  def solve(self, p, s0=None, solver_options={}, prox=False):
     ''' Find the optimal demand for price for the given self and return it. Works on any agent
     since only requires s and self.deriv(). This method does not modify the agent.
     Note AFAIK scipy.optimize only provides two methods that support constraints:
@@ -172,16 +172,26 @@ class BaseDevice(ABC):
 
     if (self.bounds[:, 0] == self.bounds[:, 1]).all():
       return (self.lbounds, None)
-    o = minimize(
-      lambda s, p=p: -1*self.u(s, p) + ((s.reshape(s0.shape)-s0)**2).sum(),
-      s0,
-      jac=lambda s, p=p: -1*self.deriv(s, p) + 2*((s.reshape(s0.shape)-s0)),
-      method='SLSQP',
-      bounds = self.bounds,
-      constraints = self.constraints,
-      options = _solver_options,
-      # callback=lambda x: OptDebugCb.cb(self, x),
-    )
+    if prox:
+      o = minimize(
+        lambda s, p=p: -1*self.u(s, p) + (prox/2)*((s.reshape(s0.shape)-s0)**2).sum(),
+        s0,
+        jac=lambda s, p=p: -1*self.deriv(s, p) + prox*((s.reshape(s0.shape)-s0)),
+        method='SLSQP',
+        bounds = self.bounds,
+        constraints = self.constraints,
+        options = _solver_options,
+      )
+    else:
+      o = minimize(
+        lambda s, p=p: -1*self.u(s, p),
+        s0,
+        jac=lambda s, p=p: -1*self.deriv(s, p),
+        method='SLSQP',
+        bounds = self.bounds,
+        constraints = self.constraints,
+        options = _solver_options,
+      )
     if not o.success:
       raise OptimizationException(o)
     return ((o.x).reshape(self.shape), o)
