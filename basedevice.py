@@ -1,9 +1,7 @@
 import re
 import logging
 import numpy as np
-from scipy.optimize import minimize
 from abc import ABC, abstractmethod
-from .utils import project
 
 
 logger = logging.getLogger(__name__)
@@ -17,26 +15,29 @@ class BaseDevice(ABC):
         produces some resource.
       - A shape which is (`N`,`len`), N is 1 for atomic devices, but accounts for a device potentially
         being a composite.
-      - A list of low/high resource consumption `bounds` of length `N`*`len`.
-      - A concave differentiable utility function `u()`, which represents how much value the device
-          gets from consuming / producing a given resource allocation (`N`,`len`) at some price.
+      - If composite, a list of low/high resource consumption `bounds` of length `N`*`len`.
+      - A differentiable utility function `u()`, which represents how much value the device gets
+        from consuming / producing a given resource allocation (`N`,`len`) at some price. Note `u()`
+        is also used to represent costs of production (cost is -ve utility).
 
-    A Device is more or less a dumb container for the above settings. Sub classes should implement
+    Device is more or less a dumb container for the above settings. Sub classes should implement
     (and vary primarily in the implementation of), the utility function and possibly additional
     constraints.
 
-    This class declares the necessary interfaces to treat a BaseDevice as a composite, __iter__(),
-    shapes(), partition().
+    Other notes:
 
-    Constraints should be convex but this is not currently enforced. Rule should be:
+      - This class declares the necessary interfaces to treat a BaseDevice as a composite. Mainly,
+       __iter__(), shapes, partition, leaf_devices().
+      - Utility functions should be concave (giving convex cost function), and constraints should be
+        convex but this is not currently enforced.
+      - Device was intended to be and should be treated as immutable but currently this is not enforced.
+      - Because Device was intended to be immutable, while a Device represents flow flexibility
+        it does not *have* a state  of flow.
+      - Devices should be serializable and constructable from the serialization.
+      - Python3 @properties have been used throughout these classes. They mainly serve as very
+        verbose and slow way to protect a field, by only defining a getter. Setters are sparingly defined.
 
-      - Device should be considered immutable (the currently available setters are all used on init).
-      - Device is serializable and and constructable from the serialization.
-
-    Note Python3 @properties have been used throughout these classes. They mainly serve as very
-    verbose and slow way to protect a field, by only defining a getter. Setters are sparingly defined.
-
-    @todo rename DeviceSpace
+    @todo rename this class DeviceSpace?
   '''
 
   @abstractmethod
@@ -116,90 +117,6 @@ class BaseDevice(ABC):
   def to_dict(self):
     pass
 
-  def step(self, p, s, stepsize, solver_options={}):
-    ''' Take one step towards optimal demand for price vector `p`, using stepsize plus limited
-    minimization. This means stepsize sets the upper bound of change in x, but stepsize can be large
-    since limited minimization limits severity of overshoots. This method does not modify the agent.
-    @see Device.solve()
-    '''
-    # Step & Projection
-    s_next = s + stepsize * self.deriv(s, p)
-    (s_next, o) = project(s_next, s, self.bounds, self.constraints)
-    if not o.success:
-      if o.status == 8:
-        logger.warn(o)
-      else:
-        raise OptimizationException(o)
-    # Limited minimization
-    ol = minimize(
-      lambda x, p=p: -1*self.u(s + x*(s_next - s), p),
-      0.,
-      method='SLSQP',
-      bounds = [(0, 1)],
-      options = solver_options,
-    )
-    if not ol.success:
-      if ol.status == 8:
-        logger.warn(ol)
-      else:
-        raise OptimizationException(ol)
-    s_next = (s + ol.x*(s_next - s)).reshape(self.shape)
-    return (s_next, ol)
-
-  def solve(self, p, s0=None, solver_options={}, prox=False):
-    ''' Find the optimal demand for price for the given self and return it. Works on any agent
-    since only requires s and self.deriv(). This method does not modify the agent.
-    Note AFAIK scipy.optimize only provides two methods that support constraints:
-      - COBYLA (Constrained Optimization BY Linear Approximation)
-      - SLSQP (Sequential Least SQuares Programming)
-    Only SLSQP supports eq constraints. SLSQP is based on the Han-Powell quasi–Newton method. Apparently
-    it uses some quadratic approximation, and the same method seems to be sometimes referred called
-    SLS-Quadratic-Programming. This does not mean it is limited to quadratics. It should work with *any*
-    convex nonlinear function over a convex set.
-
-    SLSQP doesnt take a tol option, only an ftol options. Using this option in the context of this
-    software implies tolerance is +/- $ not consumption.
-
-    @see http://www.pyopt.org/reference/optimizers.slsqp.html
-    @see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
-    '''
-    class OptDebugCb():
-      i = 0
-      @classmethod
-      def cb(cls, device, x):
-        print('step=%d' % (cls.i,), device.u(x, 0))
-        cls.i += 1
-    _solver_options = {'ftol': 1e-6, 'maxiter': 500, 'disp': False}
-    _solver_options.update(solver_options)
-    logger.debug(_solver_options)
-    s0 = s0 if s0 is not None else self.project(np.zeros(self.shape))
-
-    if (self.bounds[:, 0] == self.bounds[:, 1]).all():
-      return (self.lbounds, None)
-    if prox:
-      o = minimize(
-        lambda s, p=p: -1*self.u(s, p) + (prox/2)*((s.reshape(s0.shape)-s0)**2).sum(),
-        s0,
-        jac=lambda s, p=p: -1*self.deriv(s, p) + prox*((s.reshape(s0.shape)-s0)),
-        method='SLSQP',
-        bounds = self.bounds,
-        constraints = self.constraints,
-        options = _solver_options,
-      )
-    else:
-      o = minimize(
-        lambda s, p=p: -1*self.u(s, p),
-        s0,
-        jac=lambda s, p=p: -1*self.deriv(s, p),
-        method='SLSQP',
-        bounds = self.bounds,
-        constraints = self.constraints,
-        options = _solver_options,
-      )
-    if not o.success:
-      raise OptimizationException(o)
-    return ((o.x).reshape(self.shape), o)
-
   def leaf_devices(self):
     ''' Iterate over flat list of (fqid, device) tuples for leaf devices from an input BaseDevice.
     fqid is the id of the leaf device prepended with the dot separated ids of parents. The input device
@@ -227,12 +144,3 @@ class BaseDevice(ABC):
   def from_dict(cls, d):
     ''' Just call constructor. Nothing special to do. '''
     return cls(**d)
-
-
-class OptimizationException(Exception):  # pragma: no cover
-  ''' Some type of optimization error. '''
-  o = None # An optional optimization method specific status report (i.e. OptimizeResult).
-
-  def __init__(self, *args):
-    self.o = args[0] if args else None
-    super(Exception, self).__init__(*args)
