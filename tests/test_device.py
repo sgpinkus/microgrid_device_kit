@@ -437,16 +437,16 @@ class TestGDevice(TestCase):
     self.assertEqual(d.u(zeros, zeros), 0)
     self.assertTrue((d.uv(zeros, zeros) == zeros).all())
     self.assertTrue((d.deriv(zeros, zeros) == 1).all(), d.deriv(zeros, zeros))
-    x = np.vectorize(lambda r: d.u(-1*r, zeros))(np.linspace(1, 10, 100))
+    x = np.vectorize(lambda r: d.u(-ones*r, zeros))(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
       self.assertTrue(i == 0 or x[i] < x[i-1])
-    x = np.vectorize(lambda r: d.deriv(-1*r, zeros).sum())(np.linspace(1, 10, 100))
+    x = np.vectorize(lambda r: d.deriv(-ones*r, zeros).sum())(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
       self.assertTrue(i == 0 or x[i] > x[i-1])
     x = np.vectorize(lambda p: d.u(-1*ones, p))(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
       self.assertTrue(i == 0 or x[i] > x[i-1])
-    x = np.vectorize(lambda p: d.deriv(-1*ones, p).sum())(np.linspace(1, 10, 100))
+    x = np.vectorize(lambda p: d.deriv(-ones, p).sum())(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
       self.assertTrue(i == 0 or x[i] < x[i-1])
 
