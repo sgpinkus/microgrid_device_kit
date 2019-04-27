@@ -52,7 +52,7 @@ class TestDeviceSet(TestCase):
     d.hess(x, p)
 
   def test_initializer(self):
-    d = DeviceSet(self.devices, id="foo", sbounds=(0,100))
+    d = DeviceSet(self.devices, id='foo', sbounds=(0,100))
     self.assertEqual(len(d.constraints), 6+48)
 
   def test_set_of_sets(self):
@@ -64,8 +64,19 @@ class TestDeviceSet(TestCase):
     self.assertEqual(d.bounds.shape, (8*24, 2))
 
   def test_leaf_devices(self):
-    d = DeviceSet(self.devices, id="foo", sbounds=(0,100))
+    d = DeviceSet(self.devices, id='foo', sbounds=(0,100))
     self.assertEqual(len(list(d.leaf_devices())), 4)
+
+  def test_map(self):
+    d1 = DeviceSet(self.devices, id='d1')
+    d2 = DeviceSet(self.devices, id='d2')
+    device = DeviceSet([d1, d2], id='foo')
+    _map = list(device.map(np.ones((8,24))))
+    self.assertEqual(len(_map), 8)
+    self.assertEqual(_map[0][0], 'foo.d1.test_device')
+    self.assertEqual(_map[4][0], 'foo.d2.test_device')
+    self.assertEqual(_map[0][1].tolist(), np.ones(24).tolist())
+
 
 if __name__ == '__main__':
     unittest.main()

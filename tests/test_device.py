@@ -165,7 +165,7 @@ test_cdevice2 = [
 class TestBaseDevice(TestCase):
   ''' Test Device, the base class for all devices. '''
 
-  def test_property_basics(self):
+  def test_basic_properties(self):
     ''' Test basic getters. '''
     device = Device(*test_device)
     self.assertEqual(device.id, 'test_device')
@@ -173,6 +173,19 @@ class TestBaseDevice(TestCase):
     self.assertEqual(device.cbounds, (1, 24))
     self.assertEqual(device.params, None)
     self.assertEqual(len(device.deriv(np.ones(len(device)), np.ones(len(device)))), len(device))
+
+  def test_more_properties(self):
+    device = Device(*test_device)
+    self.assertEqual(device.shape, (1, 24))
+    self.assertEqual(device.shapes.tolist(), [[1, 24]])
+    self.assertEqual(device.partition.tolist(), [[0, 1]])
+
+  def test_leaf_and_map(self):
+    device = Device(*test_device)
+    _map = list(device.map(np.ones(24)))
+    self.assertEqual(len(_map), 1)
+    self.assertEqual(_map[0][0], 'test_device')
+    self.assertEqual(list(_map[0][1]), list(np.ones(24)))
 
   def test_invalid_settings(self):
     ''' Test creating Device with settings that are ill-formedevice. '''

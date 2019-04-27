@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class BaseDevice(ABC):
-  ''' Base class for any type of device. Devices are all characterised by having:
+  ''' Base class for any type of device including composite devices. Devices are all characterised
+    by having:
 
       - A fixed length, `len`, which is the number of slots during which the device consumes or
         produces some resource.
@@ -20,8 +21,9 @@ class BaseDevice(ABC):
       - A concave differentiable utility function `u()`, which represents how much value the device
           gets from consuming / producing a given resource allocation (`N`,`len`) at some price.
 
-    This class is more or less a dumb container for the above settings. Sub classes should implement
-    (and vary primarily in the implementation of), the utility function.
+    A Device is more or less a dumb container for the above settings. Sub classes should implement
+    (and vary primarily in the implementation of), the utility function and possibly additional
+    constraints.
 
     This class declares the necessary interfaces to treat a BaseDevice as a composite, __iter__(),
     shapes(), partition().
@@ -68,19 +70,21 @@ class BaseDevice(ABC):
   @property
   @abstractmethod
   def shape(self):
-    ''' Overall shape of this device '''
+    ''' Return absolute shape of device flow matrix. '''
     pass
 
   @property
   @abstractmethod
   def shapes(self):
-    ''' Array of shapes of sub devices. '''
+    ''' Array of shapes of sub devices, if any, else [shape]. '''
     pass
 
   @property
   @abstractmethod
   def partition(self):
-    ''' Returns array of (offset, length) tuples for each sub-device's mapping onto this device's `s` '''
+    ''' Returns array of (offset, length) tuples for each sub-device's mapping onto this device's
+    flow matrix.
+    '''
     pass
 
   @property
@@ -211,6 +215,13 @@ class BaseDevice(ABC):
     for item in _leaf_devices(self, self.id, '.'):
       yield item
 
+  def map(self, s):
+    ''' maps rows of flow matrix `s` to identifiers of atomic devices under this device.
+    Returns list of tuples. You can load this into Pandas like pd.DataFrame(dict(device.map(s)))
+    '''
+    s = s.reshape(self.shape)
+    for i, d in enumerate(self.leaf_devices()):
+      yield (d[0], s[i:i+1,:].reshape(len(self)))
 
   @classmethod
   def from_dict(cls, d):

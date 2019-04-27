@@ -84,24 +84,23 @@ class DeviceSet(BaseDevice):
 
   @property
   def shape(self):
-    ''' This recurses down nested device to provide absolute shape. It is not merely
-    (len(self.devices), len(self))
+    ''' Return absolute shape. This recurses down nested device to provide absolute shape. It is not
+    merely (len(self.devices), len(self))
     '''
     return (self.shapes.sum(axis=0)[0], len(self))
 
   @property
   def shapes(self):
     ''' Return list with shapes of all child devices. '''
-    return np.array(tuple([d.shape for d in self.devices]))
+    return np.array(list([d.shape for d in self.devices]))
 
   @property
   def partition(self):
-    ''' Similar to shapes, returns list of tuples containing absolute index childs "row", number of
-    rows child has, for each child device.
+    ''' Returns list of tuples: (offset of each child row, number of rows of child), for each child device.
     '''
-    p = self.shapes[:,0]
-    ps = [0] + list(p.cumsum())[0:-1]
-    return np.array(tuple(zip(ps, p)), dtype=int)
+    offset = np.roll(self.shapes[:,0].cumsum(), 1)
+    offset[0] = 0
+    return np.array(list(zip(offset, self.shapes[:,0])), dtype=int)
 
   @property
   def sbounds(self):

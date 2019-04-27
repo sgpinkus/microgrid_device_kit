@@ -65,14 +65,14 @@ class Device(BaseDevice):
 
   @property
   def shapes(self):
-    return [self.shape]
+    return np.array([self.shape])
 
   @property
   def partition(self):
-    ''' Returns array of (offset, length) tuples for each sub-device's mapping onto this device's `s` '''
-    p = self.shapes[:,0]
-    ps = [0] + list(p.cumsum())[0:-1]
-    return np.array(tuple(zip(ps, p)), dtype=int)
+    ''' Returns array of (offset, length) tuples for each sub-device's mapping onto this device's
+    flow matrix.
+    '''
+    return np.array([[0,1]])
 
   @property
   def bounds(self):
