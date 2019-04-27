@@ -5,10 +5,11 @@ from .functions import poly2d
 
 class GDevice(Device):
   ''' Simple generator device. Strictly produces power. Cost of power is specified by an arbitrary
-  polynomial. Thermal generators generally have quadratic cost curves but allow arbitrary cost curves.
-  Device takes a single parameter `cost`, which defines the coefficients of the polynomial at each
+  polynomial.
+
+  GDevice takes a single parameter `cost`, which defines the coefficients of the polynomial at each
   timeslot. `cost` can be a single array of coeffs or an array of len(self) arrays of coeffs (one for
-  each timeslot).
+  each timeslot). Thermal generators generally have quadratic cost curves.
 
   Generation is always indicated by negative values. However the cost function provided should define
   *positive* costs over a *positive* range. Example [1,1,0] for cost(q) = q**2 + q
@@ -19,9 +20,7 @@ class GDevice(Device):
   Cost function for all timeslots are independent. Start up / shut down and min/max runtimes are not
   considered.
 
-  Note for generators, `utility` is interpreted as profit (which is revenue - cost)
-
-  @todo Could just allow arbitrary bounds. Then this could be used like IDevice too.
+  Note for generators "utility" is interpreted as profit (which is revenue - cost)
   '''
   _cost_fn = None
   _cost_d1_fn = None
@@ -65,15 +64,11 @@ class GDevice(Device):
 
   @bounds.setter
   def bounds(self, bounds):
-    ''' @override bounds setter to ensure hbounds = 0. '''
-    if len(bounds) != len(self):
-      raise ValueError('bounds has wrong length (%d)' % len(bounds))
-    bounds = np.array(bounds)
-    lbounds = np.array(bounds[:, 0])
-    hbounds = np.array(bounds[:, 1])
-    if not (hbounds <= 0).all():
-      raise ValueError('hbounds must be all zeros')
+    ''' @override bounds setter to ensure hbounds <= 0. '''
     Device.bounds.fset(self, bounds)
+    bounds = np.array(bounds)
+    if not (self.hbounds <= 0).all():
+      raise ValueError('hbounds must be <= 0')
 
   @cbounds.setter
   def cbounds(self, cbounds):

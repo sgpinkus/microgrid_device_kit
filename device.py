@@ -1,5 +1,6 @@
 import re
 import numpy as np
+import numbers
 from pprint import pformat
 from device_kit import BaseDevice
 from device_kit.projection import *
@@ -115,13 +116,22 @@ class Device(BaseDevice):
 
   @bounds.setter
   def bounds(self, bounds):
-    ''' Set bounds. Can be input as a pair which will be repeated len times. Conversion is one way currently. '''
+    ''' Set bounds. Convert to consistent format which is a (len(self), 2) shaped ndarray. Input
+    format is lost. Input can be (len(self), 2) shape array, or a pair, each entry of which must be
+    a scalar or arrary of len(self)
+    '''
     if not hasattr(bounds, '__len__'):
       raise ValueError('bounds must be a sequence type')
     if len(bounds) == 2:
-      bounds = np.array([bounds for i in range(0, len(self))])
+      bounds = list(bounds)
+      if isinstance(bounds[0], numbers.Number):
+        bounds[0] = np.repeat(bounds[0], len(self))
+      if isinstance(bounds[1], numbers.Number):
+        bounds[1] = np.repeat(bounds[1], len(self))
+      if len(bounds[0]) == len(bounds[1]) == len(self):
+        bounds = np.stack((bounds[0], bounds[1]), axis=1)
     if len(bounds) != len(self):
-      raise ValueError('bounds has wrong length (%d)' % len(bounds))
+      raise ValueError('bounds has wrong length (%d). Require %d' % (len(bounds), len(self)))
     bounds = np.array(bounds)
     lbounds = np.array(bounds[:, 0])
     hbounds = np.array(bounds[:, 1])

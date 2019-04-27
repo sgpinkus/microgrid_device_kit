@@ -33,7 +33,9 @@ class CDevice(Device):
   @params.setter
   def params(self, params):
     ''' Sanity check params. '''
-    a = b = None
+    if params is None:
+      (self._a, self._b) = (0, 0)
+      return
     if not isinstance(params, dict):
       raise ValueError('params incorrect type')
     (a, b) = (params['a'], params['b'])

@@ -31,15 +31,11 @@ class PVDevice(Device):
 
   @bounds.setter
   def bounds(self, bounds):
-    ''' @override bounds setter to ensure hbounds = 0. '''
-    if len(bounds) != len(self):
-      raise ValueError('bounds has wrong length (%d)' % len(bounds))
-    bounds = np.array(bounds)
-    lbounds = np.array(bounds[:, 0])
-    hbounds = np.array(bounds[:, 1])
-    if not (hbounds == 0).all():
-      raise ValueError('hbounds must be all zeros')
+    ''' @override bounds setter to ensure hbounds <= 0. '''
     Device.bounds.fset(self, bounds)
+    bounds = np.array(bounds)
+    if not (self.hbounds <= 0).all():
+      raise ValueError('hbounds must be <= 0')
 
   @cbounds.setter
   def cbounds(self, cbounds):

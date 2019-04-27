@@ -1,9 +1,11 @@
 import re
 import uuid
+import numbers
 import numpy as np
 from copy import deepcopy
 from scipy.optimize import minimize
 from device_kit import *
+from .utils import zero_mask
 from logging import debug, info, warn, exception, error
 
 
@@ -82,14 +84,21 @@ class DeviceSet(BaseDevice):
 
   @property
   def shape(self):
+    ''' This recurses down nested device to provide absolute shape. It is not merely
+    (len(self.devices), len(self))
+    '''
     return (self.shapes.sum(axis=0)[0], len(self))
 
   @property
   def shapes(self):
+    ''' Return list with shapes of all child devices. '''
     return np.array(tuple([d.shape for d in self.devices]))
 
   @property
   def partition(self):
+    ''' Similar to shapes, returns list of tuples containing absolute index childs "row", number of
+    rows child has, for each child device.
+    '''
     p = self.shapes[:,0]
     ps = [0] + list(p.cumsum())[0:-1]
     return np.array(tuple(zip(ps, p)), dtype=int)
@@ -149,23 +158,29 @@ class DeviceSet(BaseDevice):
     return constraints
 
   @sbounds.setter
-  def sbounds(self, sbounds):
+  def sbounds(self, bounds):
     ''' Set bounds. Can be input as a pair which will be repeated len times. Conversion is one way currently. '''
-    if sbounds is None:
+    if bounds is None:
       self._sbounds = None
       return
-    if not hasattr(sbounds, '__len__'):
-      raise ValueError('sbounds must be a sequence type')
-    if len(sbounds) == 2:
-      sbounds = np.array([sbounds for i in range(0, len(self))])
-    if len(sbounds) != len(self):
-      raise ValueError('sbounds has wrong length (%d)' % len(sbounds))
-    sbounds = np.array(sbounds)
-    lbounds = np.array(sbounds[:, 0])
-    hbounds = np.array(sbounds[:, 1])
-    if not np.vectorize(lambda v: v is None)(sbounds).all() and not (hbounds - lbounds >= 0).all():
+    if not hasattr(bounds, '__len__'):
+      raise ValueError('bounds must be a sequence type')
+    if len(bounds) == 2:
+      bounds = list(bounds)
+      if isinstance(bounds[0], numbers.Number):
+        bounds[0] = np.repeat(bounds[0], len(self))
+      if isinstance(bounds[1], numbers.Number):
+        bounds[1] = np.repeat(bounds[1], len(self))
+      if len(bounds[0]) == len(bounds[1]) == len(self):
+        bounds = np.stack((bounds[0], bounds[1]), axis=1)
+    if len(bounds) != len(self):
+      raise ValueError('bounds has wrong length (%d). Require %d' % (len(bounds), len(self)))
+    bounds = np.array(bounds)
+    lbounds = np.array(bounds[:, 0])
+    hbounds = np.array(bounds[:, 1])
+    if not np.vectorize(lambda v: v is None)(bounds).all() and not (hbounds - lbounds >= 0).all():
       raise ValueError('max sbound must be >= min sbound for all min/max sbound pairs: %s' % (str(hbounds - lbounds),))
-    self._sbounds = sbounds
+    self._sbounds = bounds
 
   def project(self, s):
     return np.vstack(

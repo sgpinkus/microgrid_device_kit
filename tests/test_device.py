@@ -201,6 +201,16 @@ class TestBaseDevice(TestCase):
       _test_device[2] = [1, 0]
       device = Device(*_test_device)
 
+  def test_mixed_bounds(self):
+    _test_device = deepcopy(test_device)
+    _test_device[2] = (0, np.ones(24))
+    device = Device(*_test_device)
+    self.assertEqual(device.bounds.shape, (24, 2))
+    self.assertEqual(device.bounds[0][0], 0)
+    with self.assertRaises(ValueError):
+      _test_device[2] = [1, 0]
+      device = Device(*_test_device)
+
   def test_infeasible_settings(self):
     ''' Test creating Device with settings that don't satisfy basic feasiblilty constraints. '''
     # id required

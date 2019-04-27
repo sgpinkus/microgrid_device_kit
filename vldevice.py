@@ -41,7 +41,3 @@ class VLDevice(Device):
     if self.follows:
       v = np.abs(self.follows.r)*self.factor
     return np.stack((v, v), axis=1)
-
-  @bounds.setter
-  def bounds(self, bounds):
-    pass
