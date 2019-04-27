@@ -1,6 +1,7 @@
-from .basedevice import BaseDevice, OptimizationException
+from .basedevice import BaseDevice
 from .deviceset import DeviceSet
 from .utils import care2bounds, on2bounds, zero_mask, project
+from .solve import solve, step, OptimizationException
 from .device import Device
 from .cdevice import CDevice
 from .idevice import IDevice
@@ -16,8 +17,9 @@ from .blobdevice import BlobDevice
 
 
 __all__ = [
-  'BaseDevice', 'OptimizationException', 'DeviceSet',
+  'BaseDevice', 'DeviceSet',
   'care2bounds', 'on2bounds', 'zero_mask', 'project',
+  'solve', 'step', 'OptimizationException',
   'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice', 'ADevice',
   'VLDevice', 'IDevice2', 'CDevice2', 'BlobDevice'
 ]

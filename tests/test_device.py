@@ -6,7 +6,7 @@ from copy import deepcopy
 import unittest
 from unittest import TestCase
 from device_kit import *
-from device_kit import utils
+from device_kit.solve import solve, OptimizationException
 from device_kit.utils import sustainment_matrix
 from device_kit.functions import poly2d
 
@@ -259,7 +259,7 @@ class TestBaseDevice(TestCase):
     p = np.ones(24)
     self.assertEqual(-24, d.u(r, p))
     self.assertTrue((d.deriv(r, p) == -1*p).all())
-    r = d.solve(p)[0]
+    r = solve(d, p)[0]
     self.assertTrue((np.abs((r - np.ones(24)*(10/24))) <= 1e-6).all())
 
 
@@ -284,7 +284,7 @@ class TestCDevice(TestCase):
     ''' test_device and price setting, mean the device should derive 1 utility from each time unit. '''
     device = CDevice(*deepcopy(test_cdevice))
     p = test_choice_prices
-    x = device.solve(p)[0]
+    x = solve(device, p)[0]
     self.assertTrue(((np.abs(x - 1) < 1e-8) | (np.abs(x + 1) < 1e-8)).all())
     self.assertTrue((np.abs(device.u(x, p) - 24.) < 1e-8).all())
 
@@ -293,13 +293,13 @@ class TestCDevice(TestCase):
     device = CDevice(*deepcopy(test_cdevice))
     device.cbounds = (-6, 0)
     p = test_choice_prices
-    r = device.solve(p)[0]
+    r = solve(device, p)[0]
     self.assertTrue(abs(device.u(r, p) - 24) <= 1e-8)
     device.cbounds = (-5, 0)
-    r = device.solve(p)[0]
+    r = solve(device, p)[0]
     self.assertTrue(abs(device.u(r, p) - 23) <= 1e-8)
     device.cbounds = (0, 1)
-    r = device.solve(p)[0]
+    r = solve(device, p)[0]
     self.assertTrue(abs(device.u(r, p) - 18) <= 1e-8)
 
   def test_bounds(self):
@@ -397,7 +397,7 @@ class TestTDevice(TestCase):
     p = np.ones(24)
     d = TDevice(*deepcopy(test_tdevice))
     try:
-      (r, o) = d.solve(p)
+      (r, o) = solve(d, p)
     except OptimizationException as e:
       self.fail(e.o)
     self.assertTrue(o.success, msg=o)
@@ -410,7 +410,7 @@ class TestTDevice(TestCase):
         'maxiter': 200,
     }
     device = self.get_test_device_heat()
-    (r, o) = device.solve(p, solver_options=solver_options)
+    (r, o) = solve(device, p, solver_options=solver_options)
     self.assertTrue(o.success)
 
   def test_solve_more_more(self):
@@ -421,7 +421,7 @@ class TestTDevice(TestCase):
         'maxiter': 500,
     }
     device = self.get_test_device_heat()
-    (r, o) = device.solve(p, solver_options=solver_options)
+    (r, o) = solve(device, p, solver_options=solver_options)
     self.assertTrue(o.success)
 
   def get_test_device_heat(self):
