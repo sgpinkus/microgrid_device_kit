@@ -45,7 +45,7 @@ Note that all devices are intended stateless; they are not actively consuming pr
 
 <table>
   <tr>
-    <td>
+    <td style="width: 50%">
         <figure>
             <a name='f1'><img width='460px' name='f1' src='docs/img/uml-cd.png'/></a><br/>
             <small>The core classes of device_kit. Most the model complexity is in sub classes of `Device`. A few are provided in this package such as `IDevice`. </small>
