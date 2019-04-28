@@ -1,7 +1,8 @@
 # Device Kit
-Device Kit is a Python package containing a collection of "device" models. It also defines a common interfaces for constructing new device models, and collections of devices.
+`device_kit` is a Python package containing a collection of "device" models. It also defines a common interfaces for constructing new device models, and collections of devices.
 
 ## Synopsis
+A simple example of using `device_kit` to model a collection of devices and then doing something with it:
 
     import numpy as np
     import pandas as pd
@@ -23,7 +24,8 @@ Device Kit is a Python package containing a collection of "device" models. It al
       id='site1'
     )
 
-    # Simple example of "solving". Solution ~meaningless w/o additional constraints such as a requirement for balanced supply and demand.
+    # Simple example of "solving". Solution is meaningless w/o additional constraints such as a
+    # requirement for balanced supply and demand. Note "p" parameter is prices.
     (x, solve_meta) = solve(composite_device, p=0)
     print(solve_meta.message)
     print(pd.DataFrame.from_dict(dict(composite_device.map(x)), orient='index'))
@@ -34,26 +36,41 @@ In the scope of this package, a "device" is something that consumes or produces 
 
 Devices don't exist in isolation. They exist in some kind of network which acts as a conduit for commodity flow between devices. A device's operation may also be constrained with respect to another devices (example device A flow supplies device B). Most simple networks have a radial structure. The device_kit package also allows one to model, at a rudimentary level, a radially structured network of devices, and also flow couplings between sub-sets of devices. The way it does this is by organizing devices into a rooted tree.
 
-## Device Structure
-All devices sub-type `Device`. A device's consumption/production/both (herein called it's *flow*), is a 2D `RxC` numpy array. For "atomic" devices `R` is just 1, and `C` is the fixed length (\_\_len\_\_) of the Device. However, a collection of devices is also implemented as a sub-type of `Device` and this is how `R` can be greater than 1. The `DeviceSet` class is used to represent collections of Devices, such as a network or sub-network. `DeviceSet` allows devices to be organized into an arbitrarily deep tree of devices. Atomic device always occur at the leaves. All internal nodes, and entire tree represented by the root node is a `DeviceSet`.
+## Class Structure
+There is two important class, `Device` and `DeviceSet`. The UML class diagram in the figure below shows how they are related. All devices sub-class `BaseDevice` which is the key abstract representation of a device. A device's consumption/production/both (herein called it's *flow*), is a 2D `RxC` numpy array. For "atomic" `Device` class devices `R` is just 1, and `C` is the fixed length (\_\_len\_\_) of the Device. However, a collection of devices is also implemented as a sub-type of `Device` and this is how `R` can be greater than 1. The `DeviceSet` class is used to represent collections of devices, such as a network or sub-network. `DeviceSet` allows devices to be organized into an arbitrarily deep tree of devices. An example is shown in the figure below. Atomic device always occur at the leaves. All internal nodes, and entire tree itself are `DeviceSet` instances.
 
-Note that all devices are intended stateless; they are actively consuming producing anything. Rather they are modeling the preferences and constraints for the consumption/production/both of a commodity. They are also intended to be immutable, but technically they are not at current.
+Note that all devices are intended stateless; they are not actively consuming producing anything. Rather they are modeling the preferences and constraints for the consumption/production/both of a commodity (the `map(flow)` method shown in the UML diagram allows you to map an actual flow matrix onto a collection of devices). Devices are also intended to be immutable (but technically they are not currently strictly immutable).
 
-## Flexibility
-Device's encapsulate a flexibility model. Flexibility has two main components:
+---
+
+<table>
+  <tr>
+    <td>
+        <figure>
+            <a name='f1'><img width='460px' name='f1' src='docs/img/uml-cd.png'/></a><br/>
+            <small>The core classes of device_kit. Most the model complexity is in sub classes of `Device`. A few are provided in this package such as `IDevice`. </small>
+        </figure>
+    </td>
+    <td>
+        <figure>
+            <a name='f2'><img width='460px' name='f2' src='docs/img/tree-of-smart-homes-op-e-phys.jpg'/></a><br/>
+            <small>DeviceSet allows devices to be connected to represent a radially connected network of devices, such as the Microgrid example shown in the figure. The Microgrid and Sub-Network nodes correspond to DeviceSet instances.</small>
+        </figure>
+    </td>
+  </tr>
+</table>
+
+
+---
+
+## Flexibility Modeling
+Device's encapsulate a flexibility model. Flexibility has two components:
 
   1. *Preferences*. These are sometimes called soft constraints.
   2. *Constraint*. These are sometimes hard constraints.
 
-For convenience, the `Device` base class provides for two very common rudimentary baked-in constraints:
+For convenience, the `Device` base class provides for two very common rudimentary baked-in constraints, `Device.bounds` for *interval* (also called instantaneous) bounds and `Device.cbounds` for *cumulative* bounds.
 
-  - Device.bounds; Interval bounds.
-  - Device.cbound; Cumulative bounds.
+
 
 Preferences are expressed via the `Device.u(flow)` utility function which expresses how much the device "likes" the given state of flow (note that this "utility" function is also used to express how much a producer likes producing a given flow). The Device base class has no preferences; Device.u() just returns 0. It is the main job of a `Device` sub-type to define preferences and/or additional more complex constraints that describe more nuanced device models. sub-types do this by overriding `Device.u()` (preferences) and `Device.constraints` (constraints).
-
----
-
-<img src="docs/img/uml-cd.png" style="max-width:480px" /><br/>
-
----
