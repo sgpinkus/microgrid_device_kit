@@ -1,3 +1,5 @@
+
+
 # Device Kit
 `device_kit` is a Python package containing a collection of "device" models. It also defines a common interfaces for constructing new device models, and collections of devices.
 
@@ -43,9 +45,9 @@ Note that all devices are intended stateless; they are not actively consuming pr
 
 ---
 
-<table>
+<table style="width: 100%; text-align: center;">
   <tr>
-    <td style="width: 50%">
+    <td style="width: 50%;">
         <figure>
             <a name='f1'><img width='460px' name='f1' src='docs/img/uml-cd.png'/></a><br/>
             <small>The core classes of device_kit. Most the model complexity is in sub classes of `Device`. A few are provided in this package such as `IDevice`. </small>
