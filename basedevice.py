@@ -133,8 +133,9 @@ class BaseDevice(ABC):
       yield item
 
   def map(self, s):
-    ''' maps rows of flow matrix `s` to identifiers of atomic devices under this device.
-    Returns list of tuples. You can load this into Pandas like pd.DataFrame(dict(device.map(s)))
+    ''' maps rows of flow matrix `s` to identifiers of atomic devices under this device. Returns
+    list of tuples.  You can load this into Pandas like pd.DataFrame(dict(device.map(s))).
+    Note this implementation assumes that all leaf devices have shape (1,X) because it's easier.
     '''
     s = s.reshape(self.shape)
     for i, d in enumerate(self.leaf_devices()):

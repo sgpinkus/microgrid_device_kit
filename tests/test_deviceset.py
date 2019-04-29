@@ -29,9 +29,9 @@ class TestDeviceSet(TestCase):
   ]
 
   def test_basic_properties(self):
-    d = DeviceSet(self.devices)
+    d = DeviceSet('test', self.devices)
     self.assertEqual(len(d), 24)
-    self.assertEqual(len(d.id), 6)
+    self.assertEqual(len(d.id), 4)
     self.assertEqual(d.devices, self.devices)
     self.assertEqual(d.shape, (4, 24))
     self.assertTrue((d.partition[:,1] == 1).all())
@@ -40,7 +40,7 @@ class TestDeviceSet(TestCase):
     self.assertEqual(len(d.constraints), 6)
 
   def test_preferences(self):
-    self._test_preferences(DeviceSet(self.devices))
+    self._test_preferences(DeviceSet('test', self.devices))
 
   def _test_preferences(self, d):
     x = np.random.random(d.shape)*10
@@ -52,29 +52,29 @@ class TestDeviceSet(TestCase):
     d.hess(x, p)
 
   def test_initializer(self):
-    d = DeviceSet(self.devices, id='foo', sbounds=(0,100))
+    d = DeviceSet('test', self.devices, sbounds=(0,100))
     self.assertEqual(len(d.constraints), 6+48)
 
   def test_set_of_sets(self):
-    d1 = DeviceSet(self.devices)
-    d2 = DeviceSet(self.devices)
-    d = DeviceSet([d1, d2])
+    d1 = DeviceSet('d1', self.devices)
+    d2 = DeviceSet('d2', self.devices)
+    d = DeviceSet('test', [d1, d2])
     self.assertEqual(d.shape, (8, 24))
     self.assertTrue((d.partition[:,1] == 4).all())
     self.assertEqual(d.bounds.shape, (8*24, 2))
 
   def test_leaf_devices(self):
-    d = DeviceSet(self.devices, id='foo', sbounds=(0,100))
+    d = DeviceSet('test', self.devices, sbounds=(0,100))
     self.assertEqual(len(list(d.leaf_devices())), 4)
 
   def test_map(self):
-    d1 = DeviceSet(self.devices, id='d1')
-    d2 = DeviceSet(self.devices, id='d2')
-    device = DeviceSet([d1, d2], id='foo')
+    d1 = DeviceSet('d1', self.devices)
+    d2 = DeviceSet('d2', self.devices)
+    device = DeviceSet('test', [d1, d2])
     _map = list(device.map(np.ones((8,24))))
     self.assertEqual(len(_map), 8)
-    self.assertEqual(_map[0][0], 'foo.d1.test_device')
-    self.assertEqual(_map[4][0], 'foo.d2.test_device')
+    self.assertEqual(_map[0][0], 'test.d1.test_device')
+    self.assertEqual(_map[4][0], 'test.d2.test_device')
     self.assertEqual(_map[0][1].tolist(), np.ones(24).tolist())
 
 

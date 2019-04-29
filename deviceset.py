@@ -23,14 +23,12 @@ class DeviceSet(BaseDevice):
   _sbounds = None         # min/max aggregate power consumption by this agent at ant timeslot.
   _devices = None         # Sub devices of this agent.
 
-  def __init__(self, devices, sbounds=None, id=None):
+  def __init__(self, id, devices, sbounds=None):
     '''  '''
     if not (np.vectorize(lambda a: len(a))(np.array(devices)) == len(devices[0])).all():
       raise ValueError('Devices have miss-matched lengths')
     if id is not None and not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
-      raise ValueError('id must be string matching ^(?i)[a-z0-9][a-z0-9_-]*$ of None. Given "%s"' % (id,))
-    if id is None:
-      id = str(uuid.uuid4())[0:6]
+      raise ValueError('id must be string matching ^(?i)[a-z0-9][a-z0-9_-]*$ Given "%s"' % (id,))
     self._id = id
     self._devices = devices
     self._len = len(devices[0])
@@ -96,7 +94,8 @@ class DeviceSet(BaseDevice):
 
   @property
   def partition(self):
-    ''' Returns list of tuples: (offset of each child row, number of rows of child), for each child device.
+    ''' Returns list of tuples: (offset of each child row, number of rows of child), for each child
+    device.
     '''
     offset = np.roll(self.shapes[:,0].cumsum(), 1)
     offset[0] = 0
