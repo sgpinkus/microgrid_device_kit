@@ -59,10 +59,10 @@ class TDevice(IDevice):
     return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s.reshape(len(self))))
 
   def uv_t(self, t):
-    return np.vectorize(IDevice._u, otypes=[float])(t, self.a, self.b, self.c, self.d, self.t_min, self.t_optimal)
+    return np.vectorize(IDevice._u, otypes=[float])(t, self.a, self.b, self.c, self.t_min, self.t_optimal)
 
   def deriv_t(self, t):
-    return np.vectorize(IDevice._deriv, otypes=[float])(t, self.a, self.b, self.c, self.d, self.t_min, self.t_optimal)
+    return np.vectorize(IDevice._deriv, otypes=[float])(t, self.a, self.b, self.c, self.t_min, self.t_optimal)
 
   def r2t(self, r):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer
@@ -103,7 +103,7 @@ class TDevice(IDevice):
       raise ValueError('params to IDevice must be a dictionary')
     p = self.params
     p.update(params)
-    IDevice.params.fset(self, {k: v for k, v in params.items() if k in ('a', 'b', 'c', 'd')})
+    IDevice.params.fset(self, {k: v for k, v in params.items() if k in ('a', 'b', 'c')})
     if self.a != 0:
       raise ValueError('parameter a must be 0')
     if self.b%2 != 0:

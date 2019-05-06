@@ -78,7 +78,6 @@ test_idevice = [
     'a': 0,
     'b': [2, 4, 2, 3, 2, 2, 2, 2, 3, 2, 3, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 2, 4, 3],
     'c': 1,
-    'd': 0,
   }
 ]
 # IDevice 2
@@ -323,7 +322,7 @@ class TestIDevice(TestCase):
     with self.assertRaises(ValueError):
       device = Device(*_test_device)
     # non -ve
-    for v in ('a', 'b', 'c', 'd'):
+    for v in ('a', 'b', 'c'):
       _test_device = deepcopy(test_idevice)
       _test_device[4][v] = -0.1
       with self.assertRaises(ValueError):

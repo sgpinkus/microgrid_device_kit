@@ -60,7 +60,6 @@ class TestIDevice():
       'a': 0.1,
       'b': 2,
       'c': 1,
-      'd': 0,
     }
     d = IDevice(
       'idevice',
@@ -79,7 +78,6 @@ class TestIDevice():
     plt.axvline(0, label='min', color='k')
     plt.axvline(1, label='max', color='k')
     plt.axvline(1+d.params['a'], label='a', color='orange')
-    plt.axhline(d.params['d'], label='d', color='red')
     plt.title(str(d.params))
     plt.legend()
     plt.grid(True)
@@ -92,7 +90,6 @@ class TestIDevice():
       'a': rand(num)*0.5,
       'b': 3,
       'c': 1,
-      'd': 0
     }
     a = IDevice("test_idevice", num, np.stack((mins, maxs), axis=1), None, params)
     print(a, '---')
@@ -119,7 +116,6 @@ class TestIDevice():
       'a': rand(num)*0.5,
       'b': 3,
       'c': 1,
-      'd': 0
     }
     a = IDevice("test_idevice", num, np.stack((mins, maxs), axis=1), None, params)
     print(a, '---')
@@ -349,7 +345,7 @@ class TestBlobDevice():
 
 
 
-# TestSDevice().test_all()
+TestIDevice().test_all()
 # TestIDevice2().test_all()
 # TestCDevice2().test_all()
-TestBlobDevice().test_all()
+# TestBlobDevice().test_all()
