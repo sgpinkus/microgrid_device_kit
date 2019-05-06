@@ -1,6 +1,6 @@
 import numpy as np
 import json
-from numpy.random import rand
+from numpy.random import rand, seed
 from pprint import pprint
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ np_printoptions = {
   },
 }
 np.set_printoptions(**np_printoptions)
-
+seed(19)
 colors = ['red', 'black', 'lime', 'navy', 'fuchsia', 'green', 'yellow', 'blue', 'orange', 'purple']
 
 
@@ -53,21 +53,21 @@ class TestIDevice():
   ''' Informal sanity check, graphing random IDevice utility functions and their derivatives. '''
 
   def test_all(self):
-    self.test_utility_demo()
+    self.test_utility()
+    self.test_deriv()
+    self.test_hess()
+    self.test_utility_demos()
 
-  def test_utility_demo(self):
-    params = {
-      'a': 0.1,
-      'b': 2,
-      'c': 1,
-    }
-    d = IDevice(
-      'idevice',
-      24,
-      np.stack((np.zeros(24), np.ones(24)), axis=1),
-      None,
-      params,
-    )
+  def test_utility_demos(self):
+    d = IDevice('idevice', 24, (0, 1), None, {'a': 0.5, 'b': 2, 'c': 1})
+    print(d.u(0, 0), d.u(1, 0))
+    print(d.deriv(np.zeros(24), 0))
+    TestIDevice.plot_idevice(d)
+    plt.show()
+
+    d = IDevice('idevice', 24, (0, 1), None, {'a': 0.3, 'b': 2, 'c': 3})
+    print(d.u(0, 0), d.u(1, 0))
+    print(d.deriv(np.zeros(24), 0))
     TestIDevice.plot_idevice(d)
     plt.show()
 
@@ -86,12 +86,7 @@ class TestIDevice():
     num = 6
     mins = rand(num)
     maxs = mins + rand(num)+0.5
-    params = {
-      'a': rand(num)*0.5,
-      'b': 3,
-      'c': 1,
-    }
-    a = IDevice("test_idevice", num, np.stack((mins, maxs), axis=1), None, params)
+    a = IDevice("test_idevice", num, np.stack((mins, maxs), axis=1), None, {'a': rand(num)*0.5, 'b': 3, 'c': 1})
     print(a, '---')
     s = (maxs - mins)/20
     v = np.array([[mins + i*s, a.uv(mins + i*s, np.zeros(len(a)))] for i in range(0, 21)])
@@ -107,17 +102,12 @@ class TestIDevice():
     plt.ylim(-1, 1.1)
     plt.show()
 
-  def test_utility_deriv(self):
+  def test_deriv(self):
     colors = ['red', 'black', 'lime', 'navy', 'fuchsia', 'green', 'yellow', 'blue', 'orange', 'purple']
     num = 3
     mins = rand(num)
     maxs = mins + rand(num)+0.5
-    params = {
-      'a': rand(num)*0.5,
-      'b': 3,
-      'c': 1,
-    }
-    a = IDevice("test_idevice", num, np.stack((mins, maxs), axis=1), None, params)
+    a = IDevice("idevice", num, np.stack((mins, maxs), axis=1), None, {'a': rand(num)*0.5, 'b': 3, 'c': 1})
     print(a, '---')
     s = (maxs - mins)/20
     v = np.array([[mins + i*s, a.uv(mins + i*s, np.zeros(len(a)))] for i in range(0, 20)])
@@ -128,6 +118,13 @@ class TestIDevice():
     plt.xlim(0, 3)
     plt.show()
 
+  def test_hess(self):
+    for i in range(5):
+      num = 8
+      mins = rand(num)
+      maxs = mins + rand(num)+0.5
+      d = IDevice("idevice", num, np.stack((mins, maxs), axis=1), None, {'a': rand(num)*0.5, 'b': 3, 'c': 1})
+      print(d.hess(np.random.random(8)))
 
 class TestIDevice2():
 
@@ -253,24 +250,15 @@ class TestSDevice():
 
   def test_all(self):
     self.test_basics()
-    self.test_sdevice()
     self.test_costs_at_zero_are_zero()
-    self.test_cd_solution()
     self.test_charge_at()
-
-  def test_sdevice(self):
-    self.test_basics()
-    self.test_costs_at_zero_are_zero()
-    self.test_cd_solution()
 
   def test_basics(self):
     a = self.get_test_device()
-    print(a, '\n', a.u(), '\n', a.deriv())
+    print(a, '\n', a.u(np.ones(len(a)), 0), '\n', a.deriv(np.ones(len(a)), 0))
     p = np.random.rand(24)
-    a.update(p)
     print(a)
     plt.plot(p, label='price')
-    plt.plot(a.r, label='consumption')
     plt.legend()
     plt.show()
 
@@ -278,7 +266,7 @@ class TestSDevice():
     ''' Cost should be zero when charge is zero. and only increase. '''
     a = self.get_test_device()
     ax = np.linspace(-1, 1, 50)
-    plt.plot(ax, np.vectorize(lambda x: a.u(s=x*np.ones(len(a))))(ax))
+    plt.plot(ax, np.vectorize(lambda x: a.u(s=x*np.ones(len(a)), p=0))(ax))
     plt.show()
 
   def test_charge_at(self):
@@ -305,6 +293,9 @@ class TestSDevice():
       plt.grid(True, zorder=5)
       plt.show()
 
+  @classmethod
+  def get_test_device(cls):
+    return SDevice(*test_sdevice)
 
 class TestBlobDevice():
   ''' Dis-prove visually blob device utility function is strictly concave. '''
@@ -346,6 +337,7 @@ class TestBlobDevice():
 
 
 TestIDevice().test_all()
+TestSDevice().test_all()
 # TestIDevice2().test_all()
 # TestCDevice2().test_all()
 # TestBlobDevice().test_all()
