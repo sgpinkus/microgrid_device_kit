@@ -27,9 +27,9 @@ class SDevice(Device):
         assume the device starts with this reserve as well.
     - efficiency: The round trip efficiency factor - [0,1]. Presumed to apply symmetrically to in/out flow.
   '''
-  _c1 = 1
-  _c2 = 0.1
-  _c3 = 0.01
+  _c1 = 1.0
+  _c2 = 0.0
+  _c3 = 0.0
   _capacity = 10
   _damage_depth = 0.0
   _reserve = 0.5
@@ -213,12 +213,8 @@ class SDevice(Device):
       raise ValueError('params to SDevice must be a dictionary')
     p = self.params
     p.update(params)
-    if p['c2'] > 0 and p['c2'] >= p['c1']:
-      raise ValueError('c1 must be greater than c2 if c2 is not zero')
-    if p['c1'] < 0 or p['c2'] < 0:
-      raise ValueError('cost coefficients must be non -ve')
-    self._c1 = p['c1']
-    self._c2 = p['c2']
+    self.c1 = p['c1']
+    self.c2 = p['c2']
     self.c3 = p['c3']
     self.capacity = p['capacity']
     self.reserve = p['reserve']
@@ -231,16 +227,16 @@ class SDevice(Device):
   def c1(self, c1):
     if c1 < 0:
       raise ValueError('cost coefficients must be non -ve')
-    if c1 <= self.c2:
-      raise ValueError('c1 must be greater than c2')
+    if c1 <= self.c2 and self.c2 > 0:
+      raise ValueError('c1 (%f) must be greater than c2 (%f)' % (c1, self.c2))
     self._c1 = c1
 
   @c2.setter
   def c2(self, c2):
     if c2 < 0:
       raise ValueError('cost coefficients must be non -ve')
-    if c2 >= self.c1:
-      raise ValueError('c2 must be less than c1')
+    if c2 > self.c1 and self.c1 > 0:
+      raise ValueError('c2 (%f) must be less than c1 (%f)' % (c2, self.c1))
     self._c2 = c2
 
   @c3.setter
