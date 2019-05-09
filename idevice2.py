@@ -14,51 +14,51 @@ class IDevice2(Device):
 
   The utility value is indeterminate when r_max == r_min, but returns 0 in this case. Same for deriv.
   '''
-  d_0 = 0
-  d_1 = 1
+  d0 = 0
+  d1 = 1
 
   @staticmethod
-  def _u(x, d_1, d_0, x_l, x_h):
+  def _u(x, d1, d0, x_l, x_h):
     ''' The utility function on scalar. '''
     if x_l == x_h:
       return 0
-    return (x_h - x_l)*np.poly1d([(d_0 - d_1)/2, d_1, 0])(IDevice2.scale(x, x_l, x_h))
+    return (x_h - x_l)*np.poly1d([(d0 - d1)/2, d1, 0])(IDevice2.scale(x, x_l, x_h))
 
   @staticmethod
-  def _deriv(x, d_1, d_0, x_l, x_h):
+  def _deriv(x, d1, d0, x_l, x_h):
     ''' The derivative of utility function on a scalar. Returned valus is expansion of:
-         np.poly1d([(d_0 - d_1)/2, d_1, 0]).deriv()(IDevice2.scale(x, x_l, x_h))
+         np.poly1d([(d0 - d1)/2, d1, 0]).deriv()(IDevice2.scale(x, x_l, x_h))
     '''
     if x_l == x_h:
       return 0
-    return (d_0 - d_1)*IDevice2.scale(x, x_l, x_h) + d_1
+    return (d0 - d1)*IDevice2.scale(x, x_l, x_h) + d1
 
   @staticmethod
-  def _hess(x, d_1, d_0, x_l, x_h):
+  def _hess(x, d1, d0, x_l, x_h):
     ''' The 2nd derivative of utility function on a scalar. '''
     if x_l == x_h:
       return 0
-    return (d_0 - d_1)/(x_h - x_l)
+    return (d0 - d1)/(x_h - x_l)
 
   @staticmethod
   def scale(x, x_l, x_h):
     return (x - x_l)/(x_h - x_l)
 
   def uv(self, s, p):
-    return np.vectorize(IDevice2._u, otypes=[float])(s, self.d_1, self.d_0, self.lbounds, self.hbounds) - s*p
+    return np.vectorize(IDevice2._u, otypes=[float])(s, self.d1, self.d0, self.lbounds, self.hbounds) - s*p
 
   def u(self, s, p):
     return self.uv(s, p).sum()
 
   def deriv(self, s, p):
-    return np.vectorize(IDevice2._deriv, otypes=[float])(s.reshape(len(self)), self.d_1, self.d_0, self.lbounds, self.hbounds) - p
+    return np.vectorize(IDevice2._deriv, otypes=[float])(s.reshape(len(self)), self.d1, self.d0, self.lbounds, self.hbounds) - p
 
   def hess(self, s, p=0):
-    return np.diag(np.vectorize(IDevice2._hess, otypes=[float])(s.reshape(len(self)), self.d_1, self.d_0, self.lbounds, self.hbounds))
+    return np.diag(np.vectorize(IDevice2._hess, otypes=[float])(s.reshape(len(self)), self.d1, self.d0, self.lbounds, self.hbounds))
 
   @property
   def params(self):
-    return {'d_1': self.d_1, 'd_0': self.d_0}
+    return {'d1': self.d1, 'd0': self.d0}
 
   @params.setter
   def params(self, params):
@@ -76,6 +76,6 @@ class IDevice2(Device):
         raise ValueError('params are required to have same length as device (%d)' % (len(self),))
       if not (v >= 0).all():
         raise ValueError('param %s must be >= 0' % (k,))
-    if not (p['d_1'] >= p['d_0']).all():
-      raise ValueError('param d_1 must be >= d_0')
-    (self.d_1, self.d_0) = (p['d_1'], p['d_0'])
+    if not (p['d1'] >= p['d0']).all():
+      raise ValueError('param d1 must be >= d0')
+    (self.d1, self.d0) = (p['d1'], p['d0'])

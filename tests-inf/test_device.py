@@ -129,7 +129,7 @@ class TestIDevice():
 class TestIDevice2():
 
   def test_all(self):
-    params = {'d_0': 0.1, 'd_1': 1}
+    params = {'d0': 0.1, 'd1': 1}
     bounds = [100, 200]
     d = IDevice2(
       'idevice2',
@@ -165,7 +165,7 @@ class TestCDevice2():
   def test_basics(self):
     bounds = [100, 200]
     cbounds = [3000, 4000]
-    params = {'d_0': 0.1, 'd_1': 0.5}
+    params = {'d0': 0.1, 'd1': 0.5}
     d = CDevice2('cdevice2', 24, np.stack((np.ones(24)*bounds[0], np.ones(24)*bounds[1]), axis=1), cbounds, params)
     ax = np.linspace(cbounds[0]/24-10, cbounds[1]/24+10)
     u = lambda x: d.u(x*np.ones(24), 0)
@@ -177,7 +177,7 @@ class TestCDevice2():
     plt.show()
 
   def test_curve(self):
-    d = CDevice2('test', 10, [0, 2], [0,10], params={'d_0': 0.1})
+    d = CDevice2('test', 10, [0, 2], [0,10], params={'d0': 0.1})
     f = lambda x: d.u(x, 0)
     a_min, a_max = 1e6, -1e6
     for i in range(5):
