@@ -365,16 +365,6 @@ class TestTDevice(TestCase):
     _test_device['params']['t_b'] = 0
     with self.assertRaises(ValueError):
       device = TDevice(**_test_device)
-    # a
-    _test_device = deepcopy(test_tdevice)
-    _test_device['params']['a'] = 100
-    with self.assertRaises(ValueError):
-      device = TDevice(**_test_device)
-    # b
-    _test_device = deepcopy(test_tdevice)
-    _test_device['params']['b'] = 0
-    with self.assertRaises(ValueError):
-      device = TDevice(**_test_device)
 
   def test_t2r(self):
     device = TDevice(**deepcopy(test_tdevice))
