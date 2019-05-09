@@ -156,17 +156,6 @@ class TestIDevice2():
     plt.grid(True)
     plt.show()
 
-
-class TestCDevice():
-  ''' Test CDevice basics. '''
-  @classmethod
-  def test_basics(cls):
-    a = CDevice(*test_cdevice_2)
-    print(a)
-    print(a.u(np.zeros(len(a)), np.zeros(len(a))), a.deriv(np.zeros(len(a)), np.zeros(len(a))))
-    print(a.hbounds.sum())
-
-
 class TestCDevice2():
 
   def test_all(self):
@@ -336,8 +325,9 @@ class TestBlobDevice():
 
 
 
+TestCDevice().test_all()
 TestIDevice().test_all()
-TestSDevice().test_all()
+# TestSDevice().test_all()
 # TestIDevice2().test_all()
 # TestCDevice2().test_all()
 # TestBlobDevice().test_all()

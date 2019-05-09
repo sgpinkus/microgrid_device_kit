@@ -50,7 +50,8 @@ test_cdevice = {
   'length': 24,
   'bounds': np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
   'cbounds': (-100, 100),
-  'params': {'a': 2, 'b': 0}
+  'a': 2,
+  'b': 0,
 }
 # CDevice2
 test_cdevice_2 = {
@@ -58,7 +59,8 @@ test_cdevice_2 = {
   'length': 24,
   'bounds': np.stack((mins, maxs), axis=1),
   'cbounds': (15, 20),
-  'params': {'a': 1, 'b': 0}
+  'a': 1,
+  'b': 0
 }
 # IDevice
 test_idevice_mins = np.concatenate((
@@ -169,7 +171,6 @@ class TestBaseDevice(TestCase):
     self.assertEqual(device.id, 'test')
     self.assertEqual(len(device), 24)
     self.assertEqual(device.cbounds, (1, 24))
-    self.assertEqual(device.params, None)
     self.assertEqual(len(device.deriv(np.ones(len(device)), np.ones(len(device)))), len(device))
 
   def test_more_properties(self):
@@ -317,20 +318,20 @@ class TestIDevice(TestCase):
     ''' Test creating Device with settings that are ill-formedevice. '''
     _test_device = deepcopy(test_idevice)
     # length
-    _test_device['params']['a'] = np.zeros(23)
+    _test_device['a'] = np.zeros(23)
     with self.assertRaises(ValueError):
-      device = Device(**_test_device)
+      device = IDevice(**_test_device)
     # non -ve
     for v in ('a', 'b', 'c'):
       _test_device = deepcopy(test_idevice)
       _test_device['params'][v] = -0.1
       with self.assertRaises(ValueError):
-        device = Device(**_test_device)
+        device = IDevice(**_test_device)
     # a in extent
     _test_device = deepcopy(test_idevice)
     _test_device['params'] = 100
-    with self.assertRaises(ValueError):
-      device = Device(**_test_device)
+    with self.assertRaises(AttributeError):
+      device = IDevice(**_test_device)
 
   def test_utility(self):
     pass
@@ -532,7 +533,9 @@ class TestMostDevices(TestCase):
   ''' Test things on all known devices.
   @todo Maybe make this the base case, init a common device in sub-classes.
   '''
-  test_devices = [
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.test_devices = [
       Device(**test_device),
       CDevice(**test_cdevice),
       CDevice2(**test_cdevice2),
@@ -545,16 +548,16 @@ class TestMostDevices(TestCase):
     ]
 
   def test_deriv(self):
-    l = len(TestMostDevices.test_devices[0])
+    l = len(self.test_devices[0])
     r = np.random.random(l)
-    for d in TestMostDevices.test_devices:
+    for d in self.test_devices:
       self.assertEqual(len(d.deriv(r, 0)), l)
       self.assertEqual(len(d.deriv(r.reshape(1, l), 0)), l)
 
   def test_hess(self):
-    l = len(TestMostDevices.test_devices[0])
+    l = len(self.test_devices[0])
     r = np.random.random(l)
-    for d in TestMostDevices.test_devices:
+    for d in self.test_devices:
       self.assertEqual(d.hess(r).shape, (l, l))
       self.assertEqual(d.hess(r.reshape(1, l)).shape, (l, l))
 

@@ -7,19 +7,21 @@ from device_kit.projection import *
 
 
 class Device(BaseDevice):
-  ''' BaseDevice implementation for single Device.
-  '''
+  ''' BaseDevice implementation for single Device. '''
   _id = None              # The identifier of this device.
   _len = 0                # Fixed length of the following vectors / the planning window.
   _bounds = None          # Vector of 2-tuple min/max bounds on r.
   _cbounds = None         # 2-Tuple cummulative min/max bounds. Cummulative bounds are optional.
   _feasible_region = None  # Convex region representing *only* bounds and cbounds. Convenience.
-  _params = None
+  _keys = None
 
-  def __init__(self, id, length, bounds, cbounds=None, params=None):
-    ''' Initially set resource to closest feasible point to mid point between bounds. and price to
-    zero. Sub classes should just override `params.setter` not `__init__`.
-    @todo params should have just been **kwargs.
+  def __init__(self, id, length, bounds, cbounds=None, **meta):
+    ''' Validate and set field. Build an incomplete feasible_region for convenience sake. Class allows
+    any arbitrary field to be passed which are set on the object and add to field that will be
+    serialized with an instance (fields that are set on the object after init are not serialized. This
+    is by design). Sub-classes may choose to override this initializer to provide complex object
+    construction. In this case they must add additional keys to _keys or also override the to_dict()
+    method. Alternatively they may just define setters which will be called for all keys in **meta.
     '''
     if not isinstance(id, str) or not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
       raise ValueError('id must be a non empty string matching ^(?i)[a-z0-9][a-z0-9_-]*$')
@@ -27,13 +29,17 @@ class Device(BaseDevice):
     self._id = id
     self.bounds = bounds
     self.cbounds = cbounds
-    self.params = params
     self._build_feasible_region()
+    self._keys = ['id', 'length', 'bounds', 'cbounds']
+    for k, v in meta.items():
+      setattr(self, k, v)
+    self._keys += list(meta.keys())
 
   def __str__(self):
     ''' Print main settings. Dont print the actual min/max bounds vectors because its too verbose. '''
-    return 'id=%s; len=%d; *bounds=%.3f/%.3f; cbounds=%s; params=%s' % \
-      (self.id, len(self), self.lbounds.min(), self.hbounds.max(), self.cbounds, pformat(self.params))
+    _str = 'id=%s; length=%d; *bounds=%.3f/%.3f; cbounds=%s' % (self.id, len(self), self.lbounds.min(), self.hbounds.max(), self.cbounds)
+    _str = '; '.join([_str] + ['{k}={v}'.format(k=k, v=getattr(self, k)) for k in self._keys if k not in ['id', 'length', 'bounds', 'cbounds']])
+    return _str
 
   def __len__(self):
     return self._len
@@ -111,8 +117,8 @@ class Device(BaseDevice):
 
   @property
   def params(self):
-    ''' Get params in same format as passed in. '''
-    return self._params
+    ''' ~BWC '''
+    return self.to_dict()
 
   @bounds.setter
   def bounds(self, bounds):
@@ -159,21 +165,16 @@ class Device(BaseDevice):
 
   @params.setter
   def params(self, params):
-    if params is not None:
-      raise ValueError()
+    ''' Convenience buld setter. '''
+    for k, v in params.items():
+      setattr(self, k ,v)
 
   def project(self, s):
     return self._feasible_region.project(s.reshape(len(self)))
 
   def to_dict(self):
-    ''' Serialize '''
-    return {
-      'id': self.id,
-      'length': len(self),
-      'bounds': list(self.bounds),
-      'cbounds': self.cbounds,
-      'params': self.params
-    }
+    data = {k: getattr(self, k) for k in self._keys}
+    return data
 
   def _build_feasible_region(self):
     region = HyperCube(self.bounds)

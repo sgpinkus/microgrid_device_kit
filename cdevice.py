@@ -19,10 +19,6 @@ class CDevice(Device):
     return np.zeros((len(self), len(self)))
 
   @property
-  def params(self):
-    return {'a': self.a, 'b': self.b}
-
-  @property
   def a(self):
     return self._a
 
@@ -30,15 +26,14 @@ class CDevice(Device):
   def b(self):
     return self._b
 
-  @params.setter
-  def params(self, params):
-    ''' Sanity check params. '''
-    if params is None:
-      (self._a, self._b) = (0, 0)
-      return
-    if not isinstance(params, dict):
-      raise ValueError('params incorrect type')
-    (a, b) = (params['a'], params['b'])
-    if a < 0 or b < 0:
-      raise ValueError('params a and b must be >= 0')
-    (self._a, self._b) = (a, b)
+  @a.setter
+  def a(self, a):
+    if a < 0:
+      raise ValueError('param a must be >= 0')
+    self._a = a
+
+  @b.setter
+  def b(self, b):
+    if b < 0:
+      raise ValueError('param a must be >= 0')
+    self._b = b

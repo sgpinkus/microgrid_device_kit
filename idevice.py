@@ -82,29 +82,25 @@ class IDevice(Device):
   def c(self):
     return self._c
 
-  @property
-  def params(self):
-    return {'a': self.a, 'b': self.b, 'c': self.c}
+  @a.setter
+  def a(self, a):
+    self._a = self._validate_param(a)
 
-  @params.setter
-  def params(self, params):
-    ''' Sanity check params.  '''
-    if params is None:
-      return
-    if not isinstance(params, dict):
-      raise ValueError('params to IDevice must be a dictionary')
-    # Use preset params as defaults, ignore extras.
-    p = IDevice.params.fget(self)
-    p.update({k: v for k, v in params.items() if k in IDevice.params.fget(self).keys()})
-    p = {k: np.array(v) for k, v in p.items()}
-    for k, v in p.items():
-      if not (v.ndim == 0 or len(v) == len(self)):
-        raise ValueError('params are required to have same length as device (%d)' % (len(self),))
-      if not (v >= 0).all():
-        raise ValueError('param %s must be >= 0' % (k,))
-    (a, b, c) = (p['a'], p['b'], p['c'])
-    if not (a <= 1).all():
-      raise ValueError('param a must be <= 1')
-    if not (b > 0).all():
+  @b.setter
+  def b(self, b):
+    self._validate_param(b)
+    if not (np.array(b) > 0).all():
       raise ValueError('param b must be > 0')
-    (self._a, self._b, self._c) = (a, b, c)
+    self._b = b
+
+  @c.setter
+  def c(self, c):
+    self._c = self._validate_param(c)
+
+  def _validate_param(self, p):
+    v = np.array(p)
+    if not (v.ndim == 0 or len(v) == len(self)):
+        raise ValueError('param must be scalar or same length as device (%d)' % (len(self),))
+    if not (v >= 0).all():
+      raise ValueError('param must be >= 0')
+    return p
