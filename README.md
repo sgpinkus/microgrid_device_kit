@@ -30,10 +30,11 @@ A simple example of using `device_kit` to model a collection of devices and then
             sbounds=(0,10)
           ),
         ],
-        sbounds=(-0,0)
+        sbounds=(0,0)
       )
 
-      # Simple example of "solving". Solution ~meaningless w/o additional constraints such as a requirement for balanced supply and demand.
+      # Simple example of "solving". The `sbounds=(0,0)` constraint on the 'site1' model forces the
+      # flows to be balanced.
       (x, solve_meta) = device_kit.solve(model, p=0)
       print(solve_meta.message)
       df = pd.DataFrame.from_dict(dict(model.map(x)), orient='index')
