@@ -19,7 +19,7 @@ class DeviceSet(BaseDevice):
   @todo sbounds can be a vector of two tuples like Device.bounds
   '''
   _id = None
-  _len = None             # Number of time units (not number of devices).
+  _length = None             # Number of time units (not number of devices).
   _sbounds = None         # min/max aggregate power consumption by this agent at ant timeslot.
   _devices = None         # Sub devices of this agent.
 
@@ -31,11 +31,11 @@ class DeviceSet(BaseDevice):
       raise ValueError('id must be string matching ^(?i)[a-z0-9][a-z0-9_-]*$ Given "%s"' % (id,))
     self._id = id
     self._devices = devices
-    self._len = len(devices[0])
+    self._length = len(devices[0])
     self.sbounds = sbounds
 
   def __len__(self):
-    return self._len
+    return self._length
 
   def __str__(self):
     return '\n'.join([str(d) for d in self.devices])
@@ -75,6 +75,10 @@ class DeviceSet(BaseDevice):
   @property
   def id(self):
     return self._id
+
+  @property
+  def length(self):
+    return self._length
 
   @property
   def devices(self):

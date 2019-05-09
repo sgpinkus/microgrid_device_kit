@@ -6,22 +6,34 @@ from device_kit.functions import *
 
 
 class WindowDevice(ADevice):
-  ''' Overrides ADevice but constraint and f are not params. Only c, w are '''
+  ''' Penalizes flows with values outside of some a relative window, according to the magnitude
+  of flow outside the window. Not convex. Overrides ADevice but `constraint` and `f` are not params.
+  `c` is a scaling factor, `w` is the window width. Really there is just one of a lot of different
+  penalty functions that one could use for flows outside a window.
+  '''
   c = 1
   w = None
 
+  def __init__(self, id, length, bounds, w, cbounds=None, c=1):
+    self.w = w
+    self.c = c
+    super().__init__(id, length, bounds, cbounds, f=WindowPenalty(self.w, c=self.c))
+
   @property
-  def params(self):
-    return {'c': self.c, 'w': self.w}
+  def c(self):
+    return self._c
 
-  @params.setter
-  def params(self, params):
-    params = {} if params is None else params
-    self.c = params['c'] if 'c' in params else 1
-    self.w = params['w']
-    params['f'] = WindowPenalty(self.w, c=self.c)
-    ADevice.params.fset(self, params)
+  @property
+  def w(self):
+    return self._w
 
+  @c.setter
+  def c(self, c):
+    self._c = c
+
+  @w.setter
+  def w(self, w):
+    self._w = w
 
 class WindowPenalty():
   ''' @todo deriv() is not correct?

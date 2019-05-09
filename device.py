@@ -25,7 +25,7 @@ class Device(BaseDevice):
     '''
     if not isinstance(id, str) or not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
       raise ValueError('id must be a non empty string matching ^(?i)[a-z0-9][a-z0-9_-]*$')
-    self._len = length
+    self._length = length
     self._id = id
     self.bounds = bounds
     self.cbounds = cbounds
@@ -42,7 +42,7 @@ class Device(BaseDevice):
     return _str
 
   def __len__(self):
-    return self._len
+    return self._length
 
   def u(self, s, p):
     ''' Get scalar utility value for `s` consumption, at price (parameter) `p`. This base Device's
@@ -64,6 +64,10 @@ class Device(BaseDevice):
   @property
   def id(self):
     return self._id
+
+  @property
+  def length(self):
+    return self._length
 
   @property
   def shape(self):

@@ -1,11 +1,11 @@
 import numpy as np
-from device_kit import Device, IDevice2
+from device_kit import Device, IDevice, IDevice2
 
 
 class CDevice2(Device):
   ''' Same curve as IDevice2 but applied to the scalar sum of consumption. '''
-  d0 = 0
-  d1 = 1
+  _d0 = 0
+  _d1 = 1
 
   def u(self, s, p):
     return IDevice2._u(s.sum(), d1=self.d1, d0=self.d0, x_l=self.cbounds[0], x_h=self.cbounds[1]) - (s*p).sum()
@@ -17,25 +17,31 @@ class CDevice2(Device):
     return np.eye(len(self))*IDevice2._hess(s.sum(), self.d1, self.d0, self.cbounds[0], self.cbounds[1])
 
   @property
-  def params(self):
-    return {'d1': self.d1, 'd0': self.d0}
+  def d0(self):
+    return self._d0
 
-  @params.setter
-  def params(self, params):
-    ''' Sanity check params.  '''
-    if params is None:
-      return
-    if not isinstance(params, dict):
-      raise ValueError('params to IDevice2 must be a dictionary')
-    # Use preset params as defaults, ignore extras.
-    p = IDevice2.params.fget(self)
-    p.update({k: v for k, v in params.items() if k in IDevice2.params.fget(self).keys()})
-    p = {k: np.array(v) for k, v in p.items()}
-    for k, v in p.items():
-      if not (v.ndim == 0 or len(v) == len(self)):
-        raise ValueError('params are required to have same length as device (%d)' % (len(self),))
-      if not (v >= 0).all():
-        raise ValueError('param %s must be >= 0' % (k,))
-    if not (p['d1'] >= p['d0']).all():
-      raise ValueError('param d1 must be >= d0')
-    (self.d1, self.d0) = (p['d1'], p['d0'])
+  @property
+  def d1(self):
+    return self._d1
+
+  @d0.setter
+  def d0(self, v):
+    d0 = self._validate_param(v)
+    if not (self.d1 >= d0).all():
+      raise ValueError('param d0 must be <= d1')
+    self._d0 = d0
+
+  @d1.setter
+  def d1(self, v):
+    d1 = self._validate_param(v)
+    if not (self.d0 <= d1).all():
+      raise ValueError('param d0 must be <= d1')
+    self._d1 = d1
+
+  def _validate_param(self, p):
+    v = np.array(p)
+    if not (v.ndim == 0 or len(v) == len(self)):
+        raise ValueError('param must be scalar or same length as device (%d)' % (len(self),))
+    if not (v >= 0).all():
+      raise ValueError('param must be >= 0')
+    return v

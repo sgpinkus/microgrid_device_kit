@@ -4,12 +4,21 @@ from device_kit.functions import poly2d
 
 
 class F():
-  ''' Default null function for ADevice '''
+  ''' Default null function for ADevice. f parameter has to look like this. '''
+
+  def __call__(self, x):
+    return 0
+
+  def deriv(self, n=1):
+    return lambda x: 0
+
+  def hess(self):
+    return lambda x: 0
 
 
 class ADevice(Device):
   ''' Device that takes an arbitrary utility function and constraints. '''
-  f = np.poly1d([0])
+  _f = F()
   _constraints = []
 
 
@@ -30,19 +39,11 @@ class ADevice(Device):
     return Device.constraints.fget(self) + self._constraints
 
   @property
-  def params(self):
-    return {'f': self.f, 'constraints': self._constraints}
+  def f(self):
+    return self._f
 
-  @params.setter
-  def params(self, params):
-    ''' Sanity check params. '''
-    if params is None:
-      return
-    if not isinstance(params, dict):
-      raise ValueError('params incorrect type')
-    _params = ADevice.params.fget(self)
-    _params.update(params)
-    if not hasattr(_params['f'], '__call__') and hasattr(_params['f'], 'deriv') and hasattr(_params['f'], 'hess'):
+  @f.setter
+  def f(self, f):
+    if not hasattr(f, '__call__') and hasattr(f, 'deriv') and hasattr(f, 'hess'):
       raise ValueError('Invalid parameter type for \'f\' [%s]' % (type(f)))
-    self.f = _params['f']
-    self._constraints = _params['constraints']
+    self._f = f

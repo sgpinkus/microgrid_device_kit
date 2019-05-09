@@ -70,6 +70,11 @@ class BaseDevice(ABC):
 
   @property
   @abstractmethod
+  def length(self):
+    pass
+
+  @property
+  @abstractmethod
   def shape(self):
     ''' Return absolute shape of device flow matrix. '''
     pass

@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.realpath(__file__ + '/../')))
 import numpy as np
+from scipy import ndimage
 from copy import deepcopy
 import unittest
 from unittest import TestCase
@@ -97,17 +98,14 @@ test_idevice_simple = {
 test_sdevice = {
   'id': 'test_sdevice',
   'length': 24,
-  'bounds': np.stack((np.ones(24)*-5, np.ones(24)*5), axis=1),
+  'bounds': (-5,5),
   'cbounds': None,
-  'params': {'c1': 1, 'c2': 0, 'c3': 0, 'capacity': 10, 'reserve': 0.5, 'damage_depth': 0.2}
-}
-# SDevice
-test_sdevice_1 = {
-  'id': 'test_sdevice',
-  'length': 24,
-  'bounds': np.stack((np.ones(24)*-5, np.ones(24)*5), axis=1),
-  'cbounds': None,
-  'params': {'c1': 1, 'c2': 0, 'c3': 0, 'capacity': 10, 'reserve': 0.5, 'damage_depth': 0.2}
+  'c1': 1,
+  'c2': 0,
+  'c3': 0,
+  'capacity': 10,
+  'reserve': 0.5,
+  'damage_depth': 0.2
 }
 # TDevice
 test_tdevice = {
@@ -115,17 +113,15 @@ test_tdevice = {
   'length': 24,
   'bounds': np.stack((np.ones(24)*0, np.ones(24)*4), axis=1),
   'cbounds': None,
-  'params': {
-    't_external': np.sin(np.linspace(0, np.pi, 24))*10+10,
-    't_init': 10,
-    't_optimal': 15,
-    'care_time': np.ones(24),
-    't_range': 1.5,
-    't_a': 0.4,
-    't_b': 0.5,
-    'a': 0,
-    'b': 2
-  }
+  't_external': np.sin(np.linspace(0, np.pi, 24))*10+10,
+  't_init': 10,
+  't_optimal': 15,
+  'care_time': np.ones(24),
+  't_range': 1.5,
+  't_a': 0.4,
+  't_b': 0.5,
+  'a': 0,
+  'b': 2
 }
 # GDevice
 test_gdevice = {
@@ -133,7 +129,7 @@ test_gdevice = {
   'length': 24,
   'bounds': np.stack((-100*np.ones(24), np.zeros(24)), axis=1),
   'cbounds': None,
-  'params': {'cost': [1., 1., 0]}
+  'cost': [1., 1., 0]
 }
 # GDevice with time varying cost curve.
 test_gdevice_tv = {
@@ -141,7 +137,7 @@ test_gdevice_tv = {
   'length': 24,
   'bounds': np.stack((-100*np.ones(24), np.zeros(24)), axis=1),
   'cbounds': None,
-  'params': {'cost': np.concatenate((np.ones((12, 4))*[0.00045, 0.0058, 0.024, 0], np.ones((12, 4))*[0.73, 0.58, 0.024, 1]))}
+  'cost': np.concatenate((np.ones((12, 4))*[0.00045, 0.0058, 0.024, 0], np.ones((12, 4))*[0.73, 0.58, 0.024, 1]))
 }
 # IDevice2
 test_idevice2 = {
@@ -149,7 +145,8 @@ test_idevice2 = {
   'length': 24,
   'bounds': np.stack((test_idevice_mins, test_idevice_maxs), axis=1),
   'cbounds': None,
-  'params': {'d0': 0.1, 'd1': 1.0}
+  'd0': 0.1,
+  'd1': 1.0
 }
 
 # CDevice2
@@ -158,7 +155,8 @@ test_cdevice2 = {
   'length': 24,
   'bounds': np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
   'cbounds': (-100, 100),
-  'params': {'d0': 0.1, 'd1': 1.0}
+  'd0': 0.1,
+  'd1': 1.0
 }
 
 
@@ -324,7 +322,7 @@ class TestIDevice(TestCase):
     # non -ve
     for v in ('a', 'b', 'c'):
       _test_device = deepcopy(test_idevice)
-      _test_device['params'][v] = -0.1
+      _test_device[v] = -0.1
       with self.assertRaises(ValueError):
         device = IDevice(**_test_device)
     # a in extent
@@ -347,22 +345,22 @@ class TestTDevice(TestCase):
       device = TDevice(**_test_device)
     # t_external
     _test_device = deepcopy(test_tdevice)
-    _test_device['params']['t_external'] = [1]
+    _test_device['t_external'] = [1]
     with self.assertRaises(ValueError):
       device = TDevice(**_test_device)
     # t_range
     _test_device = deepcopy(test_tdevice)
-    _test_device['params']['t_range'] = -1
+    _test_device['t_range'] = -1
     with self.assertRaises(ValueError):
       device = TDevice(**_test_device)
     # t_a
     _test_device = deepcopy(test_tdevice)
-    _test_device['params']['t_a'] = 2
+    _test_device['t_a'] = 2
     with self.assertRaises(ValueError):
       device = TDevice(**_test_device)
     # t_b
     _test_device = deepcopy(test_tdevice)
-    _test_device['params']['t_b'] = 0
+    _test_device['t_b'] = 0
     with self.assertRaises(ValueError):
       device = TDevice(**_test_device)
 
@@ -415,7 +413,7 @@ class TestTDevice(TestCase):
 
   def get_test_device_heat(self):
     _test_device = deepcopy(test_tdevice)
-    _test_device['params']['t_b'] = -1**_test_device['params']['t_b']
+    _test_device['t_b'] = -1**_test_device['t_b']
     return TDevice(**_test_device)
 
 
@@ -465,7 +463,7 @@ class TestGDevice(TestCase):
       24,
       np.stack((-20*np.ones(24), np.zeros(24)), axis=1),
       None,
-      {'cost': cost}
+      cost=cost
     )
     return device
 
@@ -475,8 +473,6 @@ class TestPVDevice(TestCase):
   @classmethod
   def test_basics(cls):
     d = cls.get_test_device()
-    # print(d)
-    # print(d.bounds, d.lbounds, d.hbounds)
 
   @classmethod
   def get_test_device(cls):
@@ -485,7 +481,7 @@ class TestPVDevice(TestCase):
     efficiency = 0.9
     solar_intensity = np.maximum(0, np.sin(np.linspace(0, np.pi*2, 24)))
     lbounds = -1*np.minimum(max_rate, solar_intensity*efficiency*area)
-    return PVDevice('solar', 24, np.stack((lbounds, np.zeros(24)), axis=1), None, None)
+    return PVDevice('solar', 24, np.stack((lbounds, np.zeros(24)), axis=1), None)
 
 
 class TestADevice(TestCase):
@@ -493,7 +489,7 @@ class TestADevice(TestCase):
 
   def test_adevice(self):
     f = poly2d(np.random.randint(0, 4, (24, 4)))
-    d = ADevice('s', 24, [0, 1], None, {'f': f})
+    d = ADevice('s', 24, [0, 1], None, **{'f': f})
     x = np.random.random(24)
     p = np.random.random(24)
     vu = d.u(x, p)
@@ -518,6 +514,25 @@ class TestSDevice(TestCase):
   def get_test_device(cls):
     return SDevice(**deepcopy(test_sdevice))
 
+class TestWindowDevice(TestCase):
+  ''' Very rudimentary testing of WindowDevice ... '''
+
+  def test_windowdevice(self):
+    d = WindowDevice('i', 10, (0,1), 3)
+    x = np.roll(np.eye(10,1), 4).reshape(10,)
+    self.assertEqual(d.u(x, 0), 0.)
+    x = ndimage.binary_dilation(x).astype(float)
+    self.assertEqual(d.u(x, 0), 0.)
+    a = d.u(ndimage.binary_dilation(x).astype(float), 0)
+    b = d.u(ndimage.binary_dilation(x, iterations=2).astype(float), 0)
+    self.assertTrue(b < a < 0.)
+    d.deriv(x, 0)
+    d.hess(x, 0)
+
+  def test_invalid_settings(self):
+    ''' No window specified '''
+    with self.assertRaises(TypeError):
+      d = WindowDevice('i', 10, (0,1))
 
 class TestMostDevices(TestCase):
   ''' Test things on all known devices.
@@ -529,10 +544,10 @@ class TestMostDevices(TestCase):
       Device(**test_device),
       CDevice(**test_cdevice),
       CDevice2(**test_cdevice2),
-      TestPVDevice.get_test_device(),
-      GDevice(**test_gdevice),
       IDevice(**test_idevice),
       IDevice2(**test_idevice2),
+      TestPVDevice.get_test_device(),
+      GDevice(**test_gdevice),
       SDevice(**test_sdevice),
       TDevice(**test_tdevice),
     ]

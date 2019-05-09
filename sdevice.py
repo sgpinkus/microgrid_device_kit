@@ -132,20 +132,6 @@ class SDevice(Device):
     return self._rate_clip
 
   @property
-  def params(self):
-    return {
-      'c1': self.c1,
-      'c2': self.c2,
-      'c3': self.c3,
-      'capacity': self.capacity,
-      'reserve': self.reserve,
-      'damage_depth': self.damage_depth,
-      'efficiency': self.efficiency,
-      'sustainment': self.sustainment,
-      'rate_clip': self.rate_clip
-    }
-
-  @property
   def constraints(self):
     ''' Get scipy.optimize.minimize style constraint list for this device.
     Constraints ensure at every time-slot the current storage level is between 0 and `capacity`.
@@ -205,23 +191,6 @@ class SDevice(Device):
       },
     ]
     return constraints
-
-  @params.setter
-  def params(self, params):
-    ''' Sanity check params. Constraints also applied in individual setters.'''
-    if not isinstance(params, dict):
-      raise ValueError('params to SDevice must be a dictionary')
-    p = self.params
-    p.update(params)
-    self.c1 = p['c1']
-    self.c2 = p['c2']
-    self.c3 = p['c3']
-    self.capacity = p['capacity']
-    self.reserve = p['reserve']
-    self.damage_depth = p['damage_depth']
-    self.efficiency = p['efficiency']
-    self.sustainment = p['sustainment']
-    self.rate_clip = p['rate_clip']
 
   @c1.setter
   def c1(self, c1):

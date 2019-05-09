@@ -30,15 +30,44 @@ class TDevice(Device):
   @todo this doesn't really need to extend IDevice. It just uses a classs method from IDevice for its
   utility curve.
   '''
-  t_external = None              # External temperature vectors of `len` length.
+  _t_a = None                     # Thermal loss factor to external environment.
+  _t_b = None                     # Thermal efficiency factor.
+  _t_external = None              # External temperature vectors of `len` length.
+  _t_range = None                 # The +/- range min/max temp.
   t_init = None                  # The initial (and final) temperature T0.
   t_optimal = None               # The scalar ideal temperature TC. It's assumed ideal temperature is time invariant.
-  t_range = None                 # The +/- range min/max temp.
-  t_a = None                     # Thermal loss factor to external environment.
-  t_b = None                     # Thermal efficiency factor.
   t_base = None                  # temperature without out any consumption by heat engine. Derived value.
   t_utility_base = 0             # utility of t_base pre calculated & used as offset.
   sustainment_matrix = None      # stashed for use in deriv.
+
+  def __init__(self, id, length, bounds, t_a, t_b, t_init, t_optimal, t_range, t_external, cbounds=None, **meta):
+    ''' Set params and check validity. Set derived vars t_base, t_a_min|max based on params.
+    t_act_min|max is the min max temperature change that the device itself must cause - not the
+    thermodynamics, to bring be within bounds. Values in t_act_min|max may not actually be feasibile.
+    For example, `t_act_min` is +ve while `t_b` is -ve. This is currently handled by relexing some
+    unrealistic constraints. @see constraints.
+    '''
+    super().__init__(id, length, bounds, cbounds, **meta)
+    if t_a < 0 or t_a > 1:
+      raise ValueError('heat transfer coefficient must be in [0,1]')
+    if t_b == 0:
+      raise ValueError('thermal efficiency must not be 0')
+    if t_range < 0:
+      raise ValueError('acceptable temperature range (t_range) must be >= 0')
+    if len(t_external) != len(self):
+      raise ValueError('external temperature vector has wrong len (%s)' % (t_external,))
+    self._t_a = t_a
+    self._t_b = t_b
+    self._t_init = t_init
+    self._t_optimal = t_optimal
+    self._t_range = t_range
+    self._t_external = t_external
+    # Set some computed values.
+    self.t_base = self._make_t_base(self.t_external, self.t_a, self.t_init)
+    self.t_utility_base = self.uv_t(self.t_base)
+    self.t_act_min = (self.t_optimal - self.t_range) - self.t_base  # Derived for convenience only.
+    self.t_act_max = (self.t_optimal + self.t_range) - self.t_base  # Derived for convenience only.
+    self.sustainment_matrix = sustainment_matrix((1 - self.t_a), len(self))
 
   def u(self, s, p):
     return self.uv(s, p).sum()
@@ -83,44 +112,36 @@ class TDevice(Device):
     return p
 
   @property
+  def t_a(self):
+    return self._t_a
+
+  @property
+  def t_b(self):
+    return self._t_b
+
+  @property
+  def t_init(self):
+    return self._t_init
+
+  @property
+  def t_optimal(self):
+    return self._t_optimal
+
+  @property
+  def t_range(self):
+    return self._t_range
+
+  @property
+  def t_external(self):
+    return self._t_external
+
+  @property
   def t_min(self):
     return self.t_optimal - self.t_range
 
   @property
   def t_max(self):
     return self.t_optimal + self.t_range
-
-  @params.setter
-  def params(self, params):
-    ''' Set params and check validity. Set derived vars t_base, t_a_min|max based on params.
-    t_act_min|max is the min max temperature change that the device itself must cause - not the
-    thermodynamics, to bring be within bounds. Values in t_act_min|max may not actually be feasibile.
-    For example, `t_act_min` is +ve while `t_b` is -ve. This is currently handled by relexing some
-    unrealistic constraints. @see constraints.
-    '''
-    if not isinstance(params, dict):
-      raise ValueError('params to IDevice must be a dictionary')
-    p = self.params
-    p.update(params)
-    if len(p['t_external']) != len(self):
-      raise ValueError('external temperature vector has wrong len (%s)' % (p['t_external'],))
-    if p['t_range'] < 0:
-      raise ValueError('acceptable temperature range (t_range) must be >= 0')
-    if p['t_b'] == 0:
-      raise ValueError('thermal efficiency must not be 0')
-    if p['t_a'] < 0 or p['t_a'] > 1:
-      raise ValueError('heat transfer coefficient must be in [0,1]')
-    self.t_a = p['t_a']
-    self.t_b = p['t_b']
-    self.t_external = p['t_external']
-    self.t_init = p['t_init']
-    self.t_optimal = p['t_optimal']
-    self.t_range = p['t_range']
-    self.t_base = self._make_t_base(self.t_external, self.t_a, self.t_init)
-    self.t_utility_base = self.uv_t(self.t_base)
-    self.t_act_min = (self.t_optimal - self.t_range) - self.t_base  # Derived for convenience only.
-    self.t_act_max = (self.t_optimal + self.t_range) - self.t_base  # Derived for convenience only.
-    self.sustainment_matrix = sustainment_matrix((1 - self.t_a), len(self))
 
   def _make_t_base(self, t_external, t_a, t_init):
     ''' Calculate the base temperature, that occurs with no heat engine activity. This is used in

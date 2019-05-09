@@ -53,12 +53,6 @@ class GDevice(Device):
     return self._cost_fn.coeffs
 
   @property
-  def params(self):
-    return {
-      'cost': self.cost,
-    }
-
-  @property
   def cbounds(self):
     return self._cbounds
 
@@ -79,13 +73,6 @@ class GDevice(Device):
       self._cbounds = None
     else:
       raise ValueError('cbounds not allowed for GDevice currently')
-
-  @params.setter
-  def params(self, params):
-    ''' Sanity check params. Always called at init by contract. '''
-    if not isinstance(params, dict):
-      raise ValueError('params to GDevice must be a dictionary')
-    self.cost = params['cost']
 
   @cost.setter
   def cost(self, cost):

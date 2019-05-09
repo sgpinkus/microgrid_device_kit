@@ -1,3 +1,4 @@
+''' Scrappy informal tests. These are nothing. '''
 import numpy as np
 import json
 from numpy.random import rand, seed
@@ -6,7 +7,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from device_kit import *
 from device_kit.tests.test_device import *
-from device_kit.blobdevice import TemporalVariance
+from device_kit.functions import TemporalVariance
+
 
 np_printoptions = {
   'linewidth': 1e6,
@@ -59,13 +61,13 @@ class TestIDevice():
     self.test_utility_demos()
 
   def test_utility_demos(self):
-    d = IDevice('idevice', 24, (0, 1), None, {'a': 0.5, 'b': 2, 'c': 1})
+    d = IDevice('idevice', 24, (0, 1), None, a=0.5, b=2, c=1)
     print(d.u(0, 0), d.u(1, 0))
     print(d.deriv(np.zeros(24), 0))
     TestIDevice.plot_idevice(d)
     plt.show()
 
-    d = IDevice('idevice', 24, (0, 1), None, {'a': 0.3, 'b': 2, 'c': 3})
+    d = IDevice('idevice', 24, (0, 1), None, a=0.3, b=2, c=3)
     print(d.u(0, 0), d.u(1, 0))
     print(d.deriv(np.zeros(24), 0))
     TestIDevice.plot_idevice(d)
@@ -86,7 +88,7 @@ class TestIDevice():
     num = 6
     mins = rand(num)
     maxs = mins + rand(num)+0.5
-    a = IDevice("test_idevice", num, np.stack((mins, maxs), axis=1), None, {'a': rand(num)*0.5, 'b': 3, 'c': 1})
+    a = IDevice("test_idevice", num, np.stack((mins, maxs), axis=1), None, a=rand(num)*0.5, b=3, c=1)
     print(a, '---')
     s = (maxs - mins)/20
     v = np.array([[mins + i*s, a.uv(mins + i*s, np.zeros(len(a)))] for i in range(0, 21)])
@@ -107,7 +109,7 @@ class TestIDevice():
     num = 3
     mins = rand(num)
     maxs = mins + rand(num)+0.5
-    a = IDevice("idevice", num, np.stack((mins, maxs), axis=1), None, {'a': rand(num)*0.5, 'b': 3, 'c': 1})
+    a = IDevice("idevice", num, np.stack((mins, maxs), axis=1), None, a=rand(num)*0.5, b=3, c=1)
     print(a, '---')
     s = (maxs - mins)/20
     v = np.array([[mins + i*s, a.uv(mins + i*s, np.zeros(len(a)))] for i in range(0, 20)])
@@ -123,23 +125,17 @@ class TestIDevice():
       num = 8
       mins = rand(num)
       maxs = mins + rand(num)+0.5
-      d = IDevice("idevice", num, np.stack((mins, maxs), axis=1), None, {'a': rand(num)*0.5, 'b': 3, 'c': 1})
+      d = IDevice("idevice", num, np.stack((mins, maxs), axis=1), None, a=rand(num)*0.5, b=3, c=1)
       print(d.hess(np.random.random(8)))
+
 
 class TestIDevice2():
 
   def test_all(self):
-    params = {'d0': 0.1, 'd1': 1}
     bounds = [100, 200]
-    d = IDevice2(
-      'idevice2',
-      24,
-      np.stack((np.ones(24)*bounds[0], np.ones(24)*bounds[1]), axis=1),
-      None,
-      params
-    )
-    u = lambda x: d.u(x, 0)/24
-    deriv = lambda x: d.deriv(x, 0).sum()/24
+    d = IDevice2('idevice2', 24, bounds, None, d0=0.1, d1=1)
+    u = lambda x: d.u(np.ones(24)*x, 0)/24
+    deriv = lambda x: d.deriv(np.ones(24)*x, 0).sum()/24
     ax = np.linspace(bounds[0]-50, bounds[1]+50)
     print(ax)
     print(np.vectorize(u)(ax))
@@ -156,6 +152,13 @@ class TestIDevice2():
     plt.grid(True)
     plt.show()
 
+
+class TestCDevice():
+
+  def test_all(self):
+    pass
+
+
 class TestCDevice2():
 
   def test_all(self):
@@ -165,8 +168,7 @@ class TestCDevice2():
   def test_basics(self):
     bounds = [100, 200]
     cbounds = [3000, 4000]
-    params = {'d0': 0.1, 'd1': 0.5}
-    d = CDevice2('cdevice2', 24, np.stack((np.ones(24)*bounds[0], np.ones(24)*bounds[1]), axis=1), cbounds, params)
+    d = CDevice2('cdevice2', 24, np.stack((np.ones(24)*bounds[0], np.ones(24)*bounds[1]), axis=1), cbounds, d0=0.1, d1=0.5)
     ax = np.linspace(cbounds[0]/24-10, cbounds[1]/24+10)
     u = lambda x: d.u(x*np.ones(24), 0)
     deriv = lambda x: d.derive(x*np.ones(24), 0)
@@ -177,7 +179,7 @@ class TestCDevice2():
     plt.show()
 
   def test_curve(self):
-    d = CDevice2('test', 10, [0, 2], [0,10], params={'d0': 0.1})
+    d = CDevice2('test', 10, [0, 2], [0,10], **{'d0': 0.1})
     f = lambda x: d.u(x, 0)
     a_min, a_max = 1e6, -1e6
     for i in range(5):
@@ -192,6 +194,7 @@ class TestCDevice2():
       plt.plot(np.linspace(a_min, a_max, 100), np.linspace(a_min, a_max, 100), color='gray', ls='-.')
     plt.title('Random CDevice2 1D utility function projections over x1 -> x2')
     plt.show()
+
 
 class TestGDevice():
   ''' Test GDevice basics. '''
@@ -234,17 +237,15 @@ class TestPVDevice():
     lbounds = -1*np.minimum(max_rate, solar_intensity*efficiency*area)
     return PVDevice('solar', 24, np.stack((lbounds, np.zeros(24)), axis=1), None, None)
 
+
 class TestSDevice():
   ''' Test SDevice basics. '''
 
   def test_all(self):
     self.test_basics()
-    self.test_costs_at_zero_are_zero()
-    self.test_charge_at()
 
   def test_basics(self):
     a = self.get_test_device()
-    print(a, '\n', a.u(np.ones(len(a)), 0), '\n', a.deriv(np.ones(len(a)), 0))
     p = np.random.rand(24)
     print(a)
     plt.plot(p, label='price')
@@ -260,7 +261,7 @@ class TestSDevice():
 
   def test_charge_at(self):
     sustainments = [1, 0.99, 0.98, 0.95, 0.90, 0.80]
-    d = SDevice(*test_sdevice)
+    d = SDevice(**test_sdevice)
     r1 = np.concatenate(([1], np.zeros(23)))
     r2 = r1.copy()
     r2[14] = 1
@@ -284,9 +285,10 @@ class TestSDevice():
 
   @classmethod
   def get_test_device(cls):
-    return SDevice(*test_sdevice)
+    return SDevice(**test_sdevice)
 
-class TestBlobDevice():
+
+class TestWindowDevice():
   ''' Dis-prove visually blob device utility function is strictly concave. '''
 
   def test_all(self):
@@ -294,7 +296,7 @@ class TestBlobDevice():
     self.test_inertia_more()
 
   def test_random_pairs(self):
-    d = BlobDevice('blob', 5, np.stack((np.zeros(5), np.ones(5)), axis=1))
+    d = WindowDevice('blob', 5, (0,5), 2)
     f = lambda x: d.u(x, 0)
     a_min, a_max = 1e6, -1e6
     for i in range(10):
@@ -324,10 +326,9 @@ class TestBlobDevice():
     plt.show()
 
 
-
 TestCDevice().test_all()
 TestIDevice().test_all()
-# TestSDevice().test_all()
-# TestIDevice2().test_all()
-# TestCDevice2().test_all()
-# TestBlobDevice().test_all()
+TestIDevice2().test_all()
+TestCDevice2().test_all()
+TestSDevice().test_all()
+TestWindowDevice().test_all()
