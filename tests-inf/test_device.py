@@ -33,7 +33,7 @@ class TestDevice():
 
   @classmethod
   def test_constraints(cls):
-    d = SDevice(*test_sdevice)
+    d = SDevice(**test_sdevice)
     pprint(d.constraints)
     s = np.random.rand(len(d))
     for c in d.constraints:
@@ -161,7 +161,7 @@ class TestCDevice():
   ''' Test CDevice basics. '''
   @classmethod
   def test_basics(cls):
-    a = CDevice(*test_cdevice_2)
+    a = CDevice(**test_cdevice_2)
     print(a)
     print(a.u(np.zeros(len(a)), np.zeros(len(a))), a.deriv(np.zeros(len(a)), np.zeros(len(a))))
     print(a.hbounds.sum())
@@ -271,7 +271,7 @@ class TestSDevice():
 
   def test_charge_at(self):
     sustainments = [1, 0.99, 0.98, 0.95, 0.90, 0.80]
-    d = SDevice(*test_sdevice)
+    d = SDevice(**test_sdevice)
     r1 = np.concatenate(([1], np.zeros(23)))
     r2 = r1.copy()
     r2[14] = 1
@@ -295,7 +295,7 @@ class TestSDevice():
 
   @classmethod
   def get_test_device(cls):
-    return SDevice(*test_sdevice)
+    return SDevice(**test_sdevice)
 
 class TestBlobDevice():
   ''' Dis-prove visually blob device utility function is strictly concave. '''

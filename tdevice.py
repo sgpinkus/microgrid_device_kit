@@ -1,10 +1,10 @@
 import numpy as np
 import numdifftools as nd
-from device_kit import IDevice
+from device_kit import Device, IDevice
 from device_kit.utils import soc, base_soc, sustainment_matrix
 
 
-class TDevice(IDevice):
+class TDevice(Device):
   ''' Represents a heating or cooling device. Or really any device who's utility is based on a
   point that behaves like thermodynamics. The utility curve is the same as IDevice, but based on
   instaneous temperature not resource consumption directly, and with two restrictions on parameters:
@@ -59,10 +59,10 @@ class TDevice(IDevice):
     return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s.reshape(len(self))))
 
   def uv_t(self, t):
-    return np.vectorize(IDevice._u, otypes=[float])(t, self.a, self.b, self.c, self.t_min, self.t_optimal)
+    return np.vectorize(IDevice._u, otypes=[float])(t, 0, 2, 1, self.t_min, self.t_optimal)
 
   def deriv_t(self, t):
-    return np.vectorize(IDevice._deriv, otypes=[float])(t, self.a, self.b, self.c, self.t_min, self.t_optimal)
+    return np.vectorize(IDevice._deriv, otypes=[float])(t, 0, 2, 1, self.t_min, self.t_optimal)
 
   def r2t(self, r):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer
@@ -72,15 +72,14 @@ class TDevice(IDevice):
 
   @property
   def params(self):
-    p = IDevice.params.fget(self)
-    p.update({
+    return {
       't_external': self.t_external,
       't_init': self.t_init,
       't_optimal': self.t_optimal,
       't_range': self.t_range,
       't_a': self.t_a,
       't_b': self.t_b
-    })
+    }
     return p
 
   @property
@@ -103,11 +102,6 @@ class TDevice(IDevice):
       raise ValueError('params to IDevice must be a dictionary')
     p = self.params
     p.update(params)
-    IDevice.params.fset(self, {k: v for k, v in params.items() if k in ('a', 'b', 'c')})
-    if self.a != 0:
-      raise ValueError('parameter a must be 0')
-    if self.b%2 != 0:
-      raise ValueError('parameter b must be even')
     if len(p['t_external']) != len(self):
       raise ValueError('external temperature vector has wrong len (%s)' % (p['t_external'],))
     if p['t_range'] < 0:
