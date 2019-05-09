@@ -31,35 +31,35 @@ ones = np.ones(24)
 zeros = np.zeros(24)
 
 # Device
-test_device = [
-  'test_device',
-  24,
-  [(0.11098505, 0.73401641), (0.16957934, 0.20297378), (0.06926077, 0.41622013), (0.36589927, 0.91650255), (0.24329407, 0.65472194), (0.29358734, 0.61163406), (0.08356067, 0.67125244), (0.10659574, 0.68789302), (0.36779274, 0.60779149), (0.40205272, 1.37443838), (0.77592892, 1.05536045), (0.80435839, 1.37691422), (0.34357759, 0.89649611), (0.36303363, 0.48074482), (0.97522713, 1.10429662), (0.50986841, 0.76206089), (0.86281828, 1.34641641), (0.22111678, 0.92726414), (0.68289869, 0.99868162), (0.01570868, 0.13552611), (0.80499837, 0.84452731), (0.28573255, 0.64946374), (0.71161904, 1.62050741), (0.62565335, 1.46114493)],
-  (1, 24),
-]
+test_device = {
+  'id':'test',
+  'length': 24,
+  'bounds': [(0.11098505, 0.73401641), (0.16957934, 0.20297378), (0.06926077, 0.41622013), (0.36589927, 0.91650255), (0.24329407, 0.65472194), (0.29358734, 0.61163406), (0.08356067, 0.67125244), (0.10659574, 0.68789302), (0.36779274, 0.60779149), (0.40205272, 1.37443838), (0.77592892, 1.05536045), (0.80435839, 1.37691422), (0.34357759, 0.89649611), (0.36303363, 0.48074482), (0.97522713, 1.10429662), (0.50986841, 0.76206089), (0.86281828, 1.34641641), (0.22111678, 0.92726414), (0.68289869, 0.99868162), (0.01570868, 0.13552611), (0.80499837, 0.84452731), (0.28573255, 0.64946374), (0.71161904, 1.62050741), (0.62565335, 1.46114493)],
+  'cbounds': (1, 24),
+}
 # Device Simple
-test_device_simple = [
-  'test_device_simple',
-  24,
-  np.stack((np.zeros(24), np.ones(24)*10), axis=1),
-  (10, 24),
-]
+test_device_simple = {
+  'id': 'test',
+  'length': 24,
+  'bounds': (0,10),
+  'cbounds': (10, 24),
+}
 # CDevice
-test_cdevice = [
-  'test_cdevice',
-  24,
-  np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
-  (-100, 100),
-  {'a': 2, 'b': 0}
-]
+test_cdevice = {
+  'id': 'test',
+  'length': 24,
+  'bounds': np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
+  'cbounds': (-100, 100),
+  'params': {'a': 2, 'b': 0}
+}
 # CDevice2
-test_cdevice_2 = [
-  'test_cdevice_2',
-  24,
-  np.stack((mins, maxs), axis=1),
-  (15, 20),
-  {'a': 1, 'b': 0}
-]
+test_cdevice_2 = {
+  'id': 'test',
+  'length': 24,
+  'bounds': np.stack((mins, maxs), axis=1),
+  'cbounds': (15, 20),
+  'params': {'a': 1, 'b': 0}
+}
 # IDevice
 test_idevice_mins = np.concatenate((
   np.zeros(6),
@@ -69,51 +69,51 @@ test_idevice_mins = np.concatenate((
   np.ones(4)*0.2
 ))
 test_idevice_maxs = test_idevice_mins*4
-test_idevice = [
-  'test_idevice',
-  24,
-  np.stack((test_idevice_mins, test_idevice_maxs), axis=1),
-  None,
-  {
+test_idevice = {
+  'id': 'test_idevice',
+  'length': 24,
+  'bounds': np.stack((test_idevice_mins, test_idevice_maxs), axis=1),
+  'cbounds': None,
+  'params': {
     'a': 0,
     'b': [2, 4, 2, 3, 2, 2, 2, 2, 3, 2, 3, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 2, 4, 3],
     'c': 1,
   }
-]
+}
 # IDevice 2
 test_idevice_cbound = deepcopy(test_idevice)
-test_idevice_cbound[3] = (0, 4)
+test_idevice_cbound['cbounds'] = (0, 4)
 # IDevice 3 - Simple
-test_idevice_simple = [
-  'test_idevice',
-  24,
-  np.stack((zeros, ones), axis=1),
-  None,
-  {}
-]
+test_idevice_simple = {
+  'id': 'test_idevice',
+  'length': 24,
+  'bounds': np.stack((zeros, ones), axis=1),
+  'cbounds': None,
+  'params': {}
+}
 # SDevice
-test_sdevice = [
-  'test_sdevice',
-  24,
-  np.stack((np.ones(24)*-5, np.ones(24)*5), axis=1),
-  None,
-  {'c1': 1, 'c2': 0, 'c3': 0, 'capacity': 10, 'reserve': 0.5, 'damage_depth': 0.2}
-]
+test_sdevice = {
+  'id': 'test_sdevice',
+  'length': 24,
+  'bounds': np.stack((np.ones(24)*-5, np.ones(24)*5), axis=1),
+  'cbounds': None,
+  'params': {'c1': 1, 'c2': 0, 'c3': 0, 'capacity': 10, 'reserve': 0.5, 'damage_depth': 0.2}
+}
 # SDevice
-test_sdevice_1 = [
-  'test_sdevice',
-  24,
-  np.stack((np.ones(24)*-5, np.ones(24)*5), axis=1),
-  None,
-  {'c1': 1, 'c2': 0, 'c3': 0, 'capacity': 10, 'reserve': 0.5, 'damage_depth': 0.2}
-]
+test_sdevice_1 = {
+  'id': 'test_sdevice',
+  'length': 24,
+  'bounds': np.stack((np.ones(24)*-5, np.ones(24)*5), axis=1),
+  'cbounds': None,
+  'params': {'c1': 1, 'c2': 0, 'c3': 0, 'capacity': 10, 'reserve': 0.5, 'damage_depth': 0.2}
+}
 # TDevice
-test_tdevice = [
-  'test_tdevice',
-  24,
-  np.stack((np.ones(24)*0, np.ones(24)*4), axis=1),
-  None,
-  {
+test_tdevice = {
+  'id': 'test_tdevice',
+  'length': 24,
+  'bounds': np.stack((np.ones(24)*0, np.ones(24)*4), axis=1),
+  'cbounds': None,
+  'params': {
     't_external': np.sin(np.linspace(0, np.pi, 24))*10+10,
     't_init': 10,
     't_optimal': 15,
@@ -124,41 +124,40 @@ test_tdevice = [
     'a': 0,
     'b': 2
   }
-]
+}
 # GDevice
-test_gdevice = [
-  'gas',
-  24,
-  np.stack((-100*np.ones(24), np.zeros(24)), axis=1),
-  None,
-  {'cost': [1., 1., 0]}
-]
+test_gdevice = {
+  'id': 'gas',
+  'length': 24,
+  'bounds': np.stack((-100*np.ones(24), np.zeros(24)), axis=1),
+  'cbounds': None,
+  'params': {'cost': [1., 1., 0]}
+}
 # GDevice with time varying cost curve.
-test_gdevice_tv = [
-  'gas',
-  24,
-  np.stack((-100*np.ones(24), np.zeros(24)), axis=1),
-  None,
-  {'cost': np.concatenate((np.ones((12, 4))*[0.00045, 0.0058, 0.024, 0], np.ones((12, 4))*[0.73, 0.58, 0.024, 1]))}
-]
+test_gdevice_tv = {
+  'id': 'gas',
+  'length': 24,
+  'bounds': np.stack((-100*np.ones(24), np.zeros(24)), axis=1),
+  'cbounds': None,
+  'params': {'cost': np.concatenate((np.ones((12, 4))*[0.00045, 0.0058, 0.024, 0], np.ones((12, 4))*[0.73, 0.58, 0.024, 1]))}
+}
 # IDevice2
-test_idevice2 = [
-  'test_idevice2',
-  24,
-  np.stack((test_idevice_mins, test_idevice_maxs), axis=1),
-  None,
-  {'d_0': 0.1, 'd_1': 1.0}
-]
+test_idevice2 = {
+  'id': 'test_idevice2',
+  'length': 24,
+  'bounds': np.stack((test_idevice_mins, test_idevice_maxs), axis=1),
+  'cbounds': None,
+  'params': {'d_0': 0.1, 'd_1': 1.0}
+}
 
 # CDevice2
-test_cdevice2 = [
-  'test_cdevice2',
-  24,
-  np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
-  (-100, 100),
-  {'d_0': 0.1, 'd_1': 1.0}
-]
-
+test_cdevice2 = {
+  'id': 'test_cdevice2',
+  'length': 24,
+  'bounds': np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
+  'cbounds': (-100, 100),
+  'params': {'d_0': 0.1, 'd_1': 1.0}
+}
 
 
 class TestBaseDevice(TestCase):
@@ -166,94 +165,94 @@ class TestBaseDevice(TestCase):
 
   def test_basic_properties(self):
     ''' Test basic getters. '''
-    device = Device(*test_device)
-    self.assertEqual(device.id, 'test_device')
+    device = Device(**test_device)
+    self.assertEqual(device.id, 'test')
     self.assertEqual(len(device), 24)
     self.assertEqual(device.cbounds, (1, 24))
     self.assertEqual(device.params, None)
     self.assertEqual(len(device.deriv(np.ones(len(device)), np.ones(len(device)))), len(device))
 
   def test_more_properties(self):
-    device = Device(*test_device)
+    device = Device(**test_device)
     self.assertEqual(device.shape, (1, 24))
     self.assertEqual(device.shapes.tolist(), [[1, 24]])
     self.assertEqual(device.partition.tolist(), [[0, 1]])
 
   def test_leaf_and_map(self):
-    device = Device(*test_device)
+    device = Device(**test_device)
     _map = list(device.map(np.ones(24)))
     self.assertEqual(len(_map), 1)
-    self.assertEqual(_map[0][0], 'test_device')
+    self.assertEqual(_map[0][0], 'test')
     self.assertEqual(list(_map[0][1]), list(np.ones(24)))
 
   def test_invalid_settings(self):
     ''' Test creating Device with settings that are ill-formedevice. '''
     _test_device = deepcopy(test_device)
-    _test_device[1] = 25
+    _test_device['length'] = 25
     with self.assertRaises(ValueError):
-      device = Device(*_test_device)
+      device = Device(**_test_device)
     # len(bounds) == length
     _test_device = deepcopy(test_device)
-    _test_device[2].append((2, 3))
+    _test_device['bounds'].append((2, 3))
     with self.assertRaises(ValueError):
-      device = Device(*_test_device)
+      device = Device(**_test_device)
     # cbounds is a 2-tuple
     _test_device = deepcopy(test_device)
-    _test_device[3] = (1, 24, 30)
+    _test_device['cbounds'] = (1, 24, 30)
     with self.assertRaises(ValueError):
-      device = Device(*_test_device)
+      device = Device(**_test_device)
 
   def test_tuple_bounds(self):
     _test_device = deepcopy(test_device)
-    _test_device[2] = [0, 1]
-    device = Device(*_test_device)
+    _test_device['bounds'] = [0, 1]
+    device = Device(**_test_device)
     self.assertEqual(device.bounds.shape, (24, 2))
     self.assertEqual(device.bounds[0][0], 0)
     with self.assertRaises(ValueError):
-      _test_device[2] = [1, 0]
-      device = Device(*_test_device)
+      _test_device['bounds'] = [1, 0]
+      device = Device(**_test_device)
 
   def test_mixed_bounds(self):
     _test_device = deepcopy(test_device)
-    _test_device[2] = (0, np.ones(24))
-    device = Device(*_test_device)
+    _test_device['bounds'] = (0, np.ones(24))
+    device = Device(**_test_device)
     self.assertEqual(device.bounds.shape, (24, 2))
     self.assertEqual(device.bounds[0][0], 0)
     with self.assertRaises(ValueError):
-      _test_device[2] = [1, 0]
-      device = Device(*_test_device)
+      _test_device['bounds'] = [1, 0]
+      device = Device(**_test_device)
 
   def test_infeasible_settings(self):
     ''' Test creating Device with settings that don't satisfy basic feasiblilty constraints. '''
     # id required
     for i in (None, '.xxx', 'x.x', 'x.', ''):
       _test_device = deepcopy(test_device)
-      _test_device[0] = i
+      _test_device['id'] = i
       with self.assertRaises(ValueError):
-        device = Device(*_test_device)
+        device = Device(**_test_device)
     # mins < maxs
     _test_device = deepcopy(test_device)
-    _test_device[2][0] = (1.0, 0.9)
+    _test_device['bounds'][0] = (1.0, 0.9)
     with self.assertRaises(ValueError):
-      device = Device(*_test_device)
+      device = Device(**_test_device)
     # if cbounds
     _test_device = deepcopy(test_device)
-    _test_device[3] = None
-    device = Device(*_test_device)
+    _test_device['cbounds'] = None
+    device = Device(**_test_device)
     low = device.lbounds.sum()
     high = device.hbounds.sum()
     # low cbounds is feasible wrt maxs
-    _test_device[3] = (high+0.1, high+1.0)
+    _test_device['cbounds'] = (high+0.1, high+1.0)
     with self.assertRaises(ValueError):
-      device = Device(*_test_device)
+      device = Device(**_test_device)
     # high cbounds is feasible wrt mins
-    _test_device[3] = (low-1.0, low-0.1)
+    _test_device['cbounds'] = (low-1.0, low-0.1)
     with self.assertRaises(ValueError):
-      device = Device(*_test_device)
+      device = Device(**_test_device)
 
   def test_quasilinear_base_utility(self):
     ''' '''
-    d = Device(*deepcopy(test_device_simple))
+    d = Device(**deepcopy(test_device_simple))
     r = np.ones(24)
     p = np.ones(24)
     self.assertEqual(-24, d.u(r, p))
@@ -281,7 +280,7 @@ class TestCDevice(TestCase):
 
   def test_solve(self):
     ''' test_device and price setting, mean the device should derive 1 utility from each time unit. '''
-    device = CDevice(*deepcopy(test_cdevice))
+    device = CDevice(**deepcopy(test_cdevice))
     p = test_choice_prices
     x = solve(device, p)[0]
     self.assertTrue(((np.abs(x - 1) < 1e-8) | (np.abs(x + 1) < 1e-8)).all())
@@ -289,7 +288,7 @@ class TestCDevice(TestCase):
 
   def test_solve_constrained(self):
     ''' Due to the test prices unconstrained optimal r.sum() is -6 '''
-    device = CDevice(*deepcopy(test_cdevice))
+    device = CDevice(**deepcopy(test_cdevice))
     device.cbounds = (-6, 0)
     p = test_choice_prices
     r = solve(device, p)[0]
@@ -307,7 +306,7 @@ class TestCDevice(TestCase):
 
   def get_test_device(self):
     _test_device = deepcopy(test_cdevice)
-    device = CDevice(*_test_device)
+    device = CDevice(**_test_device)
     return device
 
 
@@ -318,20 +317,20 @@ class TestIDevice(TestCase):
     ''' Test creating Device with settings that are ill-formedevice. '''
     _test_device = deepcopy(test_idevice)
     # length
-    _test_device[4]['a'] = np.zeros(23)
+    _test_device['params']['a'] = np.zeros(23)
     with self.assertRaises(ValueError):
-      device = Device(*_test_device)
+      device = Device(**_test_device)
     # non -ve
     for v in ('a', 'b', 'c'):
       _test_device = deepcopy(test_idevice)
-      _test_device[4][v] = -0.1
+      _test_device['params'][v] = -0.1
       with self.assertRaises(ValueError):
-        device = Device(*_test_device)
+        device = Device(**_test_device)
     # a in extent
     _test_device = deepcopy(test_idevice)
-    _test_device[4] = 100
+    _test_device['params'] = 100
     with self.assertRaises(ValueError):
-      device = Device(*_test_device)
+      device = Device(**_test_device)
 
   def test_utility(self):
     pass
@@ -342,49 +341,49 @@ class TestTDevice(TestCase):
   def test_invalid_settings(self):
     # pass through params
     _test_device = deepcopy(test_tdevice)
-    _test_device[1] = 25
+    _test_device['length'] = 25
     with self.assertRaises(ValueError):
-      device = TDevice(*_test_device)
+      device = TDevice(**_test_device)
     # t_external
     _test_device = deepcopy(test_tdevice)
-    _test_device[4]['t_external'] = [1]
+    _test_device['params']['t_external'] = [1]
     with self.assertRaises(ValueError):
-      device = TDevice(*_test_device)
+      device = TDevice(**_test_device)
     # t_range
     _test_device = deepcopy(test_tdevice)
-    _test_device[4]['t_range'] = -1
+    _test_device['params']['t_range'] = -1
     with self.assertRaises(ValueError):
-      device = TDevice(*_test_device)
+      device = TDevice(**_test_device)
     # t_a
     _test_device = deepcopy(test_tdevice)
-    _test_device[4]['t_a'] = 2
+    _test_device['params']['t_a'] = 2
     with self.assertRaises(ValueError):
-      device = TDevice(*_test_device)
+      device = TDevice(**_test_device)
     # t_b
     _test_device = deepcopy(test_tdevice)
-    _test_device[4]['t_b'] = 0
+    _test_device['params']['t_b'] = 0
     with self.assertRaises(ValueError):
-      device = TDevice(*_test_device)
+      device = TDevice(**_test_device)
     # a
     _test_device = deepcopy(test_tdevice)
-    _test_device[4]['a'] = 100
+    _test_device['params']['a'] = 100
     with self.assertRaises(ValueError):
-      device = TDevice(*_test_device)
+      device = TDevice(**_test_device)
     # b
     _test_device = deepcopy(test_tdevice)
-    _test_device[4]['b'] = 0
+    _test_device['params']['b'] = 0
     with self.assertRaises(ValueError):
-      device = TDevice(*_test_device)
+      device = TDevice(**_test_device)
 
   def test_t2r(self):
-    device = TDevice(*deepcopy(test_tdevice))
+    device = TDevice(**deepcopy(test_tdevice))
     self.assertTrue((device.r2t(np.zeros(len(device))) == device.t_base).all())
     self.assertTrue((device.r2t(np.ones(len(device))) > device.t_base).all())
     device = self.get_test_device_heat()
     self.assertTrue((device.r2t(np.ones(len(device))) <= device.t_base).all())
 
   def test_t2r_shape(self):
-    device = TDevice(*deepcopy(test_tdevice))
+    device = TDevice(**deepcopy(test_tdevice))
     self.assertTrue((device.r2t(np.zeros((1, len(device)))) == device.t_base).all())
     self.assertTrue((device.r2t(np.ones((1, len(device)))) > device.t_base).all())
     device = self.get_test_device_heat()
@@ -394,7 +393,7 @@ class TestTDevice(TestCase):
   def test_solve(self):
     ''' Test solving. This is the reason ftol is set to such a high default values. '''
     p = np.ones(24)
-    d = TDevice(*deepcopy(test_tdevice))
+    d = TDevice(**deepcopy(test_tdevice))
     try:
       (r, o) = solve(d, p)
     except OptimizationException as e:
@@ -425,8 +424,8 @@ class TestTDevice(TestCase):
 
   def get_test_device_heat(self):
     _test_device = deepcopy(test_tdevice)
-    _test_device[4]['t_b'] = -1*_test_device[4]['t_b']
-    return TDevice(*_test_device)
+    _test_device['params']['t_b'] = -1**_test_device['params']['t_b']
+    return TDevice(**_test_device)
 
 
 class TestConstrainedTDevice(TestCase):
@@ -526,7 +525,7 @@ class TestSDevice(TestCase):
 
   @classmethod
   def get_test_device(cls):
-    return SDevice(*deepcopy(test_sdevice))
+    return SDevice(**deepcopy(test_sdevice))
 
 
 class TestMostDevices(TestCase):
@@ -534,15 +533,15 @@ class TestMostDevices(TestCase):
   @todo Maybe make this the base case, init a common device in sub-classes.
   '''
   test_devices = [
-      Device(*test_device),
-      CDevice(*test_cdevice),
-      CDevice2(*test_cdevice2),
+      Device(**test_device),
+      CDevice(**test_cdevice),
+      CDevice2(**test_cdevice2),
       TestPVDevice.get_test_device(),
-      GDevice(*test_gdevice),
-      IDevice(*test_idevice),
-      IDevice2(*test_idevice2),
-      SDevice(*test_sdevice),
-      TDevice(*test_tdevice),
+      GDevice(**test_gdevice),
+      IDevice(**test_idevice),
+      IDevice2(**test_idevice2),
+      SDevice(**test_sdevice),
+      TDevice(**test_tdevice),
     ]
 
   def test_deriv(self):

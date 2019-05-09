@@ -22,10 +22,10 @@ np.set_printoptions(
 
 class TestDeviceSet(TestCase):
   devices = [
-    Device(*test_device),
-    Device(*test_device),
-    CDevice(*test_cdevice),
-    IDevice(*test_idevice),
+    Device(**test_device),
+    Device(**test_device),
+    CDevice(**test_cdevice),
+    IDevice(**test_idevice),
   ]
 
   def test_basic_properties(self):
@@ -73,8 +73,8 @@ class TestDeviceSet(TestCase):
     device = DeviceSet('test', [d1, d2])
     _map = list(device.map(np.ones((8,24))))
     self.assertEqual(len(_map), 8)
-    self.assertEqual(_map[0][0], 'test.d1.test_device')
-    self.assertEqual(_map[4][0], 'test.d2.test_device')
+    self.assertEqual(_map[0][0], 'test.d1.test')
+    self.assertEqual(_map[4][0], 'test.d2.test')
     self.assertEqual(_map[0][1].tolist(), np.ones(24).tolist())
 
 
