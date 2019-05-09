@@ -147,7 +147,7 @@ test_idevice2 = {
   'length': 24,
   'bounds': np.stack((test_idevice_mins, test_idevice_maxs), axis=1),
   'cbounds': None,
-  'params': {'d_0': 0.1, 'd_1': 1.0}
+  'params': {'d0': 0.1, 'd1': 1.0}
 }
 
 # CDevice2
@@ -156,7 +156,7 @@ test_cdevice2 = {
   'length': 24,
   'bounds': np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
   'cbounds': (-100, 100),
-  'params': {'d_0': 0.1, 'd_1': 1.0}
+  'params': {'d0': 0.1, 'd1': 1.0}
 }
 
 

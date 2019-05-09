@@ -8,7 +8,7 @@ def main():
   cost = np.stack((np.sin(np.linspace(0, np.pi, 24))*0.5+0.1, np.ones(24)*0.001, np.zeros(24)), axis=1)
   model = DeviceSet('site1', [
       Device('uncntrld', 24, random_uncntrld_load(), None),
-      IDevice2('scalable', 24, (0.5, 2), (0, 24), {'d_0': 0.3}),
+      IDevice2('scalable', 24, (0.5, 2), (0, 24), {'d0': 0.3}),
       CDevice('shiftable', 24, (0, 2), (12, 24)),
       GDevice('generator', 24, (-10,0), None, {'cost': cost}),
       DeviceSet('sub-site1', [
