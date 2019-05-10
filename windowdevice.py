@@ -11,13 +11,11 @@ class WindowDevice(ADevice):
   `c` is a scaling factor, `w` is the window width. Really there is just one of a lot of different
   penalty functions that one could use for flows outside a window.
   '''
-  c = 1
-  w = None
+  _c = 1
+  _w = None
 
   def __init__(self, id, length, bounds, w, cbounds=None, c=1):
-    self.w = w
-    self.c = c
-    super().__init__(id, length, bounds, cbounds, f=WindowPenalty(self.w, c=self.c))
+    super().__init__(id, length, bounds, cbounds, f=WindowPenalty(w, c), w=w, c=c)
 
   @property
   def c(self):

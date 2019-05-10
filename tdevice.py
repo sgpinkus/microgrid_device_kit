@@ -151,6 +151,18 @@ class TDevice(Device):
     t_base = base_soc(t_init, s=(1 - t_a), l=len(self)) + soc(t_external, s=(1 - t_a), e=t_a)
     return t_base
 
+  def to_dict(self):
+    data = super().to_dict()
+    data.update({
+      't_a': self.t_a,
+      't_b': self.t_b,
+      't_init': self.t_init,
+      't_optimal': self.t_optimal,
+      't_range': self.t_range,
+      't_external': self.t_external
+    })
+    return data
+
 
 class ContrainedTDevice(TDevice):
   ''' This class overrides TDevice in an attempt to actually implement the temperature constraints,

@@ -177,6 +177,9 @@ class Device(BaseDevice):
     return self._feasible_region.project(s.reshape(len(self)))
 
   def to_dict(self):
+    ''' Dump object as dict. Dict should allow re-init of instance via cls(**data). See __init__(),
+    from_dict().
+    '''
     data = {k: getattr(self, k) for k in self._keys}
     return data
 

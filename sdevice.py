@@ -38,6 +38,10 @@ class SDevice(Device):
   _sustainment_matrix = None
   _rate_clip = None
 
+  def __init__(self, id, length, bounds, cbounds=None, **kwargs):
+    super().__init__(id, length, bounds, cbounds=None, **kwargs)
+    self._sustainment_matrix = sustainment_matrix(self.sustainment, len(self))
+
   def uv(self, s, p):
     return -1*self.charge_costs(s) - s*p
 
