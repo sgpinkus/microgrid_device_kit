@@ -34,13 +34,14 @@ class TDevice(Device):
   _t_b = None                     # Thermal efficiency factor.
   _t_external = None              # External temperature vectors of `len` length.
   _t_range = None                 # The +/- range min/max temp.
+  _c = 1                          # Scaling factor for utility function.
   t_init = None                  # The initial (and final) temperature T0.
   t_optimal = None               # The scalar ideal temperature TC. It's assumed ideal temperature is time invariant.
   t_base = None                  # temperature without out any consumption by heat engine. Derived value.
   t_utility_base = 0             # utility of t_base pre calculated & used as offset.
   sustainment_matrix = None      # stashed for use in deriv.
 
-  def __init__(self, id, length, bounds, t_a, t_b, t_init, t_optimal, t_range, t_external, cbounds=None, **meta):
+  def __init__(self, id, length, bounds, t_a, t_b, t_init, t_optimal, t_range, t_external, c=1, cbounds=None, **meta):
     ''' Set params and check validity. Set derived vars t_base, t_a_min|max based on params.
     t_act_min|max is the min max temperature change that the device itself must cause - not the
     thermodynamics, to bring be within bounds. Values in t_act_min|max may not actually be feasibile.
@@ -62,6 +63,7 @@ class TDevice(Device):
     self._t_optimal = t_optimal
     self._t_range = t_range
     self._t_external = t_external
+    self._c = IDevice._validate_param(c, len(self))
     # Set some computed values.
     self.t_base = self._make_t_base(self.t_external, self.t_a, self.t_init)
     self.t_utility_base = self.uv_t(self.t_base)
@@ -88,10 +90,10 @@ class TDevice(Device):
     return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s.reshape(len(self))))
 
   def uv_t(self, t):
-    return np.vectorize(IDevice._u, otypes=[float])(t, 0, 2, 1, self.t_min, self.t_optimal)
+    return np.vectorize(IDevice._u, otypes=[float])(t, 0, 2, self.c, self.t_min, self.t_optimal)
 
   def deriv_t(self, t):
-    return np.vectorize(IDevice._deriv, otypes=[float])(t, 0, 2, 1, self.t_min, self.t_optimal)
+    return np.vectorize(IDevice._deriv, otypes=[float])(t, 0, 2, self.c, self.t_min, self.t_optimal)
 
   def r2t(self, r):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer
@@ -134,6 +136,10 @@ class TDevice(Device):
   @property
   def t_external(self):
     return self._t_external
+
+  @property
+  def c(self):
+    return self._c
 
   @property
   def t_min(self):

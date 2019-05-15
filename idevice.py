@@ -84,23 +84,24 @@ class IDevice(Device):
 
   @a.setter
   def a(self, a):
-    self._a = self._validate_param(a)
+    self._a = IDevice._validate_param(a, len(self))
 
   @b.setter
   def b(self, b):
-    self._validate_param(b)
+    IDevice._validate_param(b, len(self))
     if not (np.array(b) > 0).all():
       raise ValueError('param b must be > 0')
     self._b = b
 
   @c.setter
   def c(self, c):
-    self._c = self._validate_param(c)
+    self._c = IDevice._validate_param(c, len(self))
 
-  def _validate_param(self, p):
+  @staticmethod
+  def _validate_param(p, length):
     v = np.array(p)
-    if not (v.ndim == 0 or len(v) == len(self)):
-        raise ValueError('param must be scalar or same length as device (%d)' % (len(self),))
+    if not (v.ndim == 0 or len(v) == length):
+        raise ValueError('param must be scalar or same length as device (%d)' % (length,))
     if not (v >= 0).all():
       raise ValueError('param must be >= 0')
     return p
