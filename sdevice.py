@@ -177,7 +177,7 @@ class SDevice(Device):
           {
             'type': 'ineq',
             'fun': lambda r, i=i: r.reshape(len(self))[i] - self.rate_clip[0]*self.lbounds[i]*((soc(r, i))/self.capacity),
-            'jac': lambda r, mask=mask: (self.rate_clip[0]*self.lbounds[i]/self.capacity)*((e**np.sign(r))*mask)
+            # 'jac': lambda r, mask=mask: (self.rate_clip[0]*self.lbounds[i]/self.capacity)*((e**np.sign(r))*mask)
           },
         ]
     if self.rate_clip[1]:
@@ -188,7 +188,7 @@ class SDevice(Device):
           {
             'type': 'ineq',
             'fun': lambda r, i=i: self.rate_clip[1]*self.hbounds[i]*((1 - soc(r, i)/self.capacity)) - r.reshape(len(self))[i],
-            'jac': lambda r, mask=mask: (-1*self.rate_clip[1]*self.hbounds[i]/self.capacity)*((e**np.sign(r))*mask)
+            # 'jac': lambda r, mask=mask: (-1*self.rate_clip[1]*self.hbounds[i]/self.capacity)*((e**np.sign(r))*mask)
           },
         ]
     # At least reserve left at end of window.

@@ -140,11 +140,13 @@ class DeviceSet(BaseDevice):
     flat_shape = shape[0]*shape[1]
     for d, i in zip(self.devices, self.partition):
       for constraint in d.constraints:
-        constraints += [{
+        c = {
           'type': constraint['type'],
           'fun': lambda s, i=i, f=constraint['fun']: f(s.reshape(shape)[i[0]:i[0]+i[1], :]),
-          'jac': lambda s, i=i, f=constraint['jac']: zero_mask(s.reshape(shape), f, row=i[0], cnt=i[1]).reshape(flat_shape)
-        }]
+        }
+        if 'jac' in constraint:
+          c['jac'] = lambda s, i=i, f=constraint['jac']: zero_mask(s.reshape(shape), f, row=i[0], cnt=i[1]).reshape(flat_shape)
+        constraints += [c]
     if self.sbounds is not None:
       for i in range(0, len(self)): # for each time
         constraints += [{

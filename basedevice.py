@@ -137,6 +137,15 @@ class BaseDevice(ABC):
     for item in _leaf_devices(self, self.id, '.'):
       yield item
 
+  def get(self, name):
+    ''' Convenience methor to get a single leaf device named 'name'. If greater than one device has
+    name an expection is raised. Also see find.
+    '''
+    return [v for k, v in dict(self.leaf_devices()).items() if k.endswith(name)][0]
+
+  def find(self, regexp):
+    return [v for k, v in dict(self.leaf_devices()).items() if re.match(regexp, k)]
+
   def map(self, s):
     ''' maps rows of flow matrix `s` to identifiers of atomic devices under this device. Returns
     list of tuples.  You can load this into Pandas like pd.DataFrame(dict(device.map(s))).
