@@ -503,6 +503,18 @@ class TestSDevice(TestCase):
   under various input RoC vectors. Latter is testable via charge_at().
   '''
 
+  def test_basic_properties(self):
+    d = self.get_test_device()
+    self.assertEqual(d.rate_clip, (None, None))
+    d.rate_clip = 1
+    self.assertEqual(d.rate_clip, (1, 1))
+
+  def test_invalid_settings(self):
+    ''' No window specified '''
+    with self.assertRaises(ValueError):
+      d = self.get_test_device()
+      d.rate_clip = (0,2)
+
   def test_sdevice_charge_at(self):
     d = self.get_test_device()
     r = np.ones(24)
@@ -513,6 +525,7 @@ class TestSDevice(TestCase):
   @classmethod
   def get_test_device(cls):
     return SDevice(**deepcopy(test_sdevice))
+
 
 class TestWindowDevice(TestCase):
   ''' Very rudimentary testing of WindowDevice ... '''

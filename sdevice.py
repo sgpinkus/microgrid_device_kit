@@ -36,7 +36,7 @@ class SDevice(Device):
   _efficiency = 1.0
   _sustainment = 1.0
   _sustainment_matrix = None
-  _rate_clip = None
+  _rate_clip = (None, None)
 
   def __init__(self, id, length, bounds, cbounds=None, **kwargs):
     super().__init__(id, length, bounds, cbounds=None, **kwargs)
@@ -169,21 +169,26 @@ class SDevice(Device):
         }
       ]
     # RoC varies linearly as SoC varies capacity. rate_clip must be >=1
-    if self.rate_clip:
+    if self.rate_clip[0]:
+      for i in range(0, len(self)):
+        mask = sustainment_matrix[i]
+        constraints += [
+          # RoC >= Rate_Clip*Min_RoC*((SoC)/capacity)
+          {
+            'type': 'ineq',
+            'fun': lambda r, i=i: r.reshape(len(self))[i] - self.rate_clip[0]*self.lbounds[i]*((soc(r, i))/self.capacity),
+            'jac': lambda r, mask=mask: (self.rate_clip[0]*self.lbounds[i]/self.capacity)*((e**np.sign(r))*mask)
+          },
+        ]
+    if self.rate_clip[1]:
       for i in range(0, len(self)):
         mask = sustainment_matrix[i]
         constraints += [
           # RoC <= Rate_Clip*Max_RoC*((capacity-SoC)/capacity)
           {
             'type': 'ineq',
-            'fun': lambda r, i=i: self.rate_clip*self.hbounds[i]*((self.capacity - soc(r, i))/self.capacity) - r[i],
-            # 'jac': lambda r, mask=mask: (e**np.sign(r))*mask
-          },
-          # RoC >= Rate_Clip*Min_RoC*((SoC)/capacity)
-          {
-            'type': 'ineq',
-            'fun': lambda r, i=i: r[i] - self.rate_clip*self.lbounds[i]*((soc(r, i))/self.capacity),
-            # 'jac': lambda r, mask=mask: (e**np.sign(r))*mask
+            'fun': lambda r, i=i: self.rate_clip[1]*self.hbounds[i]*((1 - soc(r, i)/self.capacity)) - r.reshape(len(self))[i],
+            'jac': lambda r, mask=mask: (-1*self.rate_clip[1]*self.hbounds[i]/self.capacity)*((e**np.sign(r))*mask)
           },
         ]
     # At least reserve left at end of window.
@@ -251,6 +256,12 @@ class SDevice(Device):
 
   @rate_clip.setter
   def rate_clip(self, rate_clip):
-    if rate_clip is not None and not rate_clip >= 1.0:
-      raise ValueError('rate_clip must be >1')
+    try:
+      rate_clip[0], rate_clip[1]
+    except TypeError:
+      rate_clip = (rate_clip, rate_clip)
+    if rate_clip[0] is not None and not rate_clip[0] >= 1.0:
+      raise ValueError('rate_clip must be >=1 or None')
+    if rate_clip[1] is not None and not rate_clip[1] >= 1.0:
+      raise ValueError('rate_clip must be >=1 or None')
     self._rate_clip = rate_clip

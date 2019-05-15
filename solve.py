@@ -60,7 +60,7 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
     def cb(cls, device, x):
       print('step=%d' % (cls.i,), device.u(x, 0))
       cls.i += 1
-  _solver_options = {'ftol': 1e-6, 'maxiter': 500, 'disp': False}
+  _solver_options = {'ftol': 1e-6, 'maxiter': 1000, 'disp': False}
   _solver_options.update(solver_options)
   logger.debug(_solver_options)
   s0 = s0 if s0 is not None else device.project(np.zeros(device.shape))
@@ -76,6 +76,7 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
       bounds = device.bounds,
       constraints = device.constraints,
       options = _solver_options,
+      # callback=lambda x: OptDebugCb.cb(device, x)
     )
   else:
     o = minimize(
@@ -86,6 +87,7 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
       bounds = device.bounds,
       constraints = device.constraints,
       options = _solver_options,
+      # callback=lambda x: OptDebugCb.cb(device, x)
     )
   if not o.success:
     raise OptimizationException(o)
