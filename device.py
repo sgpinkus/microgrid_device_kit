@@ -126,20 +126,26 @@ class Device(BaseDevice):
 
   @bounds.setter
   def bounds(self, bounds):
-    ''' Set bounds. Convert to consistent format which is a (len(self), 2) shaped ndarray. Input
-    format is lost. Input can be (len(self), 2) shape array, or a pair, each entry of which must be
-    a scalar or arrary of len(self)
+    ''' Set bounds. Convert to consistent format which is a (len(self), 2) shaped ndarray.
+    Input must have length of 1 or 2. If length is 2 the two values are taken to be specifying the
+    lower and upper bound. The values must be a scalar of have the same length as this device. If
+    scalar, the value is repeated len(self) times. If length is 1 the same single value in the list
+    is used for the lower and upper bounds. The input shape is lost.
     '''
     if not hasattr(bounds, '__len__'):
       raise ValueError('bounds must be a sequence type')
     if len(bounds) == 2:
       bounds = list(bounds)
-      if isinstance(bounds[0], numbers.Number):
-        bounds[0] = np.repeat(bounds[0], len(self))
-      if isinstance(bounds[1], numbers.Number):
-        bounds[1] = np.repeat(bounds[1], len(self))
-      if len(bounds[0]) == len(bounds[1]) == len(self):
-        bounds = np.stack((bounds[0], bounds[1]), axis=1)
+    elif len(bounds) == 1:
+      bounds = [bounds[0], bounds[0]]
+    else:
+      raise ValueError('bounds must have major axis length of 1 or 2')
+    if isinstance(bounds[0], numbers.Number):
+      bounds[0] = np.repeat(bounds[0], len(self))
+    if isinstance(bounds[1], numbers.Number):
+      bounds[1] = np.repeat(bounds[1], len(self))
+    if len(bounds[0]) == len(bounds[1]) == len(self):
+      bounds = np.stack((bounds[0], bounds[1]), axis=1)
     if len(bounds) != len(self):
       raise ValueError('bounds has wrong length (%d). Require %d' % (len(bounds), len(self)))
     bounds = np.array(bounds)

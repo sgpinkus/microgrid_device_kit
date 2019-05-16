@@ -4,18 +4,18 @@ import device_kit
 from device_kit import *
 
 def random_uncntrld():
-  return np.repeat([np.maximum(0, 0.5+np.cumsum(np.random.uniform(-1,1, 24)))], 2, axis=0)
+  return np.maximum(0, 0.5+np.cumsum(np.random.uniform(-1,1, 24)))
 
 def main():
   np.random.seed(19)
   cost = np.stack((np.sin(np.linspace(0, np.pi, 24))*0.5+0.1, np.ones(24)*0.001, np.zeros(24)), axis=1)
   model = DeviceSet('site1', [
-      Device('uncntrld', 24, random_uncntrld()),
+      Device('uncntrld', 24, (random_uncntrld(),)),
       IDevice2('scalable', 24, (0.5, 2), (0, 24), **{'d0': 0.3}),
       CDevice('shiftable', 24, (0, 2), (12, 24)),
       GDevice('generator', 24, (-10,0), None, **{'cost': cost}),
       DeviceSet('sub-site1', [
-          Device('uncntrld', 24, random_uncntrld()),
+          Device('uncntrld', 24, (random_uncntrld(),)),
           SDevice('buffer', 24, (-7, 7), **{ 'c1': 1.0, 'capacity': 70, 'sustainment': 1, 'efficiency': 0.975})
         ],
         sbounds=(0,10)
