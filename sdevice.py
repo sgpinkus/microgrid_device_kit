@@ -25,7 +25,10 @@ class SDevice(Device):
     - damage_depth: how deep is a deep discharge.
     - reserve: how much charge must the device be storing at the end of the planning window. We
         assume the device starts with this reserve as well.
-    - efficiency: The round trip efficiency factor - [0,1]. Presumed to apply symmetrically to in/out flow.
+    - efficiency: The *single* trip efficiency factor - [0,1]. Applied symmetrically to in/out flow.
+        This means the round-trip efficiency (RTEF) is 1/2 this: efficiency = 1-(1-RTEF)/2. Ex, if
+        the RTEF=0.9 then efficiency should be set to 1-(1-0.9)/2 = 0.95.
+
   '''
   _c1 = 1.0
   _c2 = 0.0
