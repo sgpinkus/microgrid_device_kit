@@ -126,28 +126,40 @@ class Device(BaseDevice):
 
   @bounds.setter
   def bounds(self, bounds):
-    ''' Set bounds. Convert to consistent format which is a (len(self), 2) shaped ndarray.
-    Input must have length of 1 or 2. If length is 2 the two values are taken to be specifying the
-    lower and upper bound. The values must be a scalar of have the same length as this device. If
-    scalar, the value is repeated len(self) times. If length is 1 the same single value in the list
-    is used for the lower and upper bounds. The input shape is lost.
+    ''' Set bounds. Convert to consistent format which is a (len(self), 2) shaped ndarray. Input
+    must have length shape (len(self), 2), or len 1 or len 2. Presents a conflict when len(self) =
+    1 or 3. The former input shape takes precedence and if len(self) == 1 or 2 you have to use this
+    input format. Support for the latter cases was added for convenience and if len(self) is only
+    1 or 2 that convenience is minor. Note also the input shape is lost.
+
+    If length is 2; the two values are taken to be specifying the lower and upper bound. The values
+    must be a scalar or have the same length as this device. If scalar, the value is repeated len(self)
+    times.
+
+    If length is 1; the single value in the list must have same length as the device and is used
+    for the lower and upper bounds.
     '''
     if not hasattr(bounds, '__len__'):
       raise ValueError('bounds must be a sequence type')
-    if len(bounds) == 2:
-      bounds = list(bounds)
-    elif len(bounds) == 1:
-      bounds = [bounds[0], bounds[0]]
-    else:
-      raise ValueError('bounds must have major axis length of 1 or 2')
-    if isinstance(bounds[0], numbers.Number):
-      bounds[0] = np.repeat(bounds[0], len(self))
-    if isinstance(bounds[1], numbers.Number):
-      bounds[1] = np.repeat(bounds[1], len(self))
-    if len(bounds[0]) == len(bounds[1]) == len(self):
-      bounds = np.stack((bounds[0], bounds[1]), axis=1)
-    if len(bounds) != len(self):
-      raise ValueError('bounds has wrong length (%d). Require %d' % (len(bounds), len(self)))
+    fixed = False
+    try:
+      if np.array(bounds).shape == (len(self), 2):
+        fixed = True
+    except ValueError:
+      pass
+    if not fixed:
+      if len(bounds) == 2:
+        bounds = list(bounds)
+      elif len(bounds) == 1:
+        bounds = [bounds[0], bounds[0]]
+      if isinstance(bounds[0], numbers.Number):
+        bounds[0] = np.repeat(bounds[0], len(self))
+      if isinstance(bounds[1], numbers.Number):
+        bounds[1] = np.repeat(bounds[1], len(self))
+      if len(bounds[0]) == len(bounds[1]) == len(self):
+        bounds = np.stack((bounds[0], bounds[1]), axis=1)
+      if len(bounds) != len(self):
+        raise ValueError('bounds has wrong length (%d). Require %d' % (len(bounds), len(self)))
     bounds = np.array(bounds)
     lbounds = np.array(bounds[:, 0])
     hbounds = np.array(bounds[:, 1])
