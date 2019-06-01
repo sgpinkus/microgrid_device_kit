@@ -37,6 +37,7 @@ def step(device, p, s, stepsize, solver_options={}):
   s_next = (s + ol.x*(s_next - s)).reshape(device.shape)
   return (s_next, ol)
 
+
 def solve(device, p, s0=None, solver_options={}, prox=False):
   ''' Find the optimal demand for price for the given device and return it. Works on any agent
   since only requires s and device.deriv(). This method does not modify the agent.
@@ -60,35 +61,31 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
     def cb(cls, device, x):
       print('step=%d' % (cls.i,), device.u(x, 0))
       cls.i += 1
+
   _solver_options = {'ftol': 1e-6, 'maxiter': 1000, 'disp': False}
   _solver_options.update(solver_options)
   logger.debug(_solver_options)
-  s0 = s0 if s0 is not None else device.project(np.zeros(device.shape))
 
   if (device.bounds[:, 0] == device.bounds[:, 1]).all():
     return (device.lbounds, None)
+
+  args = {
+    'fun': lambda s, p=p: -1*device.u(s, p),
+    'x0':  s0 if s0 is not None else device.project(np.zeros(device.shape)),
+    'jac': lambda s, p=p: -1*device.deriv(s, p),
+    'method': 'SLSQP',
+    'bounds': device.bounds,
+    'constraints': device.constraints,
+    'options': _solver_options,
+    # callback=lambda x: OptDebugCb.cb(device, x)
+  }
+
   if prox:
-    o = minimize(
-      lambda s, p=p: -1*device.u(s, p) + (prox/2)*((s.reshape(s0.shape)-s0)**2).sum(),
-      s0,
-      jac=lambda s, p=p: -1*device.deriv(s, p) + prox*((s.reshape(s0.shape)-s0)),
-      method='SLSQP',
-      bounds = device.bounds,
-      constraints = device.constraints,
-      options = _solver_options,
-      # callback=lambda x: OptDebugCb.cb(device, x)
-    )
-  else:
-    o = minimize(
-      lambda s, p=p: -1*device.u(s, p),
-      s0,
-      jac=lambda s, p=p: -1*device.deriv(s, p),
-      method='SLSQP',
-      bounds = device.bounds,
-      constraints = device.constraints,
-      options = _solver_options,
-      # callback=lambda x: OptDebugCb.cb(device, x)
-    )
+    args.update({
+      'fun': lambda s, p=p: -1*device.u(s, p) + (prox/2)*((s.reshape(s0.shape)-s0)**2).sum(),
+      'jac': lambda s, p=p: -1*device.deriv(s, p) + prox*((s.reshape(s0.shape)-s0)),
+    })
+  o = minimize(**args)
   if not o.success:
     raise OptimizationException(o)
   return ((o.x).reshape(device.shape), o)
