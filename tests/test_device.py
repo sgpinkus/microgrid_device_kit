@@ -118,8 +118,8 @@ test_tdevice = {
   't_optimal': 15,
   'care_time': np.ones(24),
   't_range': 1.5,
-  't_a': 0.4,
-  't_b': 0.5,
+  'sustainment': 0.4,
+  'efficiency': 0.5,
   'a': 0,
   'b': 2
 }
@@ -356,12 +356,12 @@ class TestTDevice(TestCase):
       device = TDevice(**_test_device)
     # t_a
     _test_device = deepcopy(test_tdevice)
-    _test_device['t_a'] = 2
+    _test_device['sustainment'] = 2
     with self.assertRaises(ValueError):
       device = TDevice(**_test_device)
     # t_b
     _test_device = deepcopy(test_tdevice)
-    _test_device['t_b'] = 0
+    _test_device['efficiency'] = 0
     with self.assertRaises(ValueError):
       device = TDevice(**_test_device)
 
@@ -414,7 +414,7 @@ class TestTDevice(TestCase):
 
   def get_test_device_heat(self):
     _test_device = deepcopy(test_tdevice)
-    _test_device['t_b'] = -1**_test_device['t_b']
+    _test_device['efficiency'] = -1**_test_device['efficiency']
     return TDevice(**_test_device)
 
 

@@ -30,58 +30,56 @@ class TDevice(Device):
   @todo this doesn't really need to extend IDevice. It just uses a classs method from IDevice for its
   utility curve.
   '''
-  _t_a = None                     # Thermal loss factor to external environment.
-  _t_b = None                     # Thermal efficiency factor.
-  _t_external = None              # External temperature vectors of `len` length.
-  _t_range = None                 # The +/- range min/max temp.
-  _c = 1                          # Scaling factor for utility function.
+  _sustainment = None            # Thermal loss factor to external environment.
+  _efficiency = None             # Thermal efficiency factor. This also includes the unit conversion factor.
+  _t_external = None             # External temperature vectors of `len` length.
+  _t_range = None                # The +/- range min/max temp.
+  _c = 1                         # Scaling factor for utility function.
   t_init = None                  # The initial (and final) temperature T0.
   t_optimal = None               # The scalar ideal temperature TC. It's assumed ideal temperature is time invariant.
   t_base = None                  # temperature without out any consumption by heat engine. Derived value.
   t_utility_base = 0             # utility of t_base pre calculated & used as offset.
   sustainment_matrix = None      # stashed for use in deriv.
 
-  def __init__(self, id, length, bounds, t_a, t_b, t_init, t_optimal, t_range, t_external, c=1, cbounds=None, **meta):
-    ''' Set params and check validity. Set derived vars t_base, t_a_min|max based on params.
-    t_act_min|max is the min max temperature change that the device itself must cause - not the
-    thermodynamics, to bring be within bounds. Values in t_act_min|max may not actually be feasibile.
-    For example, `t_act_min` is +ve while `t_b` is -ve. This is currently handled by relexing some
-    unrealistic constraints. @see constraints.
-    '''
+  def __init__(self, id, length, bounds, sustainment, efficiency, t_init, t_optimal, t_range, t_external, c=1, cbounds=None, **meta):
+    ''' Set params and check validity. Set derived vars t_base, sustainment_min|max based on params. '''
     super().__init__(id, length, bounds, cbounds, **meta)
-    if t_a < 0 or t_a > 1:
-      raise ValueError('heat transfer coefficient must be in [0,1]')
-    if t_b == 0:
-      raise ValueError('thermal efficiency must not be 0')
+    if not 0 <= sustainment <= 1:
+      raise ValueError('sustainment (heat transfer coefficient) must be in [0,1]')
+    if efficiency == 0:
+      raise ValueError('efficiency factor must not be 0')
     if t_range < 0:
       raise ValueError('acceptable temperature range (t_range) must be >= 0')
     if len(t_external) != len(self):
       raise ValueError('external temperature vector has wrong len (%s)' % (t_external,))
-    self._t_a = t_a
-    self._t_b = t_b
+    self._sustainment = sustainment
+    self._efficiency = efficiency
     self._t_init = t_init
     self._t_optimal = t_optimal
     self._t_range = t_range
     self._t_external = t_external
     self._c = IDevice._validate_param(c, len(self))
     # Set some computed values.
-    self.t_base = self._make_t_base(self.t_external, self.t_a, self.t_init)
+    self.t_base = self._make_t_base(self.t_external, self.sustainment, self.t_init)
     self.t_utility_base = self.uv_t(self.t_base)
-    self.t_act_min = (self.t_optimal - self.t_range) - self.t_base  # Derived for convenience only.
-    self.t_act_max = (self.t_optimal + self.t_range) - self.t_base  # Derived for convenience only.
-    self.sustainment_matrix = sustainment_matrix((1 - self.t_a), len(self))
+    self.sustainment_matrix = sustainment_matrix(self.sustainment, len(self))
+    # t_act_min|max for convenience only. The min|max temperature change that the device itself must
+    # cause - not the externals to bring be within range. Achieving t_act_min|max may not actually be feasibile.
+    self.t_act_min = (self.t_optimal - self.t_range) - self.t_base
+    self.t_act_max = (self.t_optimal + self.t_range) - self.t_base
+
 
   def u(self, s, p):
     return self.uv(s, p).sum()
 
   def uv(self, s, p):
     ''' @override uv() to do r to t conversion. '''
-    return self.uv_t(self.r2t(s)) - s*p - self.t_utility_base
+    return self.uv_t(self.r2t(s)) - s*p
 
   def deriv(self, s, p):
     ''' @override deriv() to do r to t conversion. Chain rule to account for r2t(). '''
     dt = self.deriv_t(self.r2t(s))
-    return (self.sustainment_matrix*dt.reshape(24,1)).sum(axis=0)*self.t_b - p
+    return (self.sustainment_matrix*dt.reshape(24,1)).sum(axis=0)*self.efficiency - p
 
   def hess(self, s, p=0):
     ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far
@@ -97,9 +95,9 @@ class TDevice(Device):
 
   def r2t(self, r):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer
-    (t_base), thermal loss (t_a) and efficiency of device (t_b).
+    (t_base), thermal loss (sustainment) and efficiency of device (efficiency).
     '''
-    return self.t_base + soc(r.reshape(len(self)), s=(1 - self.t_a), e=self.t_b)
+    return self.t_base + soc(r.reshape(len(self)), s=self.sustainment, e=self.efficiency)
 
   @property
   def params(self):
@@ -108,18 +106,18 @@ class TDevice(Device):
       't_init': self.t_init,
       't_optimal': self.t_optimal,
       't_range': self.t_range,
-      't_a': self.t_a,
-      't_b': self.t_b
+      'sustainment': self.sustainment,
+      'efficiency': self.efficiency
     }
     return p
 
   @property
-  def t_a(self):
-    return self._t_a
+  def sustainment(self):
+    return self._sustainment
 
   @property
-  def t_b(self):
-    return self._t_b
+  def efficiency(self):
+    return self._efficiency
 
   @property
   def t_init(self):
@@ -149,98 +147,22 @@ class TDevice(Device):
   def t_max(self):
     return self.t_optimal + self.t_range
 
-  def _make_t_base(self, t_external, t_a, t_init):
+  def _make_t_base(self, t_external, sustainment, t_init):
     ''' Calculate the base temperature, that occurs with no heat engine activity. This is used in
     utility calculation. Note `t_init` is the temperature in the last time-slot of last planning
     window, *not* the first time-slot of this planning window.
     '''
-    t_base = base_soc(t_init, s=(1 - t_a), l=len(self)) + soc(t_external, s=(1 - t_a), e=t_a)
+    t_base = base_soc(t_init, s=sustainment, l=len(self)) + soc(t_external, s=sustainment, e=(1-sustainment))
     return t_base
 
   def to_dict(self):
     data = super().to_dict()
     data.update({
-      't_a': self.t_a,
-      't_b': self.t_b,
+      'sustainment': self.sustainment,
+      'efficiency': self.efficiency,
       't_init': self.t_init,
       't_optimal': self.t_optimal,
       't_range': self.t_range,
       't_external': self.t_external
     })
     return data
-
-
-class ContrainedTDevice(TDevice):
-  ''' This class overrides TDevice in an attempt to actually implement the temperature constraints,
-  in addition to the usual power consumption constraints.
-  '''
-  _precision = 1e-8               # @see min_constraint(), max_constraint()
-  _enforce_t_constraints = False  # Try and enforce  t_min <= t <= t_max constraint. @see constraints.
-
-  def min_constraint(self, r, i):
-    ''' The ineq constraint `T(r, i) >= t_min` except if it's not possible according to thermal
-    parameters and/or consumption constraints. In that case return a small +ve number when the
-    consumption is at the extreme at which the constraint is closest to being satisfied. This is a
-    a bit if-y and doesn't actually work all the time!
-    @see constraints
-    '''
-    v = self.t_b*(self.exponents(i)*r[0:i+1]).sum() + self.t_base[i] - self.t_min
-    if v >= 0:
-      return v
-    elif self.t_b < 0 and self.lbounds[i] - r[i] + self._precision >= 0:
-      return self._precision
-    elif self.t_b > 0 and r[i] - self.hbounds[i] + self._precision >= 0:
-      return self._precision
-    return v
-
-  def max_constraint(self, r, i):
-    ''' The ineq constraint `T(r, i) <= t_max` except if it's not possible according to thermal
-    parameters and/or consumption constraints.
-    @see min_constraint(), constraints.
-    '''
-    v = self.t_max - self.t_b*(self.exponents(i)*r[0:i+1]).sum() - self.t_base[i]
-    if v >= 0:
-      return v
-    elif self.t_b < 0 and r[i] - self.hbounds[i] + self._precision >= 0:
-      return self._precision
-    elif self.t_b > 0 and self.lbounds[i] - r[i] + self._precision >= 0:
-      return self._precision
-    return v
-
-  def min_constraint_deriv(self, r, i):
-    ''' Derivative of `min_constraint()`. '''
-    return np.pad(self.t_b*self.exponents(i), (0, len(r)-i-1), 'constant')
-
-  def max_constraint_deriv(self, r, i):
-    ''' Derivative of `max_constraint()`. '''
-    return np.pad(-1*self.t_b*self.exponents(i), (0, len(r)-i-1), 'constant')
-
-  @property
-  def constraints(self):
-    ''' Get scipy.optimize.minimize style constraint list for this device. The only constraint is:
-
-      t_optimal - t_range <= T(t) <= t_optimal + t_range for all t.
-
-    The caveat is acheiving a given temperature change may not be feasible given the power constraints,
-    and the thermal parameters. Thus the inequalities are a disjunctive that ensures the device
-    acheives the temperature constraint OR tries as hard as possibe to acheive it (which entails the
-    power consumption is at it's hard lower|upper bound depending). The caveat in that is the union
-    of two convex region is not necessarily or even likely to be convex, and pretty sure convexity of
-    ineq constraints is an underlying assumption of any minimizer capable of handling them (i.e. SLSQP).
-    Never the less the the constraints min|max_constraint() try to implement this OR-ed constraint
-    and it's seems to work in some cases, although it's know to fail in others.
-    '''
-    constraints = TDevice.constraints.fget(self)
-    if self._enforce_t_constraints:
-      for i in range(0, len(self)):
-        constraints += [{
-          'type': 'ineq',
-          'fun': lambda r, i=i: self.min_constraint(r, i),
-          'jac': lambda r, i=i: self.min_constraint_deriv(r, i)
-        },
-        {
-          'type': 'ineq',
-          'fun': lambda r, i=i: self.max_constraint(r, i),
-          'jac': lambda r, i=i: self.max_constraint_deriv(r, i)
-        }]
-    return constraints
