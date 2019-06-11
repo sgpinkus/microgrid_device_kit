@@ -32,7 +32,7 @@ class DeviceSet(BaseDevice):
     self._id = id
     self._devices = devices
     self._length = len(devices[0])
-    self.sbounds = sbounds
+    self._sbounds = self.validate_bounds(sbounds) if sbounds is not None else None
 
   def __len__(self):
     return self._length
@@ -160,31 +160,6 @@ class DeviceSet(BaseDevice):
           'jac': lambda s, i=i: zero_mask(s.reshape(shape), lambda r: -1*np.ones(shape[0]), col=i).reshape(flat_shape)
         }]
     return constraints
-
-  @sbounds.setter
-  def sbounds(self, bounds):
-    ''' Set bounds. Can be input as a pair which will be repeated len times. Conversion is one way currently. '''
-    if bounds is None:
-      self._sbounds = None
-      return
-    if not hasattr(bounds, '__len__'):
-      raise ValueError('bounds must be a sequence type')
-    if len(bounds) == 2:
-      bounds = list(bounds)
-      if isinstance(bounds[0], numbers.Number):
-        bounds[0] = np.repeat(bounds[0], len(self))
-      if isinstance(bounds[1], numbers.Number):
-        bounds[1] = np.repeat(bounds[1], len(self))
-      if len(bounds[0]) == len(bounds[1]) == len(self):
-        bounds = np.stack((bounds[0], bounds[1]), axis=1)
-    if len(bounds) != len(self):
-      raise ValueError('bounds has wrong length (%d). Require %d' % (len(bounds), len(self)))
-    bounds = np.array(bounds)
-    lbounds = np.array(bounds[:, 0])
-    hbounds = np.array(bounds[:, 1])
-    if not np.vectorize(lambda v: v is None)(bounds).all() and not (hbounds - lbounds >= 0).all():
-      raise ValueError('max sbound must be >= min sbound for all min/max sbound pairs: %s' % (str(hbounds - lbounds),))
-    self._sbounds = bounds
 
   def project(self, s):
     return np.vstack(

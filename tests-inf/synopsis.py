@@ -6,7 +6,7 @@ from device_kit import *
 def random_uncntrld():
   return np.maximum(0, 0.5+np.cumsum(np.random.uniform(-1,1, 24)))
 
-def main():
+def make_model():
   np.random.seed(19)
   cost = np.stack((np.sin(np.linspace(0, np.pi, 24))*0.5+0.1, np.ones(24)*0.001, np.zeros(24)), axis=1)
   model = DeviceSet('site1', [
@@ -16,14 +16,17 @@ def main():
       GDevice('generator', 24, (-10,0), None, **{'cost': cost}),
       DeviceSet('sub-site1', [
           Device('uncntrld', 24, (random_uncntrld(),)),
-          SDevice('buffer', 24, (-7, 7), **{ 'c1': 1.0, 'capacity': 70, 'sustainment': 1, 'efficiency': 0.975})
+          SDevice('buffer', 24, (-7, 7), **{ 'c1': 1.0, 'capacity': 70, 'sustainment': 1, 'efficiency': 1})
         ],
         sbounds=(0,10)
       ),
     ],
     sbounds=(0,0)
   )
+  return model
 
+def main():
+  model = make_model()
   # Simple example of "solving". The `sbounds=(0,0)` constraint on the 'site1' model forces the
   # flows to be balanced.
   (x, solve_meta) = device_kit.solve(model, p=0)
