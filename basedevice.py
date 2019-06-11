@@ -115,7 +115,9 @@ class BaseDevice(ABC):
 
   @abstractmethod
   def project(self, s):
-    ''' project `s` into cnvx space of this device a return point. Best effort only, no guarantees. '''
+    ''' project `s` into cnvx space of this device a return point. Not guaranteed - reasonable effort only.
+    Input value may or may not be flattened, return value should have shape of device.
+    '''
     pass
 
   @abstractmethod

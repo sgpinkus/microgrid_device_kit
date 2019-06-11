@@ -162,9 +162,7 @@ class DeviceSet(BaseDevice):
     return constraints
 
   def project(self, s):
-    return np.vstack(
-      [d.project(s[i[0]:i[0]+i[1], :]) for d, i in zip(self.devices, self.partition)]
-    )
+    return np.vstack([d.project(s[i[0]:i[0]+i[1], :]) for d, i in zip(self.devices, self.partition)])
 
   def to_dict(self):
     ''' Dump object as a dict. '''

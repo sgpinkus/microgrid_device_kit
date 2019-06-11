@@ -71,7 +71,7 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
 
   args = {
     'fun': lambda s, p=p: -1*device.u(s, p),
-    'x0':  s0 if s0 is not None else device.project(np.zeros(device.shape)),
+    'x0':  s0 if s0 is not None else device.project(np.zeros(device.shape)).flatten(),
     'jac': lambda s, p=p: -1*device.deriv(s, p),
     'method': 'SLSQP',
     'bounds': device.bounds,

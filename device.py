@@ -154,7 +154,7 @@ class Device(BaseDevice):
       setattr(self, k ,v)
 
   def project(self, s):
-    return self._feasible_region.project(s.reshape(len(self)))
+    return self._feasible_region.project(s.reshape(len(self))).reshape(self.shape)
 
   def to_dict(self):
     ''' Dump object as dict. Dict should allow re-init of instance via cls(**data). See __init__(),

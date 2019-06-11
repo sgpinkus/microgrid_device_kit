@@ -84,6 +84,15 @@ class MFDeviceSet(DeviceSet):
       constraints += [constraint]
     return constraints
 
+  def project(self, s):
+    ''' The restrictions on the flowed device's bounds (all non -ve|+ve. See __init__) make it a bit
+    easier to come up with a projection satisfying at least bounds and cbounds. Wlog consider a non
+    -ve device, given (0,ub) is feasible for all flow devices, we can proportionally scale onto
+    whatever projection the flowed device returns.
+    '''
+    s = self._device.project(s.reshape(self.shape).sum(axis=0))
+    return np.repeat(s/self.shape[0], self.shape[0], axis=0).reshape(self.shape)
+
   def to_dict(self):
     ''' Dump object as a dict. '''
     return {
