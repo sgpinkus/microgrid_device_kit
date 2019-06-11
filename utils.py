@@ -67,18 +67,17 @@ def on2bounds(device, l):
   return device
 
 
-def zero_mask(x, fn=None, row=None, col=None, cnt=1):
-  if row is None and col is None:
-    raise ValueError('row or col argument must be supplied');
-  if row is not None and col is not None:
-    raise ValueError('row and col arguments are mutually exclusive')
-  i = x[row:row+cnt,:] if row is not None else x[:, col:col+cnt]
-  o = fn(i).reshape(i.shape)
+def zmm(x, keep, axis=0, fn=None):
+  ''' Zero mask out rows/cols along axis not in keep index, applying fn(<kept>) if fn is provided. '''
   r = np.zeros(x.shape)
-  if row is not None:
-    r[row:row+cnt,:] = o
+  if axis == 0:
+    i = x[keep,:]
+    r[keep,:] = fn(i).reshape(i.shape) if fn else i
+  elif axis == 1:
+    i = x[:,keep]
+    r[:,keep] = fn(i).reshape(i.shape) if fn else i
   else:
-    r[:, col:col+cnt] = o
+    raise np.AxisError(axis)
   return r
 
 

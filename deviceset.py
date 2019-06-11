@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 from scipy.optimize import minimize
 from device_kit import *
-from .utils import zero_mask
+from .utils import zmm
 from logging import debug, info, warn, exception, error
 
 
@@ -145,19 +145,19 @@ class DeviceSet(BaseDevice):
           'fun': lambda s, i=i, f=constraint['fun']: f(s.reshape(shape)[i[0]:i[0]+i[1], :]),
         }
         if 'jac' in constraint:
-          c['jac'] = lambda s, i=i, f=constraint['jac']: zero_mask(s.reshape(shape), f, row=i[0], cnt=i[1]).reshape(flat_shape)
+          c['jac'] = lambda s, i=i, f=constraint['jac']: zmm(s.reshape(shape), range(i[0], i[0]+i[1]), fn=f).reshape(flat_shape)
         constraints += [c]
     if self.sbounds is not None:
       for i in range(0, len(self)): # for each time
         constraints += [{
           'type': 'ineq',
           'fun': lambda s, i=i: s.reshape(shape)[:, i].dot(np.ones(shape[0])) - self.sbounds[i][0],
-          'jac': lambda s, i=i: zero_mask(s.reshape(shape), lambda r: np.ones(shape[0]), col=i).reshape(flat_shape)
+          'jac': lambda s, i=i: zmm(s.reshape(shape), i, axis=1, fn=lambda r: np.ones(shape[0])).reshape(flat_shape)
         },
         {
           'type': 'ineq',
           'fun': lambda s, i=i: self.sbounds[i][1] - s.reshape(shape)[:, i].dot(np.ones(shape[0])),
-          'jac': lambda s, i=i: zero_mask(s.reshape(shape), lambda r: -1*np.ones(shape[0]), col=i).reshape(flat_shape)
+          'jac': lambda s, i=i: zmm(s.reshape(shape), i, axis=1, fn=lambda r: -1*np.ones(shape[0])).reshape(flat_shape)
         }]
     return constraints
 

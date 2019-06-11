@@ -1,6 +1,6 @@
 from .basedevice import BaseDevice
 from .deviceset import DeviceSet
-from .utils import care2bounds, on2bounds, zero_mask, project
+from .utils import care2bounds, on2bounds, zmm, project
 from .solve import solve, step, OptimizationException
 from .device import Device
 from .cdevice import CDevice
@@ -17,7 +17,7 @@ from .windowdevice import WindowDevice
 
 __all__ = [
   'BaseDevice', 'DeviceSet',
-  'care2bounds', 'on2bounds', 'zero_mask', 'project',
+  'care2bounds', 'on2bounds', 'zmm', 'project',
   'solve', 'step', 'OptimizationException',
   'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice', 'ADevice',
   'IDevice2', 'CDevice2', 'WindowDevice'
