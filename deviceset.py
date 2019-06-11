@@ -19,7 +19,7 @@ class DeviceSet(BaseDevice):
   @todo sbounds can be a vector of two tuples like Device.bounds
   '''
   _id = None
-  _length = None             # Number of time units (not number of devices).
+  _length = None          # Number of time units (not number of devices).
   _sbounds = None         # min/max aggregate power consumption by this agent at ant timeslot.
   _devices = None         # Sub devices of this agent.
 
