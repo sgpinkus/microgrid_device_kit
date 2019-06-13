@@ -6,7 +6,6 @@ import pandas as pd
 from collections import OrderedDict
 import device_kit
 from device_kit import *
-from device_kit.mfdeviceset import MFDeviceSet
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
@@ -23,65 +22,9 @@ cost = np.stack((np.sin(np.linspace(0, np.pi, 24))*0.5+0.1, np.ones(24)*0.001, n
 devices = OrderedDict([
     ('uncntrld', Device('uncntrld', 24, (random_uncntrld(),))),
     ('scalable', IDevice2('scalable', 24, (0., 2), (12, 18))),
-    ('shiftable', CDevice('shiftable', 24, (0, 2), (12, 24))),
+    ('shiftable', CDevice('shiftable', 24, (0, 2), (12, 24), a=0.5)),
     ('generator', GDevice('generator', 24, (-50,0), None, **{'cost': cost})),
 ])
-
-
-class SubBalancedMFDeviceSet(DeviceSet):
-  ''' Find all devices under this device set matching ".*{label}$" and apply an additional balancing
-  constraint - i.e. labelled flows sum to zero at all times. '''
-  _label = []
-
-  def __init__(self, id, devices, sbounds, labels=[]):
-    super().__init__(id, devices, sbounds)
-    self.labels = labels
-
-  @property
-  def constraints(self):
-    constraints = super().constraints
-    shape = self.shape
-    flat_shape = shape[0]*shape[1]
-    leaf_devices = OrderedDict(self.leaf_devices())
-    for label in self.labels:
-      labelled = [k for k, v in enumerate(leaf_devices.keys()) if re.match('.*\.{label}$'.format(label=label), v)]
-      col_jac = np.zeros(shape[0])
-      col_jac[labelled] = 1
-      for i in range(0, len(self)): # for each time
-        constraints += [{
-          'type': 'eq',
-          'fun': lambda s, i=i: s.reshape(shape)[labelled, i].sum(),
-          'jac': lambda s, i=i, j=col_jac: zmm(s.reshape(shape), i, axis=1, fn=lambda r: j).reshape(flat_shape)
-        }]
-    return constraints
-
-
-class TwoRatioMFDeviceSet(MFDeviceSet):
-  ''' Add a constraint saying flow one must equal k times flow two. Only 2 flows supported because
-  adding the constraint for >2 flow is more difficult and I don't need it.
-  '''
-  ratios = None
-
-  def __init__(self, device:Device, flows, ratios):
-    super().__init__(device, flows)
-    if len(flows) != 2:
-      raise ValueError('More than two flows not supported.')
-    if ratios is not None and not len(ratios) == len(flows):
-      raise ValueError('Flows and flow ratios must have same length')
-    self.ratios = ratios
-
-  @property
-  def constraints(self):
-    constraints = super().constraints
-    shape = self.shape
-    flat_shape = shape[0]*shape[1]
-    for i in range(0, len(self)): # for each time
-      constraints += [{
-        'type': 'eq',
-        'fun': lambda s, i=i, r=self.ratios: s.reshape(shape)[0,i]*r[0] - s.reshape(shape)[1,i]*r[1],
-        'jac': lambda s, i=i, r=self.ratios: zmm(s.reshape(shape), i, axis=1, fn=lambda x: np.array([r[0], -r[1]])).reshape(flat_shape)
-      }]
-    return constraints
 
 
 def make_model():
@@ -93,12 +36,12 @@ def make_model():
 
 
 def make_model_mf():
-  model = SubBalancedMFDeviceSet('site1', [
-      devices['uncntrld'],
+  model = SubBalancedDeviceSet('site1', [
+      MFDeviceSet(devices['uncntrld'], ['e', 'h']),
       MFDeviceSet(devices['scalable'], ['e', 'h']),
-      devices['shiftable'],
+      MFDeviceSet(devices['shiftable'], ['e', 'h']),
       TwoRatioMFDeviceSet(devices['generator'], ['e', 'h'], [1,8]),
-      DeviceSet('sink', [Device('h', 24, (0,100))])
+      DeviceSet('sink', [Device('h', 24, (-0,100))])
     ],
     sbounds=(0,0),
     labels=['h']

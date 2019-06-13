@@ -2,6 +2,7 @@ import re
 import uuid
 import numbers
 import numpy as np
+from collections import OrderedDict
 from copy import deepcopy
 from scipy.optimize import minimize
 from device_kit import *
@@ -171,3 +172,31 @@ class DeviceSet(BaseDevice):
       'sbounds': self.sbounds,
       'devices': self.devices,
     }
+
+
+class SubBalancedDeviceSet(DeviceSet):
+  ''' Find all devices under this device set matching ".*{label}$" and apply an additional balancing
+  constraint - i.e. labelled flows sum to zero at all times. '''
+  _label = []
+
+  def __init__(self, id, devices, sbounds, labels=[]):
+    super().__init__(id, devices, sbounds)
+    self.labels = labels
+
+  @property
+  def constraints(self):
+    constraints = super().constraints
+    shape = self.shape
+    flat_shape = shape[0]*shape[1]
+    leaf_devices = OrderedDict(self.leaf_devices())
+    for label in self.labels:
+      labelled = [k for k, v in enumerate(leaf_devices.keys()) if re.match('.*{label}$'.format(label=label), v)]
+      col_jac = np.zeros(shape[0])
+      col_jac[labelled] = 1
+      for i in range(0, len(self)): # for each time
+        constraints += [{
+          'type': 'eq',
+          'fun': lambda s, i=i: s.reshape(shape)[labelled, i].sum(),
+          'jac': lambda s, i=i, j=col_jac: zmm(s.reshape(shape), i, axis=1, fn=lambda r: j).reshape(flat_shape)
+        }]
+    return constraints

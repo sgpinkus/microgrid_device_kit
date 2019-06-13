@@ -1,5 +1,4 @@
 from .basedevice import BaseDevice
-from .deviceset import DeviceSet
 from .utils import care2bounds, on2bounds, zmm, project
 from .solve import solve, step, OptimizationException
 from .device import Device
@@ -13,12 +12,15 @@ from .adevice import ADevice
 from .idevice2 import IDevice2
 from .cdevice2 import CDevice2
 from .windowdevice import WindowDevice
+from .deviceset import DeviceSet, SubBalancedDeviceSet
+from .mfdeviceset import MFDeviceSet, TwoRatioMFDeviceSet
 
 
 __all__ = [
-  'BaseDevice', 'DeviceSet',
+  'BaseDevice', 'DeviceSet', 'SubBalancedDeviceSet',
   'care2bounds', 'on2bounds', 'zmm', 'project',
   'solve', 'step', 'OptimizationException',
   'Device', 'CDevice', 'IDevice', 'TDevice', 'SDevice', 'PVDevice', 'GDevice', 'ADevice',
-  'IDevice2', 'CDevice2', 'WindowDevice'
+  'IDevice2', 'CDevice2', 'WindowDevice',
+  'MFDeviceSet', 'TwoRatioMFDeviceSet',
 ]

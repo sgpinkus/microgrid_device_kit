@@ -3,7 +3,8 @@ import uuid
 import numbers
 import numpy as np
 from device_kit import *
-from .utils import zmm
+
+
 from logging import debug, info, warn, exception, error
 
 
@@ -17,7 +18,7 @@ class MFDeviceSet(DeviceSet):
   _devices = None         # Sub devices of this agent.
   _flows = None           # A sub device is created for each flow.
 
-  def __init__(self, device:Device, flows):
+  def __init__(self, device:BaseDevice, flows):
     ''' Setting reasonable bounds for the flow devices is somewhat tricky. We could use (-inf, inf),
     but that can lead to strangnesses. Instead, MFDeviceSet can only work with a device with all non
     -ve or all non -ve device (i.e. not a two way device) and the flow device bounds are set to
@@ -47,13 +48,16 @@ class MFDeviceSet(DeviceSet):
     return str(self._device) + str(flows)
 
   def u(self, s, p):
-    return self._device.u(s.sum(axis=0), p)
+    s = s.reshape(self.shape)
+    return self._device.u(s.sum(axis=0), 0) - (s*p).sum()
 
   def deriv(self, s, p):
-    return np.repeat(self._device.deriv(s.sum(axis=0), p), self.shape[0], axis=0).reshape(self.shape)
+    s = s.reshape(self.shape)
+    _deriv = np.repeat(self._device.deriv(s.sum(axis=0), 0), self.shape[0], axis=0).reshape(self.shape)
+    return _deriv - p
 
   def hess(self, s, p=0):
-    return self._device.hess(s.sum(axis=0), p)
+    return self._device.hess(s.sum(axis=0), 0)
 
   @property
   def id(self):
@@ -62,10 +66,6 @@ class MFDeviceSet(DeviceSet):
   @property
   def length(self):
     return self._length
-
-  @property
-  def devices(self):
-    return self._devices
 
   @property
   def constraints(self):
@@ -103,3 +103,31 @@ class MFDeviceSet(DeviceSet):
   def __getattr__(self, name):
     ''' Delegate methods and props to device '''
     return getattr(self._device, name)
+
+
+class TwoRatioMFDeviceSet(MFDeviceSet):
+  ''' Add a constraint saying flow one must equal k times flow two. Only 2 flows supported because
+  adding the constraint for >2 flow is more difficult and I don't need it.
+  '''
+  ratios = None
+
+  def __init__(self, device:BaseDevice, flows, ratios):
+    super().__init__(device, flows)
+    if len(flows) != 2:
+      raise ValueError('More than two flows not supported.')
+    if ratios is not None and not len(ratios) == len(flows):
+      raise ValueError('Flows and flow ratios must have same length')
+    self.ratios = ratios
+
+  @property
+  def constraints(self):
+    constraints = super().constraints
+    shape = self.shape
+    flat_shape = shape[0]*shape[1]
+    for i in range(0, len(self)): # for each time
+      constraints += [{
+        'type': 'eq',
+        'fun': lambda s, i=i, r=self.ratios: s.reshape(shape)[0,i]*r[0] - s.reshape(shape)[1,i]*r[1],
+        'jac': lambda s, i=i, r=self.ratios: zmm(s.reshape(shape), i, axis=1, fn=lambda x: np.array([r[0], -r[1]])).reshape(flat_shape)
+      }]
+    return constraints
