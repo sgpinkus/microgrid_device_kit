@@ -188,9 +188,7 @@ class SubBalancedDeviceSet(DeviceSet):
     constraints = super().constraints
     shape = self.shape
     flat_shape = shape[0]*shape[1]
-    leaf_devices = OrderedDict(self.leaf_devices())
-    for label in self.labels:
-      labelled = [k for k, v in enumerate(leaf_devices.keys()) if re.match('.*{label}$'.format(label=label), v)]
+    for label, labelled in self.by_label().items():
       col_jac = np.zeros(shape[0])
       col_jac[labelled] = 1
       for i in range(0, len(self)): # for each time
@@ -200,3 +198,11 @@ class SubBalancedDeviceSet(DeviceSet):
           'jac': lambda s, i=i, j=col_jac: zmm(s.reshape(shape), i, axis=1, fn=lambda r: j).reshape(flat_shape)
         }]
     return constraints
+
+  def by_label(self):
+    ''' Return hash, (label, indexes) where indexes is the rows of this device with that label. '''
+    labelled = {}
+    leaf_devices = OrderedDict(self.leaf_devices())
+    for label in self.labels:
+      labelled[label] = [k for k, v in enumerate(leaf_devices.keys()) if re.match('.*{label}$'.format(label=label), v)]
+    return labelled

@@ -99,7 +99,7 @@ class TestMFDeviceSet(TestCase):
     devices = OrderedDict([
         ('uncntrld', Device('uncntrld', 24, (uncntrld, uncntrld))),
         ('scalable', IDevice2('scalable', 24, (0., 2), (12, 18))),
-        ('shiftable', IDevice2('shiftable', 24, (0, 2), (12, 24), a=0.5)), # IDevice2('shiftable', 24, (0, 2), (12, 24) Same same.
+        ('shiftable', CDevice2('shiftable', 24, (0, 2), (12, 24), a=0.5)), # IDevice2('shiftable', 24, (0, 2), (12, 24) Same same.
         ('generator', GDevice('generator', 24, (-50,0), None, **{'cost': cost})),
     ])
     return devices
@@ -114,14 +114,12 @@ class TestMFDeviceSet(TestCase):
       soln2 = solve(mfdevice, 0)[0]
       self.assertTrue(-1e-6 <= device.u(soln1, 0) - mfdevice.u(soln2, 0) <= 1e-6)
 
-  @unittest.skip('Plot')
   def test_deviceset_soln_equivalence(self):
     ''' Given the set of devices returned by _test_devices(), if we only constrain the generator to
     produce flow in some constant proportion and all other devices are unconstrained MF devices,
     we sould theoretically get a same (or close to the same) solution as when no MF is present, since
     devices can take from any flow arbitrarily, and should do so such that the generator constraint
-    is satisfied. But this is not what is observed. SLSQP doesn't like the TwoRatioMFDeviceSet
-    constraint.
+    is satisfied.
     '''
     devices = self._test_devices()
     da = DeviceSet('a', list(devices.values()), (0,0))
@@ -132,13 +130,13 @@ class TestMFDeviceSet(TestCase):
         MFDeviceSet(devices['scalable'], ['e', 'heat']),
         MFDeviceSet(devices['shiftable'], ['e', 'heat']),
         TwoRatioMFDeviceSet(devices['generator'], ['e', 'heat'], [1,8]),
-        # Device('sink_heat', 24, (0.,100)) # Doesn't actually effect outcome.
       ],
       sbounds=(0,0),
       labels=['heat']
     )
     (xa, statusa) = solve(da, 0)
     (xb, statusb) = solve(db, 0)
+
     df_xa = pd.DataFrame.from_dict(dict(da.map(xa)), orient='index').transpose()
     df_xa.columns = [i.strip('a.') for i in df_xa.columns]
     df_xb = pd.DataFrame.from_dict(dict(db.map(xb)), orient='index').transpose()
@@ -147,12 +145,8 @@ class TestMFDeviceSet(TestCase):
       del df_xb['b.' + k + '.heat'], df_xb['b.' + k + '.e']
     df_xa.sort_index(axis=1, inplace=True)
     df_xb.sort_index(axis=1, inplace=True)
-    print(df_xb)
-    print(df_xa)
-    import matplotlib.pyplot as plt
-    plt.plot(df_xa['generator'], label='a')
-    plt.plot(df_xb['generator'], label='b')
-    plt.show()
+    self.assertAlmostEqual(da.u(xa, 0), db.u(xb, 0), 6)
+    self.assertTrue((np.abs(df_xa.values - df_xb.values) <= 1e-3).all())
 
 
 class TestSubBalancedDeviceSet(TestCase):
