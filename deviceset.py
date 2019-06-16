@@ -49,29 +49,32 @@ class DeviceSet(BaseDevice):
     ''' Get the sum of the utility of current solution accross all devices as scalar. '''
     return self.uv(s, p).sum()
 
+  def uv(self, s, p):
+    ''' Get the utility accross all devices. Result is a 1D vector of len(devices) **not** a
+    (len(devices), len(self)) 2D vector. proces are exploded like this to handle the cases where a
+    full prices are given in self.shape matrix (same for deriv and hess).
+    '''
+    s = s.reshape(self.shape)
+    p = p*np.ones(self.shape)
+    return np.array(
+      [d.u(s[i[0]:i[0]+i[1], :], p[i[0]:i[0]+i[1], :])  for d, i in zip(self.devices, self.partition)]
+    )
+
   def deriv(self, s, p):
     ''' Get deriv. Result is a (len(devices), len(self)) 2D vector. '''
     s = s.reshape(self.shape)
+    p = p*np.ones(self.shape)
     return np.vstack(
-      [d.deriv(s[i[0]:i[0]+i[1], :], p) for d, i in zip(self.devices, self.partition)]
+      [d.deriv(s[i[0]:i[0]+i[1], :], p[i[0]:i[0]+i[1], :]) for d, i in zip(self.devices, self.partition)]
     )
 
   def hess(self, s, p=0):
     ''' Get hessian for `s` consumption at price `p`. '''
     s = s.reshape(self.shape)
-    return np.round(
-      np.array([d.hess(s[i[0]:i[0]+i[1], :], p) for d, i in zip(self.devices, self.partition)]).sum(axis=0),
-      6
-    )
-
-  def uv(self, s, p):
-    ''' Get the utility accross all devices. Result is a 1D vector of len(devices) **not** a
-    (len(devices), len(self)) 2D vector.
-    '''
-    s = s.reshape(self.shape)
+    p = p*np.ones(self.shape)
     return np.array(
-      [d.u(s[i[0]:i[0]+i[1], :], p)  for d, i in zip(self.devices, self.partition)],
-    )
+      [d.hess(s[i[0]:i[0]+i[1], :], p[i[0]:i[0]+i[1], :]) for d, i in zip(self.devices, self.partition)]
+    ).sum(axis=0)
 
   @property
   def id(self):
