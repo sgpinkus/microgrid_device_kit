@@ -69,9 +69,11 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
   if (device.bounds[:, 0] == device.bounds[:, 1]).all():
     return (device.lbounds, None)
 
+  s0 = (s0 if s0 is not None else device.project(np.zeros(device.shape))).flatten()
+
   args = {
     'fun': lambda s, p=p: -1*device.u(s, p),
-    'x0':  s0 if s0 is not None else device.project(np.zeros(device.shape)).flatten(),
+    'x0':  s0,
     'jac': lambda s, p=p: -1*device.deriv(s, p),
     'method': 'SLSQP',
     'bounds': device.bounds,
@@ -82,8 +84,8 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
 
   if prox:
     args.update({
-      'fun': lambda s, p=p: -1*device.u(s, p) + (prox/2)*((s.reshape(s0.shape)-s0)**2).sum(),
-      'jac': lambda s, p=p: -1*device.deriv(s, p) + prox*((s.reshape(s0.shape)-s0)),
+      'fun': lambda s, p=p: -1*device.u(s, p) + (prox/2)*((s-s0)**2).sum(),
+      'jac': lambda s, p=p: -1*device.deriv(s, p).flatten() + prox*(s-s0),
     })
   o = minimize(**args)
   if not o.success:
