@@ -175,14 +175,14 @@ class DeviceSet(BaseDevice):
   def project(self, s):
     return np.vstack([d.project(s[i[0]:i[0]+i[1], :]) for d, i in zip(self.devices, self.partition)])
 
-  def to_str(self, indent=0):
+  def to_str(self, indent=1):
     _str = 'type=%s; id=%s; length=%d; sbounds_bounds=%s' % (
       self.__class__.__name__,
       self.id,
       len(self),
       '%.3f/%.3f' % (self.sbounds.min(), self.sbounds.max()) if self.sbounds is not None else None
     )
-    _str += ('\n' + '\t'*indent).join([d.to_str(indent+1) if isinstance(d, DeviceSet) else str(d) for d in self.devices])
+    _str += ('\n' + '\t'*indent).join([''] + [d.to_str(indent+1) if hasattr(d, 'devices') else str(d) for d in self.devices])
     return _str
 
 

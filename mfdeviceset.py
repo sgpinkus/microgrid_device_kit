@@ -45,7 +45,7 @@ class MFDeviceSet(DeviceSet):
     return self._length
 
   def __str__(self):
-    return str(self._device) + str(flows)
+    return str(self._device) + str(self._flows)
 
   def u(self, s, p):
     s = s.reshape(self.shape)

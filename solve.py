@@ -38,7 +38,7 @@ def step(device, p, s, stepsize, solver_options={}):
   return (s_next, ol)
 
 
-def solve(device, p, s0=None, solver_options={}, prox=False):
+def solve(device, p, s0=None, solver_options={}, prox=False, cb=None):
   ''' Find the optimal demand for price for the given device and return it. Works on any agent
   since only requires s and device.deriv(). This method does not modify the agent.
   Note AFAIK scipy.optimize only provides two methods that support constraints:
@@ -55,13 +55,6 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
   @see http://www.pyopt.org/reference/optimizers.slsqp.html
   @see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
   '''
-  class OptDebugCb():
-    i = 0
-    @classmethod
-    def cb(cls, device, x):
-      logger.debug('step=%d; u=%.6f' % (cls.i, device.u(x, 0)))
-      cls.i += 1
-
   _solver_options = {'ftol': 1e-6, 'maxiter': 1000, 'disp': False}
   _solver_options.update(solver_options)
   logger.debug(_solver_options)
@@ -79,9 +72,11 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
     'bounds': device.bounds,
     'constraints': device.constraints,
     'options': _solver_options,
-    # 'callback': lambda x: OptDebugCb.cb(device, x)
   }
-
+  if cb:
+    args.update({
+      'callback': lambda x: cb(device, x)
+    })
   if prox:
     args.update({
       'fun': lambda s, p=p: -1*device.u(s, p) + (prox/2)*((s-s0)**2).sum(),
@@ -91,6 +86,17 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
   if not o.success:
     raise OptimizationException(o)
   return ((o.x).reshape(device.shape), o)
+
+
+class OptDebugCb():
+  ''' Convenience minimize callback '''
+
+  def __init__(self):
+    self.i = 0
+
+  def __call__(self, device, x):
+    logger.debug('step=%d; u=%.6f' % (self.i, device.u(x, 0)))
+    self.i += 1
 
 
 class OptimizationException(Exception):  # pragma: no cover
