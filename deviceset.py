@@ -39,7 +39,7 @@ class DeviceSet(BaseDevice):
     return self._length
 
   def __str__(self):
-    return '\n'.join([str(d) for d in self.devices])
+    return self.to_str()
 
   def __iter__(self):
     for d in self.devices:
@@ -153,20 +153,38 @@ class DeviceSet(BaseDevice):
         constraints += [c]
     if self.sbounds is not None:
       for i in range(0, len(self)): # for each time
-        constraints += [{
-          'type': 'ineq',
-          'fun': lambda s, i=i: s.reshape(shape)[:, i].dot(np.ones(shape[0])) - self.sbounds[i][0],
-          'jac': lambda s, i=i: zmm(s.reshape(shape), i, axis=1, fn=lambda r: np.ones(shape[0])).reshape(flat_shape)
-        },
-        {
-          'type': 'ineq',
-          'fun': lambda s, i=i: self.sbounds[i][1] - s.reshape(shape)[:, i].dot(np.ones(shape[0])),
-          'jac': lambda s, i=i: zmm(s.reshape(shape), i, axis=1, fn=lambda r: -1*np.ones(shape[0])).reshape(flat_shape)
-        }]
+        if self.sbounds[i][0] == self.sbounds[i][1]:
+          constraints += [{
+            'type': 'eq',
+            'fun': lambda s, i=i: s.reshape(shape)[:, i].dot(np.ones(shape[0])) - self.sbounds[i][0],
+            'jac': lambda s, i=i: zmm(s.reshape(shape), i, axis=1, fn=lambda r: np.ones(shape[0])).reshape(flat_shape)
+          }]
+        else:
+          constraints += [{
+            'type': 'ineq',
+            'fun': lambda s, i=i: s.reshape(shape)[:, i].dot(np.ones(shape[0])) - self.sbounds[i][0],
+            'jac': lambda s, i=i: zmm(s.reshape(shape), i, axis=1, fn=lambda r: np.ones(shape[0])).reshape(flat_shape)
+          },
+          {
+            'type': 'ineq',
+            'fun': lambda s, i=i: self.sbounds[i][1] - s.reshape(shape)[:, i].dot(np.ones(shape[0])),
+            'jac': lambda s, i=i: zmm(s.reshape(shape), i, axis=1, fn=lambda r: -1*np.ones(shape[0])).reshape(flat_shape)
+          }]
     return constraints
 
   def project(self, s):
     return np.vstack([d.project(s[i[0]:i[0]+i[1], :]) for d, i in zip(self.devices, self.partition)])
+
+  def to_str(self, indent=0):
+    _str = 'type=%s; id=%s; length=%d; sbounds_bounds=%s' % (
+      self.__class__.__name__,
+      self.id,
+      len(self),
+      '%.3f/%.3f' % (self.sbounds.min(), self.sbounds.max()) if self.sbounds is not None else None
+    )
+    _str += ('\n' + '\t'*indent).join([d.to_str(indent+1) if isinstance(d, DeviceSet) else str(d) for d in self.devices])
+    return _str
+
 
   def to_dict(self):
     ''' Dump object as a dict. '''

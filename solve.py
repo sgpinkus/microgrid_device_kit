@@ -59,7 +59,7 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
     i = 0
     @classmethod
     def cb(cls, device, x):
-      print('step=%d' % (cls.i,), device.u(x, 0))
+      logger.debug('step=%d; u=%.6f' % (cls.i, device.u(x, 0)))
       cls.i += 1
 
   _solver_options = {'ftol': 1e-6, 'maxiter': 1000, 'disp': False}
@@ -79,7 +79,7 @@ def solve(device, p, s0=None, solver_options={}, prox=False):
     'bounds': device.bounds,
     'constraints': device.constraints,
     'options': _solver_options,
-    # callback=lambda x: OptDebugCb.cb(device, x)
+    # 'callback': lambda x: OptDebugCb.cb(device, x)
   }
 
   if prox:

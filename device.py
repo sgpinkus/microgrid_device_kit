@@ -36,7 +36,14 @@ class Device(BaseDevice):
 
   def __str__(self):
     ''' Print main settings. Dont print the actual min/max bounds vectors because its too verbose. '''
-    _str = 'id=%s; length=%d; *bounds=%.3f/%.3f; cbounds=%s' % (self.id, len(self), self.lbounds.min(), self.hbounds.max(), self.cbounds)
+    _str = 'type=%s; id=%s; length=%d; bounds_bounds=%.3f/%.3f; cbounds=%s' % (
+      self.__class__.__name__,
+      self.id,
+      len(self),
+      self.lbounds.min(),
+      self.hbounds.max(),
+      self.cbounds
+    )
     _str = '; '.join([_str] + ['{k}={v}'.format(k=k, v=getattr(self, k)) for k in self._keys if k not in ['id', 'length', 'bounds', 'cbounds']])
     return _str
 
