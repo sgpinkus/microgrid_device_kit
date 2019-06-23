@@ -57,7 +57,7 @@ def solve(device, p, s0=None, solver_options={}, prox=False, cb=None):
   '''
   _solver_options = {'ftol': 1e-6, 'maxiter': 1000, 'disp': False}
   _solver_options.update(solver_options)
-  logger.debug(_solver_options)
+  logger.debug({'prox': prox, '_solver_options': solver_options, 'cb': cb})
 
   if (device.bounds[:, 0] == device.bounds[:, 1]).all():
     return (device.lbounds, None)
