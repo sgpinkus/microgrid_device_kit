@@ -49,9 +49,6 @@ def solve(device, p, s0=None, solver_options={}, prox=False, cb=None):
   SLS-Quadratic-Programming. This does not mean it is limited to quadratics. It should work with *any*
   convex nonlinear function over a convex set.
 
-  SLSQP doesnt take a tol option, only an ftol options. Using this option in the context of this
-  software implies tolerance is +/- $ not consumption.
-
   @see http://www.pyopt.org/reference/optimizers.slsqp.html
   @see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
   '''
