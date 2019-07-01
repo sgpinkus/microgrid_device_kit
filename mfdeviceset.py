@@ -109,14 +109,18 @@ class TwoRatioMFDeviceSet(MFDeviceSet):
   adding the constraint for >2 flow is more difficult and I don't need it.
   '''
   ratios = None
+  constraint_type = 'eq'
 
-  def __init__(self, device:BaseDevice, flows, ratios):
+  def __init__(self, device:BaseDevice, flows, ratios, constraint_type='eq'):
     super().__init__(device, flows)
     if len(flows) != 2:
       raise ValueError('More than two flows not supported.')
     if ratios is not None and not len(ratios) == len(flows):
       raise ValueError('Flows and flow ratios must have same length')
+    if constraint_type not in ['eq', 'ineq']:
+      raise ValueError('Invalid constraint type')
     self.ratios = ratios
+    self.constraint_type = constraint_type
 
   @property
   def constraints(self):
@@ -125,7 +129,7 @@ class TwoRatioMFDeviceSet(MFDeviceSet):
     flat_shape = shape[0]*shape[1]
     for i in range(0, len(self)): # for each time
       constraints += [{
-        'type': 'eq',
+        'type': self.constraint_type,
         'fun': lambda s, i=i, r=self.ratios: s.reshape(shape)[0,i]*r[0] - s.reshape(shape)[1,i]*r[1],
         'jac': lambda s, i=i, r=self.ratios: zmm(s.reshape(shape), i, axis=1, fn=lambda x: np.array([r[0], -r[1]])).reshape(flat_shape)
       }]
