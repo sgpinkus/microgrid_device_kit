@@ -134,3 +134,12 @@ class TwoRatioMFDeviceSet(MFDeviceSet):
         'jac': lambda s, i=i, r=self.ratios: zmm(s.reshape(shape), i, axis=1, fn=lambda x: np.array([r[0], -r[1]])).reshape(flat_shape)
       }]
     return constraints
+
+  def to_dict(self):
+    ''' Dump object as a dict. '''
+    d = super().to_dict()
+    d.update({
+      'ratios': self.ratios,
+      'constraint_type': self.constraint_type
+    })
+    return d

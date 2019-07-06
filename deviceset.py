@@ -227,3 +227,11 @@ class SubBalancedDeviceSet(DeviceSet):
     for label in self.labels:
       labelled[label] = [k for k, v in enumerate(leaf_devices.keys()) if re.match('.*{label}$'.format(label=label), v)]
     return labelled
+
+  def to_dict(self):
+    ''' Dump object as a dict. '''
+    d = super().to_dict()
+    d.update({
+      'labels': self.labels
+    })
+    return d
