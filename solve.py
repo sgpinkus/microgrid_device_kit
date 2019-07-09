@@ -76,8 +76,8 @@ def solve(device, p, s0=None, solver_options={}, prox=False, cb=None):
     })
   if prox:
     args.update({
-      'fun': lambda s, p=p: -1*device.u(s, p) + (prox/2)*((s-s0)**2).sum(),
-      'jac': lambda s, p=p: -1*device.deriv(s, p).flatten() + prox*(s-s0),
+      'fun': lambda s, p=p: -1*device.u(s, p) + (1/(2*prox))*((s-s0)**2).sum(),
+      'jac': lambda s, p=p: -1*device.deriv(s, p).flatten() + (1/prox)*(s-s0),
     })
   o = minimize(**args)
   if not o.success:
