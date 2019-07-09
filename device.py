@@ -1,4 +1,5 @@
 import re
+import logging
 import numpy as np
 from pprint import pformat
 from device_kit import BaseDevice
@@ -23,7 +24,7 @@ class Device(BaseDevice):
     method. Alternatively they may just define setters which will be called for all keys in **meta.
     '''
     if not isinstance(id, str) or not re.match('^(?i)[a-z0-9][a-z0-9()_-]*$', id):
-      raise ValueError('id must be a non empty string matching ^(?i)[a-z0-9][a-z0-9_-]*$')
+      logging.getLogger(__name__).warn('id should be a non empty string matching "^(?i)[a-z0-9][a-z0-9_-]*$" not "%s"' % (id,))
     self._length = length
     self._id = id
     self.bounds = bounds

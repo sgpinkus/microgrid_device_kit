@@ -197,7 +197,10 @@ class DeviceSet(BaseDevice):
 
 class SubBalancedDeviceSet(DeviceSet):
   ''' Find all devices under this device set matching ".*{label}$" and apply an additional balancing
-  constraint - i.e. labelled flows sum to zero at all times. '''
+  constraint. I.e. so labelled devices flows sum to 0.
+  TODO: Add sbounds option for sub flows. The sub flows hard coded to sumo to 0. sbounds belongs to
+  the parent DeviceSet and specifies constraint over all flows.
+  '''
   _label = []
 
   def __init__(self, id, devices, sbounds, labels=[]):
