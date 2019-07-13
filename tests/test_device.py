@@ -228,7 +228,7 @@ class TestBaseDevice(TestCase):
     for i in (None, '.xxx', 'x.x', 'x.', ''):
       _test_device = deepcopy(test_device)
       _test_device['id'] = i
-      with self.assertRaises(ValueError):
+      with self.assertWarns(UserWarning):
         device = Device(**_test_device)
     # mins < maxs
     _test_device = deepcopy(test_device)

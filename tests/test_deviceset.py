@@ -94,7 +94,7 @@ class TestMFDeviceSet(TestCase):
 
   def _test_devices(self, s=23):
     np.random.seed(s)
-    uncntrld = 0 #np.maximum(0, np.random.random(24)-0.4)
+    uncntrld = 0 # np.maximum(0, np.random.random(24)-0.4)
     cost = np.stack((np.sin(np.linspace(0, np.pi, 24))*0.5+0.1, np.ones(24)*0.001, np.zeros(24)), axis=1)
     devices = OrderedDict([
         ('uncntrld', Device('uncntrld', 24, (uncntrld, uncntrld))),
@@ -122,7 +122,7 @@ class TestMFDeviceSet(TestCase):
     is satisfied.
     '''
     devices = self._test_devices()
-    da = DeviceSet('a', list(devices.values()), (0,0))
+    da = DeviceSet('a', list(devices.values()), (0.,0.))
     db = SubBalancedDeviceSet(
       'b',
       [
@@ -131,11 +131,11 @@ class TestMFDeviceSet(TestCase):
         MFDeviceSet(devices['shiftable'], ['e', 'heat']),
         TwoRatioMFDeviceSet(devices['generator'], ['e', 'heat'], [1,8]),
       ],
-      sbounds=(0,0),
-      labels=['heat']
+      sbounds=(0.,0.),
+      labels=['heat'],
     )
-    (xa, statusa) = solve(da, 0)
-    (xb, statusb) = solve(db, 0)
+    (xa, statusa) = solve(da, 0, solver_options={'ftol': 1e-6})
+    (xb, statusb) = solve(db, 0, solver_options={'ftol': 1e-6})
 
     df_xa = pd.DataFrame.from_dict(dict(da.map(xa)), orient='index').transpose()
     df_xa.columns = [i.strip('a.') for i in df_xa.columns]
@@ -145,7 +145,7 @@ class TestMFDeviceSet(TestCase):
       del df_xb['b.' + k + '.heat'], df_xb['b.' + k + '.e']
     df_xa.sort_index(axis=1, inplace=True)
     df_xb.sort_index(axis=1, inplace=True)
-    self.assertAlmostEqual(da.u(xa, 0), db.u(xb, 0), 6)
+    self.assertAlmostEqual(da.u(xa, 0), db.u(xb, 0), 5)
     self.assertTrue((np.abs(df_xa.values - df_xb.values) <= 1e-3).all())
 
 

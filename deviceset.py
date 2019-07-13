@@ -201,11 +201,12 @@ class SubBalancedDeviceSet(DeviceSet):
   TODO: Add sbounds option for sub flows. The sub flows hard coded to sumo to 0. sbounds belongs to
   the parent DeviceSet and specifies constraint over all flows.
   '''
-  _label = []
 
-  def __init__(self, id, devices, sbounds, labels=[]):
+  def __init__(self, id, devices, sbounds, labels=[], constraint_type='eq', sign=1):
     super().__init__(id, devices, sbounds)
     self.labels = labels
+    self.constraint_type = constraint_type
+    self.sign = sign
 
   @property
   def constraints(self):
@@ -217,9 +218,9 @@ class SubBalancedDeviceSet(DeviceSet):
       col_jac[labelled] = 1
       for i in range(0, len(self)): # for each time
         constraints += [{
-          'type': 'eq',
-          'fun': lambda s, i=i: s.reshape(shape)[labelled, i].sum(),
-          'jac': lambda s, i=i, j=col_jac: zmm(s.reshape(shape), i, axis=1, fn=lambda r: j).reshape(flat_shape)
+          'type': self.constraint_type,
+          'fun': lambda s, i=i: self.sign*s.reshape(shape)[labelled, i].sum(),
+          'jac': lambda s, i=i, j=col_jac: self.sign*zmm(s.reshape(shape), i, axis=1, fn=lambda r: j).reshape(flat_shape)
         }]
     return constraints
 
@@ -235,6 +236,8 @@ class SubBalancedDeviceSet(DeviceSet):
     ''' Dump object as a dict. '''
     d = super().to_dict()
     d.update({
-      'labels': self.labels
+      'labels': self.labels,
+      'constraint_type': self.constraint_type,
+      'sign': self.sign
     })
     return d
