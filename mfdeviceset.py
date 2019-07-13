@@ -53,7 +53,7 @@ class MFDeviceSet(DeviceSet):
 
   def deriv(self, s, p):
     s = s.reshape(self.shape)
-    return np.repeat(self._device.deriv(s.sum(axis=0), 0).reshape(1,len(self)), self.shape[0], axis=0).reshape(self.shape)*(np.array([0.8,1/0.8]).reshape(2,1)) - p
+    return np.repeat(self._device.deriv(s.sum(axis=0), 0).reshape(1,len(self)), self.shape[0], axis=0).reshape(self.shape) - p
 
   def hess(self, s, p=0):
     return self._device.hess(s.sum(axis=0), 0)
