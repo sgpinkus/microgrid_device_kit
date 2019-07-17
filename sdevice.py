@@ -23,8 +23,8 @@ class SDevice(Device):
     - c1,c2,c3: coefficients for the first, second, third cost terms listed above.
     - capacity: the storage capacity of the device.
     - damage_depth: how deep is a deep discharge.
-    - reserve: how much charge must the device be storing at the end of the planning window. We
-        assume the device starts with this reserve as well.
+    - starti how much charge the device has at the start of the planning window as a ratio of capacity.
+    - reserve: how much charge must the device be storing at the end of the planning window as a ratio of capacity.
     - efficiency: The *single* trip efficiency factor - [0,1]. Applied symmetrically to in/out flow.
         This means the round-trip efficiency (RTEF) is 1/2 this: efficiency = 1-(1-RTEF)/2. Ex, if
         the RTEF=0.9 then efficiency should be set to 1-(1-0.9)/2 = 0.95.
@@ -35,6 +35,7 @@ class SDevice(Device):
   _c3 = 0.0
   _capacity = 10
   _damage_depth = 0.0
+  _start = 0.5
   _reserve = 0.5
   _efficiency = 1.0
   _sustainment = 1.0
@@ -100,7 +101,7 @@ class SDevice(Device):
     return self.base()+r.cumsum()
 
   def base(self):
-    return self.reserve*self.capacity
+    return self.start*self.capacity
 
   @property
   def c1(self):
@@ -117,6 +118,10 @@ class SDevice(Device):
   @property
   def capacity(self):
     return self._capacity
+
+  @property
+  def start(self):
+    return self._start
 
   @property
   def reserve(self):
@@ -231,6 +236,12 @@ class SDevice(Device):
     if capacity <= 0:
       raise ValueError('capacity must be > 0')
     self._capacity = capacity
+
+  @start.setter
+  def start(self, start):
+    if not 0 <= start <= 1:
+      raise ValueError('start must be in [0,1]')
+    self._start = start
 
   @reserve.setter
   def reserve(self, reserve):

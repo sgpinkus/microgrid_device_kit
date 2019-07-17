@@ -104,6 +104,7 @@ test_sdevice = {
   'c2': 0,
   'c3': 0,
   'capacity': 10,
+  'start': 0.5,
   'reserve': 0.5,
   'damage_depth': 0.2
 }
@@ -522,6 +523,9 @@ class TestSDevice(TestCase):
     self.assertTrue((d.charge_at(r) == np.arange(6, 24+6)).all())
     d.sustainment = 0.5
     self.assertTrue((np.abs(d.charge_at(r*2) - np.array([4.500000, 4.250000, 4.125000, 4.062500, 4.031250, 4.015625, 4.007812, 4.003906, 4.001953, 4.000977, 4.000488, 4.000244, 4.000122, 4.000061, 4.000031, 4.000015, 4.000008, 4.000004, 4.000002, 4.000001, 4.000000, 4.000000, 4.000000, 4.000000])) < 1e-5).all())
+    self.assertEqual(SDevice('test', 24, (-1,1), start=0.0).base(), 0)
+    self.assertEqual(SDevice('test', 24, (-1,1), start=0.1, capacity=1).base(), 0.1)
+    self.assertEqual(SDevice('test', 24, (-1,1), start=0.1, capacity=1).charge_at(np.zeros(24))[23], 0.1)
 
   @classmethod
   def get_test_device(cls):
