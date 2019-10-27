@@ -9,7 +9,7 @@ from logging import debug, info, warn, exception, error
 
 
 class MFDeviceSet(DeviceSet):
-  ''' Provides an adaptor over some atomic device to represent multiple flows to/from the device.
+  ''' Provides an adaptor over some *atomic* device to represent multiple flows to/from the single device.
   The flows themselves become the devices of this device set.
   '''
   _id = None
@@ -21,7 +21,7 @@ class MFDeviceSet(DeviceSet):
   def __init__(self, device:BaseDevice, flows):
     ''' Setting reasonable bounds for the flow devices is somewhat tricky. We could use (-inf, inf),
     but that can lead to strangnesses. Instead, MFDeviceSet can only work with a device with all non
-    -ve or all non -ve device (i.e. not a two way device) and the flow device bounds are set to
+    -ve or all non +ve device (i.e. not a two way device) and the flow device bounds are set to
     (lower|0, 0|upper) depending on whether the device is -ve|+ve.
     '''
     if not len(flows):

@@ -35,8 +35,8 @@ class SDevice(Device):
   _c3 = 0.0
   _capacity = 10
   _damage_depth = 0.0
-  _start = 0.5
-  _reserve = 0.5
+  _start = 0.0
+  _reserve = 0.0
   _efficiency = 1.0
   _sustainment = 1.0
   _sustainment_matrix = None
