@@ -222,7 +222,7 @@ class SubBalancedDeviceSet(DeviceSet):
       for i in range(0, len(self)): # for each time
         constraints += [{
           'type': self.constraint_type,
-          'fun': lambda s, i=i: self.sign*s.reshape(shape)[labelled_set, i].sum(),
+          'fun': lambda s, i=i: self.sign*(s.reshape(shape)[:, i]*col_jac).sum(),
           #'jac': lambda s, i=i, j=col_jac: self.sign*zmm(s.reshape(shape), i, axis=1, fn=lambda r: j).reshape(flat_shape)
         }]
     return constraints

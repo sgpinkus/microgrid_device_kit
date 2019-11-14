@@ -38,7 +38,7 @@ def step(device, p, s, stepsize, solver_options={}):
   return (s_next, ol)
 
 
-def solve(device, p, s0=None, solver_options={}, prox=False, cb=None):
+def solve(device, p, s0=None, solver_options={}, prox=None, cb=None):
   ''' Find the optimal demand for price for the given device and return it. Works on any agent
   since only requires s and device.deriv(). This method does not modify the agent.
   Note AFAIK scipy.optimize only provides two methods that support constraints:
@@ -74,7 +74,7 @@ def solve(device, p, s0=None, solver_options={}, prox=False, cb=None):
     args.update({
       'callback': lambda x: cb(device, x)
     })
-  if prox:
+  if prox is not None:
     args.update({
       'fun': lambda s, p=p: -1*device.u(s, p) + (1/(2*prox))*((s-s0)**2).sum(),
       'jac': lambda s, p=p: -1*device.deriv(s, p).flatten() + (1/prox)*(s-s0),
