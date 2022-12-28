@@ -13,7 +13,7 @@ from logging import debug, info, warn, exception, error
 class DeviceSet(BaseDevice):
   ''' A container for a set of sub-devices. Sub-devices have [c]bounds and other constraints. This
   DeviceSet base add sbounds for cummulative bounds accross the set of devices. This is a common
-  device coupling.
+  device coupling (example max capacity of bus connecting device).
 
   DeviceSet effectively serves as an internal node of a tree of devices.
 
@@ -28,7 +28,7 @@ class DeviceSet(BaseDevice):
     '''  '''
     if not (np.vectorize(lambda a: len(a))(np.array(devices)) == len(devices[0])).all():
       raise ValueError('Devices have miss-matched lengths')
-    if not re.match('^(?i)[a-z0-9][a-z0-9_-]*$', id):
+    if not re.match('(?i)^[a-z0-9][a-z0-9_-]*$', id):
       raise ValueError('id must be string matching ^(?i)[a-z0-9][a-z0-9_-]*$ Given "%s"' % (id,))
     self._id = id
     self._devices = devices

@@ -3,3 +3,4 @@ linalg
 numpy
 matplotlib
 numdifftools
+pandas

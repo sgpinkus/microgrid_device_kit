@@ -10,7 +10,9 @@ from logging import debug, info, warn, exception, error
 
 class MFDeviceSet(DeviceSet):
   ''' Provides an adaptor over some *atomic* device to represent multiple flows to/from the single device.
-  The flows themselves become the devices of this device set.
+  The flows themselves become the devices of this device set. The flows, represent different
+  conduits servicing the device. Byt default the device is assumed not to have a
+  preference (perfect subs). An example, room heating from electricity or from heat a pipe.
   '''
   _id = None
   _length = None          # Number of time units (not number of devices).

@@ -39,15 +39,15 @@ def step(device, p, s, stepsize, solver_options={}):
 
 
 def solve(device, p, s0=None, solver_options={}, prox=None, cb=None):
-  ''' Find the optimal demand for price for the given device and return it. Works on any agent
-  since only requires s and device.deriv(). This method does not modify the agent.
+  ''' Find the optimal demand for price for the given device and return it. Works on any device
+  since only requires s and device.deriv(). This method does not modify the device.
   Note AFAIK scipy.optimize only provides two methods that support constraints:
     - COBYLA (Constrained Optimization BY Linear Approximation)
     - SLSQP (Sequential Least SQuares Programming)
   Only SLSQP supports eq constraints. SLSQP is based on the Han-Powell quasi–Newton method. Apparently
   it uses some quadratic approximation, and the same method seems to be sometimes referred called
   SLS-Quadratic-Programming. This does not mean it is limited to quadratics. It should work with *any*
-  convex nonlinear function over a convex set.
+  convex function over a convex set.
 
   @see http://www.pyopt.org/reference/optimizers.slsqp.html
   @see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
@@ -56,9 +56,11 @@ def solve(device, p, s0=None, solver_options={}, prox=None, cb=None):
   _solver_options.update(solver_options)
   logger.debug({'prox': prox, '_solver_options': solver_options, 'cb': cb})
 
+  # Don't attempt solve if input constrained to single solution.
   if (device.bounds[:, 0] == device.bounds[:, 1]).all():
     return (device.lbounds, None)
 
+  # Find a (assumed) feasible starting point
   s0 = (s0 if s0 is not None else device.project(np.zeros(device.shape))).flatten()
 
   args = {

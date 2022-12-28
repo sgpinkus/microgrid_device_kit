@@ -3,6 +3,7 @@ import logging
 import numbers
 import numpy as np
 from abc import ABC, abstractmethod
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +19,10 @@ class BaseDevice(ABC):
       - If composite, a list of low/high resource consumption `bounds` of length `N`*`len`.
       - A differentiable utility function `u()`, which represents how much value the device gets
         from consuming / producing a given resource allocation (`N`,`len`) at some price. Note `u()`
-        is also used to represent costs of production (cost is -ve utility).
+        is also used to represent costs of production (cost === -ve utility).
 
     Device is more or less a dumb container for the above settings. Sub classes should implement
-    (and vary primarily in the implementation of), the utility function and possibly additional
+    (and vary primarily in the implementation of), the utility function and additional
     constraints.
 
     Other notes:
@@ -32,7 +33,7 @@ class BaseDevice(ABC):
         convex but this is not currently enforced.
       - Device was intended to be and should be treated as immutable but currently this is not enforced.
       - Because Device was intended to be immutable, while a Device represents flow flexibility
-        it does not *have* a state  of flow.
+        it does not hold a state of flow data.
       - Devices should be serializable and constructable from the serialization.
       - Python3 @properties have been used throughout these classes. They mainly serve as very
         verbose and slow way to protect a field, by only defining a getter. Setters are sparingly defined.
@@ -128,7 +129,7 @@ class BaseDevice(ABC):
     ''' Iterate over flat list of (fqid, device) tuples for leaf devices from an input BaseDevice.
     fqid is the id of the leaf device prepended with the dot separated ids of parents. The input device
     may be atomic or a composite. The function distinguishes between them via support for iteration.
-    An order list is returned so the key offset indicates the row offset (under the invariant that
+    An ordered list is returned so the key offset indicates the row offset (under the invariant that
     atomic leaf devices have shape (1,N)). Ex {v: k for k, v in enumerate(OrderedDict(x).keys())}
     '''
     def _leaf_devices(device, fqid, s='.'):
@@ -179,8 +180,10 @@ class BaseDevice(ABC):
       raise ValueError('bounds must be a sequence type')
     fixed = False
     try:
-      if np.array(bounds).shape == (len(self), 2):
-        fixed = True
+      with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        if np.array(bounds).shape == (len(self), 2):
+          fixed = True
     except ValueError:
       pass
     if not fixed:

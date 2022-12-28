@@ -10,6 +10,7 @@ class WindowDevice(ADevice):
   of flow outside the window. Not convex. Overrides ADevice but `constraint` and `f` are not params.
   `c` is a scaling factor, `w` is the window width. Really there is just one of a lot of different
   penalty functions that one could use for flows outside a window.
+  NOTE: This is not actually convex, but it works suprisingly well with tuned params.
   '''
   _c = 1
   _w = None
