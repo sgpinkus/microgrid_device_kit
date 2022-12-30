@@ -35,7 +35,8 @@ The `device_kit` was originally written for the purpose modeling controllable mi
 </table>
 
 # Installation
-device_kit/ dir just need to be on `PYTHON_PATH` and [requirements](./requirements.txt) installed to use library.
+Clone reop and put device_kit/ dir on `PYTHON_PATH` and install [requirements](./requirements.txt). Alternatively:
+`pip install "git+https://github.com/sgpinkus/device_kit.git#egg=device_kit"`
 
 # Synopsis
 A simple example of using `device_kit` to model a collection of devices and then solve for some constraint over the joint flows - most commonly balanced flows:
