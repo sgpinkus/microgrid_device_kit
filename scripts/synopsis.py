@@ -15,11 +15,11 @@ def make_model():
   np.random.seed(19)
   model = DeviceSet('site1', [
       Device('uncontrolled', 24, (random_uncontrolled(),)),
-      IDevice2('scalable', 24, (0.5, 2), (0, 24), d0=0.3),
-      CDevice('shiftable', 24, (0, 2), (12, 24)),
-      GDevice('generator', 24, (-10,0), cbounds=None, cost=generator_cost_curve()),
+      IDevice2('scalable', 24, (0.25, 2), (0, 24), d0=0.5),
+      CDevice('shiftable', 24, (0, 2), (12, 24), a=1),
+      GDevice('generator', 24, (-10, 0), cbounds=None, cost=generator_cost_curve()),
       DeviceSet('sub-site1', [
-          Device('uncontrolled', 24, (random_uncontrolled(),)),
+          Device('uncontrolled', 24, (2*random_uncontrolled(),)),
           SDevice('buffer', 24, (-7, 7), c1=1.0, capacity=70, sustainment=1, efficiency=1)
         ],
         sbounds=(0,10) # max capacity constraint.
@@ -35,6 +35,8 @@ def main():
   print(solve_meta.message)
   df = pd.DataFrame.from_dict(dict(model.map(x)), orient='index')
   df.loc['total'] = df.sum()
+  supply_side, _slice = [(d,s) for (d,s) in model.slices if d.id == 'generator'][0]
+  df.loc['price'] = supply_side.deriv(x[slice(*_slice), :], p=0)
   pd.set_option('display.float_format', lambda v: '%+0.3f' % (v,),)
   print(df.sort_index())
   print('Utility: ', model.u(x, p=0))

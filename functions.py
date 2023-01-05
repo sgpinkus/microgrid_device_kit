@@ -9,17 +9,15 @@ import numdifftools as nd
 class poly2d():
   ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. '''
   _c = None
-  _f = None
   _polys = None
 
   def __init__(self, c):
     ''' `c` should be an array of arrays. Each array the coeffs of a poly1d. '''
     self._c = np.array(c)
     self._polys = [poly1d(c) for c in self._c]
-    self._f = lambda x: np.array([self._polys[k](v) for k, v in enumerate(x.reshape(len(self)))])
 
   def __call__(self, x):
-    return self._f(x)
+    return np.array([self._polys[k](v) for k, v in enumerate(x.reshape(len(self)))])
 
   def __len__(self):
     return len(self._c)

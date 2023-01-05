@@ -110,7 +110,7 @@ Utility:  -13.021871014972055
   <tr>
     <td width="50%" style="vertical-align: top;">
         <figure>
-            <a name='f3'><img width='400px' name='f1' src='tests-inf/synopsis.png'/></a><br/>
+            <a name='f3'><img width='400px' name='f1' src='scripts/synopsis.png'/></a><br/>
             <small>Output plot.</small>
         </figure>
     </td>

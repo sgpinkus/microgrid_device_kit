@@ -1,6 +1,4 @@
 import re
-import uuid
-import numbers
 import numpy as np
 from collections import OrderedDict
 from copy import deepcopy
@@ -33,7 +31,7 @@ class DeviceSet(BaseDevice):
     self._id = id
     self._devices = devices
     self._length = len(devices[0])
-    self._sbounds = self.validate_bounds(sbounds) if sbounds is not None else None
+    self.sbounds = sbounds
 
   def __len__(self):
     return self._length
@@ -110,11 +108,22 @@ class DeviceSet(BaseDevice):
     return np.array(list(zip(offset, self.shapes[:,0])), dtype=int)
 
   @property
+  def slices(self):
+    ''' Like partition but more useful. Maps devices on to slice flow matrix like `x[slice(_slice),:]`. '''
+    offset = np.roll(self.shapes[:,0].cumsum(), 1)
+    offset[0] = 0
+    return list(zip(self.devices, list(zip(offset, offset+self.shapes[:,0]))))
+
+  @property
   def sbounds(self):
     ''' sbounds is to Device.bounds, but applies to aggregate of all devices in this set. Would use
     `bounds` property name but it is already used. See bounds.
     '''
     return self._sbounds
+
+  @sbounds.setter
+  def sbounds(self, sbounds):
+    self._sbounds = self.validate_bounds(sbounds) if sbounds is not None else None
 
   @property
   def lbounds(self):

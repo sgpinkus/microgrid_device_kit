@@ -5,6 +5,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 import warnings
 
+
 logger = logging.getLogger(__name__)
 
 

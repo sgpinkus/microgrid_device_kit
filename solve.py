@@ -2,13 +2,13 @@ import logging
 import numpy as np
 from scipy.optimize import minimize
 from abc import ABC, abstractmethod
-from .utils import project
+from device_kit.utils import project
 
 
 logger = logging.getLogger(__name__)
 
 
-def step(device, p, s, stepsize, solver_options={}):
+def step(device, p, s, stepsize=1, solver_options={}):
   ''' Take one step towards optimal demand for price vector `p`, using stepsize plus limited
   minimization. This means stepsize sets the upper bound of change in x, but stepsize can be large
   since limited minimization limits severity of overshoots.
@@ -102,6 +102,6 @@ class OptimizationException(Exception):  # pragma: no cover
   ''' Some type of optimization error. '''
   o = None # An optional optimization method specific status report (i.e. OptimizeResult).
 
-  def __init__(device, *args):
-    device.o = args[0] if args else None
-    super(Exception, device).__init__(*args)
+  def __init__(self, *args):
+    self.o = args[0] if args else None
+    super(Exception, self).__init__(*args)
