@@ -76,7 +76,7 @@ def solve(device, p, s0=None, solver_options={}, prox=None, cb=None):
     args.update({
       'callback': lambda x: cb(device, x)
     })
-  if prox is not None:
+  if prox:
     args.update({
       'fun': lambda s, p=p: -1*device.u(s, p) + (1/(2*prox))*((s-s0)**2).sum(),
       'jac': lambda s, p=p: -1*device.deriv(s, p).flatten() + (1/prox)*(s-s0),

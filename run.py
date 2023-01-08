@@ -34,13 +34,12 @@ def main():
   # )
   args = parser.parse_args()
 
-  scenario = load_scenario(**vars(args))
-  deviceset = scenario.make_deviceset()
+  (deviceset, meta, cb) = load_scenario(**vars(args))
   deviceset.sbounds = (0,0)
   (x, solve_meta) = device_kit.solve(deviceset, p=0) # Convenience convex solver.
   print(solve_meta.message)
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
-  plot_bars(df, scenario.meta['title'], scenario.matplot_network_writer_hook)
+  plot_bars(df, meta.get('title') if meta else None, cb)
   df.loc['total'] = df.sum()
   pd.set_option('display.float_format', lambda v: '%+0.3f' % (v,),)
   print(df.sort_index())
@@ -66,7 +65,10 @@ def load_scenario(scenario):
   def make_module_path(s):
     ''' Convert apossible filepath to a module-path. Does nothing it s is already a module-path '''
     return s.replace('.py', '').replace('/', '.').replace('..', '.').lstrip('.')
-  return importlib.import_module(make_module_path(scenario))
+  scenario = importlib.import_module(make_module_path(scenario))
+  meta = scenario.meta if hasattr(scenario, 'meta') else None
+  cb = scenario.matplot_network_writer_hook if hasattr(scenario, 'matplot_network_writer_hook') else None
+  return (scenario.make_deviceset(), meta, cb)
 
 
 main()

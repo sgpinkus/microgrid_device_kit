@@ -12,8 +12,10 @@ from .adevice import ADevice
 from .idevice2 import IDevice2
 from .cdevice2 import CDevice2
 from .windowdevice import WindowDevice
-from .deviceset import DeviceSet, SubBalancedDeviceSet
-from .mfdeviceset import MFDeviceSet, TwoRatioMFDeviceSet
+from .deviceset import DeviceSet
+from .subbalanceddeviceset import SubBalancedDeviceSet
+from .mfdeviceset import MFDeviceSet
+from .tworatiomfdeviceset import TwoRatioMFDeviceSet
 
 
 __all__ = [
