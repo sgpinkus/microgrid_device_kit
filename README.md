@@ -125,14 +125,29 @@ In the scope of this package, a device is something that consumes and/or produce
 
 All the concrete device models provided are currently all weakly convex and tune-able. The concrete set of device implementations can be used to model quite a wide range of scenarios within the bounds of convexity.
 
-Low level devices exist in a network which acts as a conduit for commodity flow between devices (ex. an electrical bus). This package is limited (by design) to modeling radially structured (in other words, *rooted tree* structured) networks to an arbitrary nesting level (the simple flow networks we're interested in modelling have a radial structure or can be treated as such at the level of abstraction we're interested in). "Networks" are implemented as composite devices containing other atomic or composite devices, down to some eventual leaf node device level (<a href="#f2">see figure</a>).
+Low level devices exist in a network which acts as a conduit for commodity flow between devices (ex. an electrical bus). This package is limited (by design) to modeling radially structured (in other words, *rooted tree* structured) networks to an arbitrary nesting level (the simple flow networks we're interested in modeling have a radial structure or can be treated as such at the level of abstraction we're interested in). "Networks" are implemented as composite devices containing other atomic or composite devices, down to some eventual leaf node device level (<a href="#f2">see figure</a>).
 
-## Class Structure
+# Implemented Devices
+
+|SHORT NAME|LONG NAME|UTILITY FUNCTION AND CONSTRAINTS|
+|-|-|-|
+|CDevice|Cummulative Device|Linear with cummulative consumption over time bounds|
+|GDevice|Generator Device|Quadractive cost function|
+|IDevice|Instantaneous Device|Parametized quadratic section see [here](./docs/instantaneous-device-utility-curve-analysis.md)|
+|IDevice2|Alternative Instantaneous Device|Parametized quadratic section see [here](./docs/instantaneous-device-utility-curve-analysis.md)|
+|MFDevice|Multiflow Device|Constraints s.t. can take flow from one of two source (ex. heat and electricity) in perfect subs|
+|PVDevice|Photo-voltaic Device|Simple model of PV with some surface area and efficiency factor|
+|SDevice|Storage Device|Generic battery or thermal storage device with a few parameters|
+|TDevice|Thermal Device|Does a thing|
+|ADevice|Any Device|Takes an arbitrary utility function and constraints|
+|...|Other Device|Experimental|
+
+# Class Structure
 There is two important classes: `Device` and `DeviceSet`. The UML class diagram in the <a href="#f1">figure</a> shows how they are related. All devices sub-class `BaseDevice` which is the key abstract representation of a device. A device's consumption/production/both, herein called *flow*, is a 2D `R` by `C` numpy array. For "atomic" devices of class `Device`, `R` is always 1, and `C` is the fixed length (`__len__`) of the Device. A collection of devices is also implemented as a sub-type of `BaseDevice` and this is how `R` can be greater than 1. The `DeviceSet` class is used to represent collections of devices, such as a network or sub-network. `DeviceSet` allows devices to be organized into an arbitrarily deep rooted tree of devices. An example is shown in the figure. Atomic device always occur at the leaves. All internal nodes, and the root of the tree are `DeviceSet` instances.
 
 All devices are intended to be stateless: they are not actively consuming producing anything. Rather they are modeling the preferences and constraints for the flow of a commodity (the `map(flow)` method shown in the UML diagram allows you to map an actual flow matrix onto a collection of devices). Devices are also intended to be immutable (but technically they are not currently strictly immutable).
 
-## Flexibility Modeling Details
+# Flexibility Modeling Details
 Device's encapsulate a flexibility model. Flexibility has two components *preferences* or soft constraints and (hard) *constraints*.
 
 For convenience, the `Device` base class provides for two very common rudimentary baked-in constraints:
