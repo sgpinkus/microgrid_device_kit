@@ -1,4 +1,4 @@
-# Device Kit
+# Microgrid Device Kit
 `device_kit` is a Python package containing a collection of scalar vector flow device models for convex optimal flow simulations. The package defines a common abstract interface for a device, a base set of concrete devices, and a way of constructing new aggregate devices from collection of related sub-devices. Under the hood it's a big 2d numpy array, with discrete time slot along one dimension, and leaf device along the other. `device_kit` makes it easier to express and manage the constraints and cost functions, and solve the system.
 
 The `device_kit` was originally written for the purpose modeling controllable microgrid or household electrical devices, and then optimizing flows over a day-ahead time horizon.
