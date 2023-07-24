@@ -118,7 +118,7 @@ Utility:  -13.021871014972055
 </table>
 
 # Modeling Overview
-In the scope of this package, a device is something that consumes and/or produces some kind of scalar valued commodity (ex. electricity, gas, fluid) over a fixed, discrete, and finite future planning/scheduling horizon (ex. every hour of the next day, or every minute of the next hour, etc). For each device what is modeled is simply:
+In the scope of this package, a device is something that consumes and/or produces some kind of scalar valued commodity (ex. electricity, gas, heat, coolth, milk, ..) over a fixed, discrete, and finite future planning/scheduling horizon (ex. every hour of the next day, or every minute of the next hour, etc). For each device what is modeled is simply:
 
   1. The non-negotiable hard constraints on the commodity *flow* to/from the device.
   2. Costs (or soft constraints) for different feasible states of flow to/from the device (AKA costs or dis-utility).
