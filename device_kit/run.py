@@ -25,7 +25,10 @@ np.set_printoptions(**np_printoptions)
 
 
 def main():
-  parser = argparse.ArgumentParser(description='Run a power market simulation.')
+  parser = argparse.ArgumentParser(
+    description='Run a device_kit scenario and print result to stdout',
+    prog='device_kit'
+  )
   parser.add_argument('scenario', action='store',
     help='name of a python module containing scenario to run'
   )

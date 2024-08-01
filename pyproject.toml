@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "device_kit"
+version = "0.0.1"
+authors = [
+  { name="Sam Pinkus", email="sgpinkus@gmail.com" },
+]
+maintainers = [
+  { name="Sam Pinkus", email="sgpinkus@gmail.com" },
+]
+description = "Flow device economical optimization modeling kit"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+keywords = ["microgrid", "day-ahead", "simulation", "modeling"]
+dependencies = [
+  "matplotlib==3.9.1",
+  "numpy==2.0.1",
+  "pandas==2.2.2",
+  "scipy==1.14.0",
+  "numdifftools==0.9.41",
+]
+[project.optional-dependencies]
+gui = ["PyQt5"]
+
+[project.urls]
+Homepage = "https://github.com/sgpinkus/device_kit"
+Issues = "https://github.com/sgpinkus/device_kit/issues"
+
+[tool.setuptools]
+packages = ["device_kit", "device_kit.sample_scenarios", "device_kit.projection"]
+
