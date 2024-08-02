@@ -12,7 +12,8 @@ from scipy.optimize import minimize
 import device_kit
 
 logging.basicConfig()
-logging.getLogger().setLevel(logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 np_printoptions = {
   'linewidth': 1e6,
   'threshold': 1e6,
@@ -39,7 +40,7 @@ def main():
 
   (deviceset, meta, cb) = load_scenario(**vars(args))
   deviceset.sbounds = (0,0)
-  (x, solve_meta) = device_kit.solve(deviceset, p=0) # Convenience convex solver.
+  (x, solve_meta) = device_kit.solve(deviceset, solver_options={'ftol': 1e-3 }, cb=Cb(), p=0) # Convenience convex solver.
   print(solve_meta.message)
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
   plot_bars(df, meta.get('title') if meta else None, cb)
@@ -62,6 +63,15 @@ def plot_bars(df, title, cb=None, aggregation_level=2):
     cb('after-update', f)
   plt.savefig('run.png')
   plt.clf()
+
+
+class Cb():
+  def __init__(self):
+    self.i = 0
+
+  def __call__(self, device, x):
+    logger.info('step=%d; u=%.6f' % (self.i, device.u(x, 0)))
+    self.i += 1
 
 
 def load_scenario(scenario):

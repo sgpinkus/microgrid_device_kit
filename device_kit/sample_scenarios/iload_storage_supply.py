@@ -2,8 +2,6 @@
 Adds a battery to idevice_scenario.py and different particular settings. Created this to debug a
 optimization error 8: 'Positive directional derivative for linesearch' when using these and similar
 settings and LCLNetwork. Hmmm, if I just ignore it results is as expected.
-
-See File "powermarket/agent/agent.py", line 179, in _step().
 '''
 import numpy as np
 from device_kit import *

@@ -2,9 +2,7 @@ import sys
 import os
 from random import random, randrange, seed
 import numpy as np
-from powermarket.agent import *
 from device_kit import *
-from powermarket.scenario.lcl.lcl_scenario import *
 
 
 meta = {
@@ -59,15 +57,15 @@ def params_degenerate():
   }
 
 
-def matplot_network_writer_hook(event, fig, writer):
-  if event == 'after-init':
-    writer.ymax = 32
-    writer.ymin = -10
-  if event == 'after-update':
-    colors = writer._colors
-    fig.axes[0].plot(agents[0].t_external, label='temp_external')
-    for i, a in enumerate(agents):
-      if hasattr(a, 't_optimal'):
-        fig.axes[0].axhline(a.t_optimal, color=colors[i%len(colors)], ls='--')
-        fig.axes[0].plot(a.r2t(a.r), label='temp_'+a.id, color=colors[i%len(colors)], lw=1.2)
-    fig.axes[0].ylim(fig.axes[0].ylim()[0], max(fig.axes[0].ylim()[1], agents[0].t_external.max()))
+# def matplot_network_writer_hook(event, fig, writer):
+#   if event == 'after-init':
+#     writer.ymax = 32
+#     writer.ymin = -10
+#   if event == 'after-update':
+#     colors = writer._colors
+#     fig.axes[0].plot(agents[0].t_external, label='temp_external')
+#     for i, a in enumerate(agents):
+#       if hasattr(a, 't_optimal'):
+#         fig.axes[0].axhline(a.t_optimal, color=colors[i%len(colors)], ls='--')
+#         fig.axes[0].plot(a.r2t(a.r), label='temp_'+a.id, color=colors[i%len(colors)], lw=1.2)
+#     fig.axes[0].ylim(fig.axes[0].ylim()[0], max(fig.axes[0].ylim()[1], agents[0].t_external.max()))

@@ -1,6 +1,6 @@
 ''' Replace make_home() to remove battery then reset agents field. '''
 from device_kit import *
-from powermarket.scenario.lcl.lcl_scenario import *
+from device_kit.sample_scenarios.lcl.lcl_scenario import *
 
 
 meta = {
@@ -21,11 +21,11 @@ def make_home(type, id):
   )
 
 
-def matplot_network_writer_hook(event, plt, writer=None):
-  if event == 'after-update':
-    plt.title('')
-    plt.xlabel('Time (H)')
-    plt.ylabel('Power or Cost (kW or $)')
-  elif event == 'after-init':
-    writer.ymax = 15
-    writer.ymin = -15
+# def matplot_network_writer_hook(event, plt, writer=None):
+#   if event == 'after-update':
+#     plt.title('')
+#     plt.xlabel('Time (H)')
+#     plt.ylabel('Power or Cost (kW or $)')
+#   elif event == 'after-init':
+#     writer.ymax = 15
+#     writer.ymin = -15

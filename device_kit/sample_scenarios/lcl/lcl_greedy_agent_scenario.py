@@ -1,5 +1,5 @@
 from device_kit import *
-from powermarket.scenario.lcl.lcl_scenario import *
+from device_kit.sample_scenarios.lcl.lcl_scenario import *
 
 
 meta = {

@@ -7,8 +7,8 @@ See sdevice_scenario.py
 '''
 import numpy as np
 from device_kit import *
-from powermarket.scenario.single_device import idevice_scenario
-from powermarket.scenario.single_device import sdevice_scenario
+from device_kit.sample_scenarios.single_device import idevice_scenario
+from device_kit.sample_scenarios.single_device import sdevice_scenario
 
 meta = {
   'title': 'Single IDevice scenario augmented with storage'

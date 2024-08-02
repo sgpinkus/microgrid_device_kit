@@ -7,7 +7,7 @@ This scenario is reentrant.
 import numpy as np
 from numpy import array, ones, zeros, stack, hstack, vstack, linspace, sin, pi
 from device_kit import *
-from powermarket.scenario.single_device.dispersion_penalty_test import BlobDevice
+from device_kit.sample_scenarios.single_device.dispersion_penalty_test import BlobDevice
 
 
 meta = {

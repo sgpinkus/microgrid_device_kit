@@ -7,10 +7,8 @@ Case study LCL scenario with some changes:
   - The MG owner / "utility company" has a large PV and battery in addition to usual supply.
 '''
 import numpy as np
-from powermarket.agent import *
 from device_kit import *
-from powermarket.scenario.lcl.lcl_scenario import *
-from powermarket.network import Network
+from device_kit.sample_scenarios.lcl.lcl_scenario import *
 
 
 meta = {
@@ -48,17 +46,17 @@ def make_supply(type=1, id='supply'):
 def make_battery(type, id, max_rate=1.8, capacity=5.5):
   ''' No diff for battery '''
   p_range = [-max_rate, max_rate]
-  bounds = stack((ones(24)*p_range[0], ones(24)*p_range[1]), axis=1)
+  bounds = stack((np.ones(24)*p_range[0], np.ones(24)*p_range[1]), axis=1)
   cbounds = None
   params = {'c1': 0.1, 'c2': 0.0, 'c3': 0.0, 'damage_depth': 0.1, 'reserve': 0.5, 'capacity': capacity+irandom()}
   return SDevice('battery', 24, bounds, cbounds, **params)
 
 
-def matplot_network_writer_hook(event, plt, writer=None):
-  if event == 'after-update':
-    plt.title('')
-    plt.xlabel('Time (H)')
-    plt.ylabel('Power or Cost (kW or $)')
-  elif event == 'after-init':
-    writer.ymax = 15
-    writer.ymin = -15
+# def matplot_network_writer_hook(event, plt, writer=None):
+#   if event == 'after-update':
+#     plt.title('')
+#     plt.xlabel('Time (H)')
+#     plt.ylabel('Power or Cost (kW or $)')
+#   elif event == 'after-init':
+#     writer.ymax = 15
+#     writer.ymin = -15

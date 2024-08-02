@@ -6,7 +6,7 @@ See idevice_scenario.py
 import numpy as np
 import logging
 from device_kit import *
-from powermarket.scenario.single_device import idevice_scenario
+from device_kit.sample_scenarios.single_device import idevice_scenario
 
 
 logging.basicConfig()

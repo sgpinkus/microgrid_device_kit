@@ -16,8 +16,6 @@ Notes:
 '''
 import numpy as np
 from device_kit import *
-from powermarket.agent import DeviceAgent
-from powermarket.network import *
 
 meta = {
   'title': 'A single TDevice test'
@@ -57,12 +55,12 @@ def make_devices(dim=24):
   ]
 
 
-def matplot_network_writer_hook(event, fig, writer=None):
-  if event != 'after-update':
-    return
-  fig.axes[0].axhline(agents[0].t_optimal, label='t_opt', color='k')
-  fig.axes[0].axhline(agents[0].t_optimal-agents[0].t_range, label='t_min', color='k', ls='--')
-  fig.axes[0].axhline(agents[0].t_optimal+agents[0].t_range, label='t_max', color='k', ls='--')
-  fig.axes[0].plot(agents[0].t_external, label='t_external')
-  fig.axes[0].plot(agents[0].r2t(agents[0].r), label='t_'+agents[0].id)
-  fig.axes[0].ylim(fig.axes[0].ylim()[0], max(fig.axes[0].ylim()[1], agents[0].t_external.max()))
+# def matplot_network_writer_hook(event, fig, writer=None):
+#   if event != 'after-update':
+#     return
+#   fig.axes[0].axhline(agents[0].t_optimal, label='t_opt', color='k')
+#   fig.axes[0].axhline(agents[0].t_optimal-agents[0].t_range, label='t_min', color='k', ls='--')
+#   fig.axes[0].axhline(agents[0].t_optimal+agents[0].t_range, label='t_max', color='k', ls='--')
+#   fig.axes[0].plot(agents[0].t_external, label='t_external')
+#   fig.axes[0].plot(agents[0].r2t(agents[0].r), label='t_'+agents[0].id)
+#   fig.axes[0].ylim(fig.axes[0].ylim()[0], max(fig.axes[0].ylim()[1], agents[0].t_external.max()))

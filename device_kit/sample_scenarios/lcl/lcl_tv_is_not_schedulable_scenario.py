@@ -2,9 +2,8 @@
 some flex. This scenario just drops that assumption and makes the TV stuff unschedulable.
 '''
 import numpy as np
-from powermarket.agent import *
 from device_kit import *
-from powermarket.scenario.lcl.lcl_scenario import *
+from device_kit.sample_scenarios.lcl.lcl_scenario import *
 
 
 meta = {
