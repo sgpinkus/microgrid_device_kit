@@ -17,7 +17,7 @@ class IDevice2(Device):
   validation rule.
   '''
   _p_h = 0
-  _p_l = 1
+  _p_l = -1
 
   @staticmethod
   def _cost(x, p_l, p_h, x_l, x_h):
@@ -68,7 +68,7 @@ class IDevice2(Device):
   @p_h.setter
   def p_h(self, v):
     p_h = self._validate_param(v)
-    if not (self.p_l >= p_h).all():
+    if not (self.p_l <= p_h).all():
       raise ValueError('param p_h must be >= p_l')
     self._p_h = p_h
 
@@ -76,7 +76,7 @@ class IDevice2(Device):
   def p_l(self, v):
     p_l = self._validate_param(v)
     if not (self.p_h >= p_l).all():
-      raise ValueError('param p_h must be >= p_l')
+      raise ValueError('param p_l must be <= p_h')
     self._p_l = p_l
 
   def _validate_param(self, p):

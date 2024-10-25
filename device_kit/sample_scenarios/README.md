@@ -1,5 +1,5 @@
 # Scenarios
-This directory contains various simulation scenarios for PowerMarket as Python modules. A scenario provides a `device_kit` domain model to which `powermarket` tacks on agents. A scenario provides:
+This directory contains various `device_kit` simulation scenarios as Python modules. A scenario provides domain model. A scenario module provides:
 
   - make_deviceset(): DeviceSet.
   - meta: optional dict holding meta-data about the scenario.
