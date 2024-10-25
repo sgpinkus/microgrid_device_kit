@@ -51,14 +51,14 @@ def make_home_devices():
       24,
       stack((zeros(24), 2*phev_plugged), axis=1),
       [5, 10],
-      **{'a': 0.25, 'b': 0}
+      **{'a': -0.25, 'b': 0}
     ),
     CDevice(
       'pump',
       24,
       stack((zeros(24), 1.5*ones(24)), axis=1),
       [1.4, 2.5],
-      **{'a': 0.25, 'b': 0}
+      **{'a': -0.25, 'b': 0}
     ),
     IDevice(
       'lighting',

@@ -101,9 +101,9 @@ def make_phev(type, id):
   p_range = [0, 2]
   bounds = stack((p_range[0]*care, p_range[1]*care), axis=1)
   cbounds = [4.8+irandom()*0.3, 5.5+irandom()*0.5]
-  params = {'a': 0.25, 'b': 0}
+  params = {'a': -0.25, 'b': 0}
   if type == 3:
-    params = {'a': 2.5, 'b': 0}
+    params = {'a': -2.5, 'b': 0}
   return CDevice('ecar', 24, bounds, cbounds, **params)
 
 
@@ -111,13 +111,13 @@ def make_washer(type, id):
   p_range = [0, 1.5]
   care = ones(24)
   cbounds = [1.4+irandom()*0.2, 2+irandom()*0.5]
-  params = {'a': 0.25, 'b': 0}
+  params = {'a': -0.25, 'b': 0}
   bounds = stack((p_range[0]*care, p_range[1]*care), axis=1)
   if type == 2:
     care = hstack((zeros(10), ones(14)))  # {18-24,1-7}
     bounds = stack((p_range[0]*care, p_range[1]*care), axis=1)
   elif type == 3:
-    params = {'a': 2.5, 'b': 0}
+    params = {'a': -2.5, 'b': 0}
   return CDevice('washer', 24, bounds, cbounds, **params)
 
 
@@ -159,7 +159,7 @@ def make_pv(type, id, max_rate=3, area=5, efficiency = 0.9):
   ''' Not part of LCL scenario. '''
   solar_intensity = np.maximum(0, np.sin(np.linspace(0, np.pi*2, 24)))
   lbounds = -1*np.minimum(max_rate, solar_intensity*efficiency*area)
-  return PVDevice('solar', 24, (lbounds, 0))
+  return PVDevice('solar', 24, (lbounds, np.zeros(24)))
 
 
 def make_gas_gen(type, id):
