@@ -5,7 +5,7 @@ from device_kit import Device, IDevice, IDevice2
 class CDevice2(Device):
   ''' Same curve as IDevice2 but applied to the scalar sum of consumption. '''
   _p_h = 0
-  _p_l = 1
+  _p_l = -1
 
   def cost(self, s, p):
     return IDevice2._cost(s.sum(), p_l=self.p_l, p_h=self.p_h, x_l=self.cbounds[0], x_h=self.cbounds[1]) - (s*p).sum()

@@ -50,7 +50,7 @@ def make_deviceset():
           bounds = np.stack((np.zeros(24), profiles[k][m]), axis=1)
           cbounds = [min(3, max_capacity), max_capacity]
           _type = np.random.randint(0,4)
-          params = {'d_0': _type/4, 'd_1': 1}
+          params = {'p_h': -_type/4, 'p_l': -1}
           devices.append(CDevice2("%s-%s-%02d-%d" % (l, k, j, _type), 24, bounds, cbounds, **params))
   devices.append(make_gen())
   return DeviceSet('site', devices, sbounds=(0,100))
@@ -66,7 +66,7 @@ def make_gen():
   )
 
 
-def matplot_network_writer_hook(event, plt, writer):
-  if event == 'after-init':
-    writer.ymax = 20
-    writer.ymin = -20
+# def matplot_network_writer_hook(event, plt, writer):
+#   if event == 'after-init':
+#     writer.ymax = 20
+#     writer.ymin = -20
