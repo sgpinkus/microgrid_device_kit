@@ -6,9 +6,9 @@ from device_kit.utils import base_soc, soc, sustainment_matrix
 
 class SDevice(Device):
   ''' Storage device. Behaviour is determined by settings but typically storage device draws and supplies resource.
-  The utility function has a cost and a reward component:
+  The cost function has a cost and a reward component:
 
-    U(q(t)) = -D(q(t)) - p*q(t)
+    C(q(t)) = D(q(t)) + p*q(t)
 
   Since q(t) can be -ve for a storage device it's always preferable for the device to discharge -
   assuming the price is always +ve. The higher the price the more preferable it is. The cost has 3
@@ -46,18 +46,18 @@ class SDevice(Device):
     super().__init__(id, length, bounds, cbounds=None, **kwargs)
     self._sustainment_matrix = sustainment_matrix(self.sustainment, len(self))
 
-  def uv(self, s, p):
-    return -1*self.charge_costs(s) - s*p
+  def costv(self, s, p):
+    return self.charge_costs(s) + s*p
 
-  def u(self, s, p):
-    return self.uv(s, p).sum()
+  def cost(self, s, p):
+    return self.costv(s, p).sum()
 
   def deriv(self, s, p):
-    return -1*self.charge_costs_deriv(s) - p
+    return self.charge_costs_deriv(s) + p
 
   def hess(self, s, p=0):
     ''' Return hessian approximation. '''
-    return nd.Hessian(lambda x: self.u(x, 0))(s.reshape(len(self)))
+    return nd.Hessian(lambda x: self.cost(x, 0))(s.reshape(len(self)))
 
   def charge_costs(self, r):
     ''' Get total costs for flow vector `r`. '''

@@ -46,13 +46,13 @@ class MFDeviceSet(DeviceSet):
   def __str__(self):
     return str(self._device) + str(self._flows)
 
-  def u(self, s, p):
+  def cost(self, s, p):
     s = s.reshape(self.shape)
-    return self._device.u(s.sum(axis=0), 0) - (s*p).sum()
+    return self._device.cost(s.sum(axis=0), 0) + (s*p).sum()
 
   def deriv(self, s, p):
     s = s.reshape(self.shape)
-    return np.repeat(self._device.deriv(s.sum(axis=0), 0).reshape(1,len(self)), self.shape[0], axis=0).reshape(self.shape) - p
+    return np.repeat(self._device.deriv(s.sum(axis=0), 0).reshape(1,len(self)), self.shape[0], axis=0).reshape(self.shape) + p
 
   def hess(self, s, p=0):
     return self._device.hess(s.sum(axis=0), 0)

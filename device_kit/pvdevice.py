@@ -9,7 +9,7 @@ class PVDevice(Device):
   We enforce that hbounds must be zero for this device (can't consume).
 
   PVDevice does not have any device specific parameters: A simple PV device can be modeled just as
-  a specific configuration of the base `Device` class, plus the utility function listed in this
+  a specific configuration of the base `Device` class, plus the cost function listed in this
   class. For example for PV device one might set lbounds of `Device` to something like this:
 
     solar_intensity = np.maximum(0, np.sin(np.linspace(0, np.pi*2, 24)))
@@ -17,9 +17,9 @@ class PVDevice(Device):
 
   '''
 
-  def uv(self, s, p):
-    ''' Utility is profit which = revenue since costs are zero. '''
-    return -s*p
+  def costv(self, s, p):
+    ''' Cost is -profit. '''
+    return s*p
 
   @property
   def bounds(self):

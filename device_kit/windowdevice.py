@@ -43,10 +43,10 @@ class WindowPenalty():
     self.w = w
 
   def __call__(self, r):
-    return -self.c*(WindowPenalty.weights(r, self.w)*r).sum()
+    return self.c*(WindowPenalty.weights(r, self.w)*r).sum()
 
   def deriv(self):
-    return lambda x: -self.c*WindowPenalty.weights(x, self.w)
+    return lambda x: self.c*WindowPenalty.weights(x, self.w)
 
   def hess(self):
     return lambda x: np.zeros((len(x), len(x)))

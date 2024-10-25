@@ -23,7 +23,7 @@ def step(device, p, s, stepsize=1, solver_options={}):
       raise OptimizationException(o)
   # Limited minimization
   ol = minimize(
-    lambda x, p=p: -1*device.u(s + x*(s_next - s), p),
+    lambda x, p=p: device.cost(s + x*(s_next - s), p),
     0.,
     method='SLSQP',
     bounds = [(0, 1)],
@@ -64,9 +64,9 @@ def solve(device, p, s0=None, solver_options={}, prox=None, cb=None):
   s0 = (s0 if s0 is not None else device.project(np.zeros(device.shape))).flatten()
 
   args = {
-    'fun': lambda s, p=p: -1*device.u(s, p),
+    'fun': lambda s, p=p: device.cost(s, p),
     'x0':  s0,
-    'jac': lambda s, p=p: -1*device.deriv(s, p),
+    'jac': lambda s, p=p: device.deriv(s, p),
     'method': 'SLSQP',
     'bounds': device.bounds,
     'constraints': device.constraints,
@@ -78,8 +78,8 @@ def solve(device, p, s0=None, solver_options={}, prox=None, cb=None):
     })
   if prox:
     args.update({
-      'fun': lambda s, p=p: -1*device.u(s, p) + (1/(2*prox))*((s-s0)**2).sum(),
-      'jac': lambda s, p=p: -1*device.deriv(s, p).flatten() + (1/prox)*(s-s0),
+      'fun': lambda s, p=p: device.cost(s, p) + (1/(2*prox))*((s-s0)**2).sum(),
+      'jac': lambda s, p=p: device.deriv(s, p).flatten() + (1/prox)*(s-s0),
     })
   o = minimize(**args)
   if not o.success:
@@ -94,7 +94,7 @@ class OptDebugCb():
     self.i = 0
 
   def __call__(self, device, x):
-    logger.debug('step=%d; u=%.6f' % (self.i, device.u(x, 0)))
+    logger.debug('step=%d; cost=%.6f' % (self.i, device.cost(x, 0)))
     self.i += 1
 
 

@@ -17,18 +17,18 @@ class F():
 
 
 class ADevice(Device):
-  ''' Device that takes an arbitrary utility function and constraints. '''
+  ''' Device that takes an arbitrary cost function and constraints. '''
   _f = F()
   _constraints = []
 
 
-  def u(self, s, p):
+  def cost(self, s, p):
     s = s.reshape(len(self))
-    return self.f(s) - (s*p).sum()
+    return self.f(s) + (s*p).sum()
 
   def deriv(self, s, p):
     s = s.reshape(len(self))
-    return self.f.deriv()(s) - p
+    return self.f.deriv()(s) + p
 
   def hess(self, s, p=0):
     s = s.reshape(len(self))

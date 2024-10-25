@@ -51,19 +51,19 @@ class Device(BaseDevice):
   def __len__(self):
     return self._length
 
-  def u(self, s, p):
-    ''' Get scalar utility value for `s` consumption, at price (parameter) `p`. This base Device's
-    utility function makes an assumption device cares linearly about costs. Generally all sub devices
+  def cost(self, s, p):
+    ''' Get scalar cost (inverse utility) value for `s` consumption, at price (parameter) `p`. This base Device's
+    cost function makes an assumption device cares linearly about costs. Generally all sub devices
     should do this too.
     '''
-    return (-s*p).sum()
+    return (s*p).sum()
 
   def deriv(self, s, p):
-    ''' Get jacobian vector of the utility at `s`, at price `p`, which is just -p. '''
-    return -p*np.ones(len(self))
+    ''' Get jacobian vector of the cost at `s`, at price `p`, which is just -p. '''
+    return p*np.ones(len(self))
 
   def hess(self, s, p=0):
-    ''' Get hessian vector of the utility at `s`, at price `p`. With linear utility for the numeriare
+    ''' Get hessian vector of the cost at `s`, at price `p`. With linear cost for the numeriare
     price drops out.
     '''
     return np.zeros((len(self), len(self)))

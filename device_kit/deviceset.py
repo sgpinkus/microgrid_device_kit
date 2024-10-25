@@ -43,19 +43,19 @@ class DeviceSet(BaseDevice):
     for d in self.devices:
       yield d
 
-  def u(self, s, p):
-    ''' Get the sum of the utility of current solution accross all devices as scalar. '''
-    return self.uv(s, p).sum()
+  def cost(self, s, p):
+    ''' Get the sum of the cost of current solution accross all devices as scalar. '''
+    return self.costv(s, p).sum()
 
-  def uv(self, s, p):
-    ''' Get the utility accross all devices. Result is a 1D vector of len(devices) **not** a
+  def costv(self, s, p):
+    ''' Get the cost accross all devices. Result is a 1D vector of len(devices) **not** a
     (len(devices), len(self)) 2D vector. proces are exploded like this to handle the cases where a
     full prices are given in self.shape matrix (same for deriv and hess).
     '''
     s = s.reshape(self.shape)
     p = p*np.ones(self.shape)
     return np.array(
-      [d.u(s[i[0]:i[0]+i[1], :], p[i[0]:i[0]+i[1], :])  for d, i in zip(self.devices, self.partition)]
+      [d.cost(s[i[0]:i[0]+i[1], :], p[i[0]:i[0]+i[1], :])  for d, i in zip(self.devices, self.partition)]
     )
 
   def deriv(self, s, p):

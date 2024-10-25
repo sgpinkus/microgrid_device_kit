@@ -74,7 +74,7 @@ def plot_tdevice(d, r, p):
   plt.plot(d.r2t(r), label='t_actual (%.2f)' % (ra,))
   plt.plot(r[0], label='power (%.2f)' % (ra,))
   # Utility function peaks at one (in this cas and as general rule). Translate for visuals.
-  plt.plot(d.uv(r, p)[0], label='utility (%.2f)' % (ra,))
+  plt.plot(d.costv(r, p)[0], label='utility (%.2f)' % (ra,))
   plt.plot(d.deriv(r, p), label='deriv (%.2f)' % (ra,))
   plt.plot(d.c, ls='--', label='care fctr')
 
@@ -197,7 +197,7 @@ def test_show_utility_is_concave_over_r():
   for i in range(0, 40):
     v = np.random.rand(24)
     w = np.random.rand(24)
-    plt.plot([a.u(v*k, p=zeros(24)) for k in np.linspace(0, 2, 20)])
+    plt.plot([a.cost(v*k, p=zeros(24)) for k in np.linspace(0, 2, 20)])
   plt.show()
 
 if __name__ == '__main__':

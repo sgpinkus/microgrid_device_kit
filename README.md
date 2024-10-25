@@ -40,7 +40,6 @@ The `device_kit` was originally written for the purpose modeling controllable mi
 pip install "git+https://github.com/sgpinkus/microgrid_device_kit"`
 ```
 
-
 # Synopsis
 A simple example of using `device_kit` to model a collection of devices and then solve for some constraint over the joint flows - most commonly balanced flows:
 
@@ -84,7 +83,7 @@ def main():
   df.loc['total'] = df.sum()
   pd.set_option('display.float_format', lambda v: '%+0.3f' % (v,),)
   print(df.sort_index())
-  print('Utility: ', model.u(x, p=0))
+  print('Utility: ', model.cost(x, p=0))
   df.transpose().plot(drawstyle='steps', grid=True)
   plt.ylabel('Power (kWh)')
   plt.xlabel('Time (H)')
@@ -124,7 +123,7 @@ Utility:  -13.021871014972055
 In the scope of this package, a device is something that consumes and/or produces some kind of scalar valued commodity (ex. electricity, gas, fluid) over a fixed, discrete, and finite future planning/scheduling horizon (ex. every hour of the next day, or every minute of the next hour, etc). For each device what is modeled is simply:
 
   1. The non-negotiable hard constraints on the commodity *flow* to/from the device.
-  2. Costs (or soft constraints) for different feasible states of flow to/from the device (AKA costs or dis-utility).
+  2. Costs (or soft constraints) for different feasible states of flow to/from the device.
 
 All the concrete device models provided are currently all weakly convex and tune-able. The concrete set of device implementations can be used to model quite a wide range of scenarios within the bounds of convexity.
 
@@ -132,7 +131,7 @@ Low level devices exist in a network which acts as a conduit for commodity flow 
 
 # Implemented Devices
 
-|SHORT NAME|LONG NAME|UTILITY FUNCTION AND CONSTRAINTS|
+|SHORT NAME|LONG NAME|COST FUNCTION AND CONSTRAINTS|
 |-|-|-|
 |CDevice|Cummulative Device|Linear with cummulative consumption over time bounds|
 |GDevice|Generator Device|Quadractive cost function|
@@ -142,7 +141,7 @@ Low level devices exist in a network which acts as a conduit for commodity flow 
 |PVDevice|Photo-voltaic Device|Simple model of PV with some surface area and efficiency factor|
 |SDevice|Storage Device|Generic battery or thermal storage device with a few parameters|
 |TDevice|Thermal Device|Does a thing|
-|ADevice|Any Device|Takes an arbitrary utility function and constraints|
+|ADevice|Any Device|Takes an arbitrary cost function and constraints|
 |...|Other Device|Experimental|
 
 # Class Structure
@@ -158,4 +157,4 @@ For convenience, the `Device` base class provides for two very common rudimentar
   - `Device.bounds` for *interval* (also called instantaneous) bounds for each given interval of the time-horizon and,
   - `Device.cbounds` for *cumulative* bounds across the entire time-horizon.
 
-Preferences are expressed via the `Device.u(flow)` *utility* (negative cost) function which expresses how much the device "likes" the given state of flow (note that this "utility" function is also used to express how much a producer likes producing a given flow). The `Device` base class has no preferences: `Device.u()` just returns 0. It is the main job of a `Device` sub-type to define preferences and/or additional more complex constraints that describe more nuanced device models. sub-types do this by overriding `Device.u()` (preferences) and `Device.constraints` (constraints).
+Preferences are expressed via the `Device.cost(flow)` function which expresses how much the device "likes" the given state of flow (note utility = -cost). The `Device` base class has no preferences: `Device.cost()` just returns 0. It is the main job of a `Device` sub-type to define preferences and/or additional more complex constraints that describe more nuanced device models. sub-types do this by overriding `Device.cost()` (preferences) and `Device.constraints` (constraints).

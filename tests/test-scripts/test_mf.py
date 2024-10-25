@@ -81,10 +81,10 @@ def solve_model_mf():
 def main():
   (model1, x1, df1) = solve_model()
   # Tabular
-  print(df1, '\n', df1.sum(), '\nu:', model1.u(x1, 0), '\nuv:', model1.uv(x1, p=0))
+  print(df1, '\n', df1.sum(), '\nu:', model1.cost(x1, 0), '\nuv:', model1.costv(x1, p=0))
   print('-'*100)
   (model2, x2, df2) = solve_model_mf()
-  print(df2, '\n', df2.sum(), '\nu:', model2.u(x2, 0), '\nuv:', model2.uv(x2, p=0))
+  print(df2, '\n', df2.sum(), '\nu:', model2.cost(x2, 0), '\nuv:', model2.costv(x2, p=0))
   print('-'*100)
   print(df2['site1.generator.e']/df2['site1.generator.h'])
   print('-'*100)

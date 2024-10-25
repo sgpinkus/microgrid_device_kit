@@ -16,7 +16,7 @@ def make_model():
   model = DeviceSet('site1', [
       Device('uncontrolled', 24, (random_uncontrolled(),)),
       IDevice2('scalable', 24, (0.25, 2), (0, 24), d0=0.5),
-      CDevice('shiftable', 24, (0, 2), (12, 24), a=1),
+      CDevice('shiftable', 24, (0, 2), (12, 24), a=-1),
       GDevice('generator', 24, (-10, 0), cbounds=None, cost=generator_cost_curve()),
       DeviceSet('sub-site1', [
           Device('uncontrolled', 24, (2*random_uncontrolled(),)),
@@ -39,7 +39,7 @@ def main():
   df.loc['price'] = supply_side.deriv(x[slice(*_slice), :], p=0)
   pd.set_option('display.float_format', lambda v: '%+0.3f' % (v,),)
   print(df.sort_index())
-  print('Utility: ', model.u(x, p=0))
+  print('Cost: ', model.cost(x, p=0))
   df.transpose().plot(drawstyle='steps', grid=True)
   plt.ylabel('Power (kWh)')
   plt.xlabel('Time (H)')

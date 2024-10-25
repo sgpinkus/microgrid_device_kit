@@ -18,19 +18,18 @@ class BaseDevice(ABC):
       - A shape which is (`N`,`len`), N is always 1 for atomic devices, but accounts for a device
         potentially being a composite.
       - If composite, a list of low/high resource consumption `bounds` of length `N`*`len`.
-      - A differentiable utility function `u()`, which represents how much value the device gets
-        from consuming / producing a given resource allocation (`N`,`len`) at some price. Note `u()`
-        is also used to represent costs of production (cost === -ve utility).
+      - A differentiable cost function `cost()`, which represents how much value the device gets
+        from consuming / producing a given resource allocation (`N`,`len`) at some price.
 
     Device is more or less a dumb container for the above settings. Sub classes should implement
-    (and vary primarily in the implementation of), the utility function and additional
+    (and vary primarily in the implementation of), the cost function and additional
     constraints.
 
     Other notes:
 
       - This class declares the necessary interfaces to treat a BaseDevice as a composite. Mainly,
        __iter__(), shapes, partition, leaf_devices().
-      - Utility functions should be concave (giving convex cost function), and constraints should be
+      - cost functions should be convex, and constraints should be
         convex but this is not currently enforced.
       - Device was intended to be and should be treated as immutable but currently this is not enforced.
       - Because Device was intended to be immutable, while a Device represents flow flexibility
@@ -47,20 +46,20 @@ class BaseDevice(ABC):
     pass
 
   @abstractmethod
-  def u(self, s, p):
-    ''' Scalar utility for `s` at `p`. `s` should have the same shape as this Device. '''
+  def cost(self, s, p):
+    ''' Scalar cost for `s` at `p`. `s` should have the same shape as this Device. '''
     pass
 
   @abstractmethod
   def deriv(self, s, p):
-    ''' Derivative of utility for `s` at `p`. `s` should have the same shape as this Device.
+    ''' Derivative of cost for `s` at `p`. `s` should have the same shape as this Device.
     Return value has same shape as `s`.
     '''
     pass
 
   @abstractmethod
   def hess(self, s, p=0):
-    ''' Hessian of utility for `s` at `p` - normally p should fall out. `s` should have the same
+    ''' Hessian of cost for `s` at `p` - normally p should fall out. `s` should have the same
     shape as this Device *but* the return value has shape (len, len).
     '''
     pass

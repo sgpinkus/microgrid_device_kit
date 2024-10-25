@@ -70,7 +70,7 @@ class Cb():
     self.i = 0
 
   def __call__(self, device, x):
-    logger.info('step=%d; u=%.6f' % (self.i, device.u(x, 0)))
+    logger.info('step=%d; u=%.6f' % (self.i, device.cost(x, 0)))
     self.i += 1
 
 

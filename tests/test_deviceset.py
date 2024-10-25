@@ -47,9 +47,9 @@ class TestDeviceSet(TestCase):
   def _test_preferences(self, d):
     x = np.random.random(d.shape)*10
     p = np.random.random(len(d))
-    _u = np.array([d.u(x[i], p) for i, d in enumerate(self.devices)]).sum()
+    _u = np.array([d.cost(x[i], p) for i, d in enumerate(self.devices)]).sum()
     _d = np.concatenate([d.deriv(x[i], p) for i, d in enumerate(self.devices)]).reshape(d.shape)
-    self.assertEqual(d.u(x, p), _u)
+    self.assertEqual(d.cost(x, p), _u)
     self.assertTrue((np.abs(d.deriv(x, p) - _d) < 1e-8).all())
     d.hess(x, p)
 
@@ -112,7 +112,7 @@ class TestMFDeviceSet(TestCase):
       mfdevice = MFDeviceSet(device, ['e', 'h'])
       soln1 = solve(device, 0)[0]
       soln2 = solve(mfdevice, 0)[0]
-      self.assertTrue(-1e-6 <= device.u(soln1, 0) - mfdevice.u(soln2, 0) <= 1e-6)
+      self.assertTrue(-1e-6 <= device.cost(soln1, 0) - mfdevice.cost(soln2, 0) <= 1e-6)
 
   def test_deviceset_soln_equivalence(self):
     ''' Given the set of devices returned by _test_devices(), if we only constrain the generator to
@@ -145,7 +145,7 @@ class TestMFDeviceSet(TestCase):
       del df_xb['b.' + k + '.heat'], df_xb['b.' + k + '.e']
     df_xa.sort_index(axis=1, inplace=True)
     df_xb.sort_index(axis=1, inplace=True)
-    self.assertAlmostEqual(da.u(xa, 0), db.u(xb, 0), 5)
+    self.assertAlmostEqual(da.cost(xa, 0), db.cost(xb, 0), 5)
     self.assertTrue((np.abs(df_xa.values - df_xb.values) <= 1e-3).all())
 
 

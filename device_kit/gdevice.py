@@ -12,7 +12,7 @@ class GDevice(Device):
   each timeslot). Thermal generators generally have quadratic cost curves.
 
   Generation is always indicated by negative values. However the cost function provided should define
-  *positive* costs over a *positive* range. Example [1,1,0] for cost(q) = q**2 + q
+  *positive* costs over a *positive* range (why this?). Example [1,1,0] for cost(q) = q**2 + q
 
   Time variable max generation capacity is specified by setting `lbounds`. GDevice enforces that
   hbounds must be <=0 for this device (can never consume).
@@ -20,35 +20,34 @@ class GDevice(Device):
   Cost function for all timeslots are independent. Start up / shut down and min/max runtimes are not
   considered.
 
-  Note for generators "utility" is interpreted as profit (which is revenue - cost)
   '''
   _cost_fn = None
   _cost_d1_fn = None
   _cost_d2_fn = None
 
-  def uv(self, s, p):
-    ''' Get utility vector for s, p. '''
-    return -1*s*p - self._cost_fn(-s)
+  def costv(self, s, p):
+    ''' Get cost vector for s, p. '''
+    return s*p + self._cost_fn(-s)
 
-  def u(self, s, p):
-    return self.uv(s, p).sum()
+  def cost(self, s, p):
+    return self.costv(s, p).sum()
 
   def deriv(self, s, p):
-    ''' Get jacobian vector of the utility at `r`, at price `p` '''
-    return self._cost_d1_fn(-s.reshape(len(self))) - p
+    ''' Get jacobian vector of the cost at `r`, at price `p` '''
+    return p - self._cost_d1_fn(-s.reshape(len(self)))
 
   def hess(self, s, p=0):
-    ''' Return hessian. Hessdiag == Hessian for the given utility function.
+    ''' Return hessian. Hessdiag == Hessian for the given cost function.
     @todo actually easy to deriv explicitly ...
     '''
-    return -1*np.diag(self._cost_d2_fn(-s.reshape(len(self))))
+    return np.diag(self._cost_d2_fn(-s.reshape(len(self))))
 
   @property
   def bounds(self):
     return Device.bounds.fget(self)
 
   @property
-  def cost(self):
+  def cost_coeffs(self):
     ''' Return arrays of coeffs of cost function not an actual function. '''
     return self._cost_fn.coeffs
 
@@ -74,8 +73,8 @@ class GDevice(Device):
     else:
       raise ValueError('cbounds not allowed for GDevice currently')
 
-  @cost.setter
-  def cost(self, cost):
+  @cost_coeffs.setter
+  def cost_coeffs(self, cost):
     if np.array(cost).ndim == 1:
       self._cost_fn = np.poly1d(cost)
       self._cost_d1_fn = self._cost_fn.deriv()

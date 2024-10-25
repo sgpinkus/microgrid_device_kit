@@ -40,7 +40,7 @@ def test_solve_and_plot(devices):
       print('-'*100)
       print(d)
       print('temp', d.r2t(r))
-      print('uv  ', d.uv(r, p))
+      print('uv  ', d.costv(r, p))
       print('-'*100)
       fig, ax1 = plt.subplots()
       ax2 = ax1.twinx()
@@ -55,7 +55,7 @@ def test_solve_and_plot(devices):
       # ax1.plot(d.deriv(r,p), label='deriv (%.2f)' %(ra,))
       ax2.plot(r, label='power (%.2f)' % (ra,))
       # Utility function peaks at one (in this case and as general rule). Translate for visuals.
-      # ax2.plot(d.uv(r,p), label='utility (%.2f)' %(ra,))
+      # ax2.plot(d.costv(r,p), label='utility (%.2f)' %(ra,))
       ax1.set_xlabel('Time (H)')
       ax1.set_ylabel('Temp (C)')
       ax2.set_ylabel('Power (W)')

@@ -256,8 +256,8 @@ class TestBaseDevice(TestCase):
     d = Device(**deepcopy(test_device_simple))
     r = np.ones(24)
     p = np.ones(24)
-    self.assertEqual(-24, d.u(r, p))
-    self.assertTrue((d.deriv(r, p) == -1*p).all())
+    self.assertEqual(24, d.cost(r, p))
+    self.assertTrue((d.deriv(r, p) == p).all())
     r = solve(d, p)[0]
     self.assertTrue((np.abs((r - np.ones(24)*(10/24))) <= 1e-6).all())
 
@@ -272,11 +272,11 @@ class TestCDevice(TestCase):
     # The params
     self.assertEqual(device.a, 2)
     self.assertEqual(device.b, 0)
-    self.assertEqual(device.u(zeros, zeros), 0)
+    self.assertEqual(device.cost(zeros, zeros), 0)
     self.assertEqual(len(device.deriv(ones, ones)), len(device))
     self.assertTrue((device.deriv(ones, ones) == device.a - ones).all())
     device.params = {'a': 2, 'b': 1}
-    self.assertEqual(device.u(zeros, zeros), 1)
+    self.assertEqual(device.cost(zeros, zeros), 1)
     self.assertTrue((device.deriv(zeros, test_choice_prices) == (-1*test_choice_prices+2)).all())
 
   def test_solve(self):
@@ -285,7 +285,7 @@ class TestCDevice(TestCase):
     p = test_choice_prices
     x = solve(device, p)[0]
     self.assertTrue(((np.abs(x - 1) < 1e-8) | (np.abs(x + 1) < 1e-8)).all())
-    self.assertTrue((np.abs(device.u(x, p) - 24.) < 1e-8).all())
+    self.assertTrue((np.abs(device.cost(x, p) - 24.) < 1e-8).all())
 
   def test_solve_constrained(self):
     ''' Due to the test prices unconstrained optimal r.sum() is -6 '''
@@ -293,13 +293,13 @@ class TestCDevice(TestCase):
     device.cbounds = (-6, 0)
     p = test_choice_prices
     r = solve(device, p)[0]
-    self.assertTrue(abs(device.u(r, p) - 24) <= 1e-8)
+    self.assertTrue(abs(device.cost(r, p) - 24) <= 1e-8)
     device.cbounds = (-5, 0)
     r = solve(device, p)[0]
-    self.assertTrue(abs(device.u(r, p) - 23) <= 1e-8)
+    self.assertTrue(abs(device.cost(r, p) - 23) <= 1e-8)
     device.cbounds = (0, 1)
     r = solve(device, p)[0]
-    self.assertTrue(abs(device.u(r, p) - 18) <= 1e-8)
+    self.assertTrue(abs(device.cost(r, p) - 18) <= 1e-8)
 
   def test_bounds(self):
     device = self.get_test_device()
@@ -436,16 +436,16 @@ class TestGDevice(TestCase):
 
   def test_gdevice(self):
     d = self.get_test_device()
-    self.assertEqual(d.u(zeros, zeros), 0)
-    self.assertTrue((d.uv(zeros, zeros) == zeros).all())
+    self.assertEqual(d.cost(zeros, zeros), 0)
+    self.assertTrue((d.costv(zeros, zeros) == zeros).all())
     self.assertTrue((d.deriv(zeros, zeros) == 1).all(), d.deriv(zeros, zeros))
-    x = np.vectorize(lambda r: d.u(-ones*r, zeros))(np.linspace(1, 10, 100))
+    x = np.vectorize(lambda r: d.cost(-ones*r, zeros))(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
       self.assertTrue(i == 0 or x[i] < x[i-1])
     x = np.vectorize(lambda r: d.deriv(-ones*r, zeros).sum())(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
       self.assertTrue(i == 0 or x[i] > x[i-1])
-    x = np.vectorize(lambda p: d.u(-1*ones, p))(np.linspace(1, 10, 100))
+    x = np.vectorize(lambda p: d.cost(-1*ones, p))(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
       self.assertTrue(i == 0 or x[i] > x[i-1])
     x = np.vectorize(lambda p: d.deriv(-ones, p).sum())(np.linspace(1, 10, 100))
@@ -454,9 +454,9 @@ class TestGDevice(TestCase):
 
   def test_time_varying(self):
     d = self.get_test_device()
-    d.cost = np.random.randint(1, 4, (24, 3))
-    self.assertNotEqual(d.u(zeros, zeros), 0)
-    self.assertNotEqual(d.u(ones, zeros), 0)
+    d.cost_coeffs = np.random.randint(1, 4, (24, 3))
+    self.assertNotEqual(d.cost(zeros, zeros), 0)
+    self.assertNotEqual(d.cost(ones, zeros), 0)
 
   def get_test_device(self):
     cost = [1, 1, 1, 0]
@@ -494,7 +494,7 @@ class TestADevice(TestCase):
     d = ADevice('s', 24, [0, 1], None, **{'f': f})
     x = np.random.random(24)
     p = np.random.random(24)
-    vu = d.u(x, p)
+    vu = d.cost(x, p)
     vd = d.deriv(x, p)
     vh = d.hess(x, p)
 
@@ -538,11 +538,11 @@ class TestWindowDevice(TestCase):
   def test_windowdevice(self):
     d = WindowDevice('i', 10, (0,1), 3)
     x = np.roll(np.eye(10,1), 4).reshape(10,)
-    self.assertEqual(d.u(x, 0), 0.)
+    self.assertEqual(d.cost(x, 0), 0.)
     x = ndimage.binary_dilation(x).astype(float)
-    self.assertEqual(d.u(x, 0), 0.)
-    a = d.u(ndimage.binary_dilation(x).astype(float), 0)
-    b = d.u(ndimage.binary_dilation(x, iterations=2).astype(float), 0)
+    self.assertEqual(d.cost(x, 0), 0.)
+    a = d.cost(ndimage.binary_dilation(x).astype(float), 0)
+    b = d.cost(ndimage.binary_dilation(x, iterations=2).astype(float), 0)
     self.assertTrue(b < a < 0.)
     d.deriv(x, 0)
     d.hess(x, 0)

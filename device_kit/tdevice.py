@@ -5,14 +5,14 @@ from device_kit.utils import soc, base_soc, sustainment_matrix
 
 
 class TDevice(Device):
-  ''' Represents a heating or cooling device. Or really any device who's utility is based on a
-  point that behaves like thermodynamics. The utility curve is the same as IDevice, but based on
+  ''' Represents a heating or cooling device. Or really any device who's cost is based on a
+  variable that behaves like thermodynamic cooling/heating. The cost curve is the same as IDevice, but based on
   instaneous temperature not resource consumption directly, and with two restrictions on parameters:
 
     IDevice.a is always 0.
     IDevice.b must be even. This is just a quick fix. May change to allow odd in future.
 
-  Recall IDevice.c is a scaling factor for utility. Thus if one doesn't care about the temperature
+  Recall IDevice.c is a scaling factor for cost. Thus if one doesn't care about the temperature
   at a given time, set IDevice.c to zero. If one cares a little, set IDevice.c a little.
 
   The instaneous temperature is dependent on resource consumption at all times before a given time.
@@ -24,21 +24,21 @@ class TDevice(Device):
 
   Note that the min|max acceptable temps may be infeasible given TE, and consumption bounds and
   other parameters. So we haven't implemented them as hard constraints. The min|max temp inputs are
-  actually just parameters to the utility function not hard constraints. Specifically the diff
-  between t_optimal and t_min or t_max (symmetrically) is `c` units of utility (@see IDevice.c).
+  actually just parameters to the cost function not hard constraints. Specifically the diff
+  between t_optimal and t_min or t_max (symmetrically) is `c` units of cost (@see IDevice.c).
 
   @todo this doesn't really need to extend IDevice. It just uses a classs method from IDevice for its
-  utility curve.
+  cost curve.
   '''
   _sustainment = None            # Thermal loss factor to external environment.
   _efficiency = None             # Thermal efficiency factor. This also includes the unit conversion factor.
   _t_external = None             # External temperature vectors of `len` length.
   _t_range = None                # The +/- range min/max temp.
-  _c = 1                         # Scaling factor for utility function.
+  _c = 1                         # Scaling factor for cost function.
   t_init = None                  # The initial (and final) temperature T0.
   t_optimal = None               # The scalar ideal temperature TC. It's assumed ideal temperature is time invariant.
   t_base = None                  # temperature without out any consumption by heat engine. Derived value.
-  t_utility_base = 0             # utility of t_base pre calculated & used as offset.
+  t_cost_base = 0             # cost of t_base pre calculated & used as offset.
   sustainment_matrix = None      # stashed for use in deriv.
 
   def __init__(self, id, length, bounds, sustainment, efficiency, t_init, t_optimal, t_range, t_external, c=1, cbounds=None, **meta):
@@ -61,7 +61,7 @@ class TDevice(Device):
     self._c = IDevice._validate_param(c, len(self))
     # Set some computed values.
     self.t_base = self._make_t_base(self.t_external, self.sustainment, self.t_init)
-    self.t_utility_base = self.uv_t(self.t_base)
+    self.t_cost_base = self.costv_t(self.t_base)
     self.sustainment_matrix = sustainment_matrix(self.sustainment, len(self))
     # t_act_min|max for convenience only. The min|max temperature change that the device itself must
     # cause - not the externals to bring be within range. Achieving t_act_min|max may not actually be feasibile.
@@ -69,26 +69,26 @@ class TDevice(Device):
     self.t_act_max = (self.t_optimal + self.t_range) - self.t_base
 
 
-  def u(self, s, p):
-    return self.uv(s, p).sum()
+  def cost(self, s, p):
+    return self.costv(s, p).sum()
 
-  def uv(self, s, p):
+  def costv(self, s, p):
     ''' @override uv() to do r to t conversion. '''
-    return self.uv_t(self.r2t(s)) - s*p
+    return self.costv_t(self.r2t(s)) + s*p
 
   def deriv(self, s, p):
     ''' @override deriv() to do r to t conversion. Chain rule to account for r2t(). '''
     dt = self.deriv_t(self.r2t(s))
-    return (self.sustainment_matrix*dt.reshape(24,1)).sum(axis=0)*self.efficiency - p
+    return (self.sustainment_matrix*dt.reshape(24,1)).sum(axis=0)*self.efficiency + p
 
   def hess(self, s, p=0):
     ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far
     Hessdiag is an OOM faster and works just as good if not better.
     '''
-    return np.diag(nd.Hessdiag(lambda x: self.u(x, 0))(s.reshape(len(self))))
+    return np.diag(nd.Hessdiag(lambda x: self.cost(x, 0))(s.reshape(len(self))))
 
-  def uv_t(self, t):
-    return np.vectorize(IDevice._u, otypes=[float])(t, 0, 2, self.c, self.t_min, self.t_optimal)
+  def costv_t(self, t):
+    return np.vectorize(IDevice._cost, otypes=[float])(t, 0, 2, self.c, self.t_min, self.t_optimal)
 
   def deriv_t(self, t):
     return np.vectorize(IDevice._deriv, otypes=[float])(t, 0, 2, self.c, self.t_min, self.t_optimal)
@@ -149,7 +149,7 @@ class TDevice(Device):
 
   def _make_t_base(self, t_external, sustainment, t_init):
     ''' Calculate the base temperature, that occurs with no heat engine activity. This is used in
-    utility calculation. Note `t_init` is the temperature in the last time-slot of last planning
+    cost calculation. Note `t_init` is the temperature in the last time-slot of last planning
     window, *not* the first time-slot of this planning window.
     '''
     t_base = base_soc(t_init, s=sustainment, l=len(self)) + soc(t_external, s=sustainment, e=(1-sustainment))

@@ -62,13 +62,13 @@ class TestIDevice():
 
   def test_utility_demos(self):
     d = IDevice('idevice', 24, (0, 1), None, a=0.5, b=2, c=1)
-    print(d.u(0, 0), d.u(1, 0))
+    print(d.cost(0, 0), d.cost(1, 0))
     print(d.deriv(np.zeros(24), 0))
     TestIDevice.plot_idevice(d)
     plt.show()
 
     d = IDevice('idevice', 24, (0, 1), None, a=0.3, b=2, c=3)
-    print(d.u(0, 0), d.u(1, 0))
+    print(d.cost(0, 0), d.cost(1, 0))
     print(d.deriv(np.zeros(24), 0))
     TestIDevice.plot_idevice(d)
     plt.show()
@@ -76,7 +76,7 @@ class TestIDevice():
   @staticmethod
   def plot_idevice(d):
     ax = np.linspace(-0.5, 1.5)
-    plt.plot(ax, np.vectorize(lambda x: d.u(x, np.zeros(24)))(ax))
+    plt.plot(ax, np.vectorize(lambda x: d.cost(x, np.zeros(24)))(ax))
     plt.axvline(0, label='min', color='k')
     plt.axvline(1, label='max', color='k')
     plt.axvline(1+d.params['a'], label='a', color='orange')
@@ -91,7 +91,7 @@ class TestIDevice():
     a = IDevice("test_idevice", num, np.stack((mins, maxs), axis=1), None, a=rand(num)*0.5, b=3, c=1)
     print(a, '---')
     s = (maxs - mins)/20
-    v = np.array([[mins + i*s, a.uv(mins + i*s, np.zeros(len(a)))] for i in range(0, 21)])
+    v = np.array([[mins + i*s, a.costv(mins + i*s, np.zeros(len(a)))] for i in range(0, 21)])
     print(maxs-mins)
     for i in range(0, num):
       plt.plot(v[:,:, i][:, 0], v[:,:, i][:, 1])
@@ -112,7 +112,7 @@ class TestIDevice():
     a = IDevice("idevice", num, np.stack((mins, maxs), axis=1), None, a=rand(num)*0.5, b=3, c=1)
     print(a, '---')
     s = (maxs - mins)/20
-    v = np.array([[mins + i*s, a.uv(mins + i*s, np.zeros(len(a)))] for i in range(0, 20)])
+    v = np.array([[mins + i*s, a.costv(mins + i*s, np.zeros(len(a)))] for i in range(0, 20)])
     d = np.array([[mins + i*s, a.deriv(mins + i*s, np.zeros(len(a)))] for i in range(0, 20)])
     for i in range(0, num):
       plt.plot(v[:,:, i][:, 0], v[:,:, i][:, 1], '--', color=colors[i%len(colors)])
@@ -134,7 +134,7 @@ class TestIDevice2():
   def test_all(self):
     bounds = [100, 200]
     d = IDevice2('idevice2', 24, bounds, None, d0=0.1, d1=1)
-    u = lambda x: d.u(np.ones(24)*x, 0)/24
+    u = lambda x: d.cost(np.ones(24)*x, 0)/24
     deriv = lambda x: d.deriv(np.ones(24)*x, 0).sum()/24
     ax = np.linspace(bounds[0]-50, bounds[1]+50)
     print(ax)
@@ -170,7 +170,7 @@ class TestCDevice2():
     cbounds = [3000, 4000]
     d = CDevice2('cdevice2', 24, np.stack((np.ones(24)*bounds[0], np.ones(24)*bounds[1]), axis=1), cbounds, d0=0.1, d1=0.5)
     ax = np.linspace(cbounds[0]/24-10, cbounds[1]/24+10)
-    u = lambda x: d.u(x*np.ones(24), 0)
+    u = lambda x: d.cost(x*np.ones(24), 0)
     deriv = lambda x: d.derive(x*np.ones(24), 0)
     plt.axvline(cbounds[0]/24, label='min', color='k')
     plt.axvline(cbounds[1]/24, label='max', color='k')
@@ -180,7 +180,7 @@ class TestCDevice2():
 
   def test_curve(self):
     d = CDevice2('test', 10, [0, 2], [0,10], **{'d0': 0.1})
-    f = lambda x: d.u(x, 0)
+    f = lambda x: d.cost(x, 0)
     a_min, a_max = 1e6, -1e6
     for i in range(5):
       x1, x2 = np.random.random(10), np.random.random(10)
@@ -256,7 +256,7 @@ class TestSDevice():
     ''' Cost should be zero when charge is zero. and only increase. '''
     a = self.get_test_device()
     ax = np.linspace(-1, 1, 50)
-    plt.plot(ax, np.vectorize(lambda x: a.u(s=x*np.ones(len(a)), p=0))(ax))
+    plt.plot(ax, np.vectorize(lambda x: a.cost(s=x*np.ones(len(a)), p=0))(ax))
     plt.show()
 
   def test_charge_at(self):
@@ -297,7 +297,7 @@ class TestWindowDevice():
 
   def test_random_pairs(self):
     d = WindowDevice('blob', 5, (0,5), 2)
-    f = lambda x: d.u(x, 0)
+    f = lambda x: d.cost(x, 0)
     a_min, a_max = 1e6, -1e6
     for i in range(10):
       x1, x2 = np.random.random(5)/10, np.random.random(5)/10
