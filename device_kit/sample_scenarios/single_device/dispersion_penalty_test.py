@@ -59,7 +59,7 @@ def make_deviceset():
       dimension,
       np.stack((-20*np.ones(dimension), np.zeros(dimension)), axis=1),
       None,
-      **{'cost': cost}
+      **{'cost_coeffs': cost}
     )
   ])
 

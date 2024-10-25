@@ -29,7 +29,7 @@ devices = OrderedDict([
     ('uncntrld', Device('uncntrld', 24, (np.maximum(0, np.random.random(24)*2-1),))),
     ('scalable', IDevice2('scalable', 24, (0., 2), (6, 24), d0=0.1)),
     ('shiftable', CDevice('shiftable', 24, (0, 2), (6, 24), a=0.5)),
-    ('generator', GDevice('generator', 24, (-50,0), None, **{'cost': cost})),
+    ('generator', GDevice('generator', 24, (-50,0), None, **{'cost_coeffs': cost})),
 ])
 
 

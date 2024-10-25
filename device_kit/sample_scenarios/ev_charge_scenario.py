@@ -62,7 +62,7 @@ def make_gen():
     'supply',
     24,
     np.stack((-100 * np.ones(24), np.zeros(24)), axis=1),
-    **{'cost': np.array([0.00045, 0.0058, 0.024, 0])*10}
+    **{'cost_coeffs': np.array([0.00045, 0.0058, 0.024, 0])*10}
   )
 
 

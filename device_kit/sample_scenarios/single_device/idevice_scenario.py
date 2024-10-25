@@ -44,6 +44,6 @@ def make_devices():
       'supply',
       dimension,
       np.stack((-20*np.ones(dimension), np.zeros(dimension)), axis=1),
-      **{'cost': cost}
+      **{'cost_coeffs': cost}
     )
   }

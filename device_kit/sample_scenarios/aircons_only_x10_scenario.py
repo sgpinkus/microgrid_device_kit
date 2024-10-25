@@ -24,7 +24,7 @@ def make_deviceset():
     TDevice('ac08', dimension, bounds, **params()),
     TDevice('ac09', dimension, bounds, **params()),
     TDevice('ac10', dimension, bounds, **params()),
-    GDevice('supply', dimension, np.stack((-100*np.ones(dimension), np.zeros(dimension)), axis=1), **{'cost': cost})
+    GDevice('supply', dimension, np.stack((-100*np.ones(dimension), np.zeros(dimension)), axis=1), **{'cost_coeffs': cost})
   ],
   sbounds=(0,123)
   )

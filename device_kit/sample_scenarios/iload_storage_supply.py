@@ -28,6 +28,6 @@ def make_deviceset():
       24,
       np.stack((-50000*np.ones(24), np.zeros(24)), axis=1),
       None,
-      **{'cost': np.array([0.05, 0.1, 0])},
+      **{'cost_coeffs': np.array([0.05, 0.1, 0])},
     )
   ])

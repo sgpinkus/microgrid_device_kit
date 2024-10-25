@@ -173,6 +173,6 @@ def make_gas_gen(type, id):
     id,
     24,
     stack((-50 * ones(24), zeros(24)), axis=1),
-    **{'cost': cost}
+    **{'cost_coeffs': cost}
   )
   return device

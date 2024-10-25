@@ -12,7 +12,7 @@ def make_deviceset():
       ('uncntrld', Device('uncntrld', 24, (random_uncntrld(),))),
       ('scalable', IDevice2('scalable', 24, (0, 2), (12, 18))),
       ('shiftable', CDevice('shiftable', 24, (0, 2), (12, 24))),
-      ('generator', GDevice('generator', 24, (-50,0), None, **{'cost': cost})),
+      ('generator', GDevice('generator', 24, (-50,0), None, **{'cost_coeffs': cost})),
   ])
   return SubBalancedDeviceSet('site1', [
       # devices['uncntrld'],

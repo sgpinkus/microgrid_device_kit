@@ -130,7 +130,7 @@ test_gdevice = {
   'length': 24,
   'bounds': np.stack((-100*np.ones(24), np.zeros(24)), axis=1),
   'cbounds': None,
-  'cost': [1., 1., 0]
+  'cost_coeffs': [1., 1., 0]
 }
 # GDevice with time varying cost curve.
 test_gdevice_tv = {
@@ -138,7 +138,7 @@ test_gdevice_tv = {
   'length': 24,
   'bounds': np.stack((-100*np.ones(24), np.zeros(24)), axis=1),
   'cbounds': None,
-  'cost': np.concatenate((np.ones((12, 4))*[0.00045, 0.0058, 0.024, 0], np.ones((12, 4))*[0.73, 0.58, 0.024, 1]))
+  'cost_coeffs': np.concatenate((np.ones((12, 4))*[0.00045, 0.0058, 0.024, 0], np.ones((12, 4))*[0.73, 0.58, 0.024, 1]))
 }
 # IDevice2
 test_idevice2 = {
@@ -465,7 +465,7 @@ class TestGDevice(TestCase):
       24,
       np.stack((-20*np.ones(24), np.zeros(24)), axis=1),
       None,
-      cost=cost
+      cost_coeffs=cost
     )
     return device
 

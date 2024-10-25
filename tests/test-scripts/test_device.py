@@ -217,7 +217,7 @@ class TestGDevice():
 
   @classmethod
   def get_test_device(cls, i=0):
-    return GDevice('test', 24, np.stack((-10*ones, zeros), axis=1), None, {'cost': cls.test_costs[i]})
+    return GDevice('test', 24, np.stack((-10*ones, zeros), axis=1), None, {'cost_coeffs': cls.test_costs[i]})
 
 
 class TestPVDevice():

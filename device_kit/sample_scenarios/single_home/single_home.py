@@ -102,6 +102,6 @@ def make_supply_device():
     24,
     stack((-50 * ones(24), zeros(24)), axis=1),
     None,
-    #{'cost': stack((sin(linspace(0,pi,dimension))*0.001+0.005, ones(dimension)*0.005, zeros(dimension)), axis=1)
-    **{'cost': [0.06, 0.024, 0]}
+    #{'cost_coeffs': stack((sin(linspace(0,pi,dimension))*0.001+0.005, ones(dimension)*0.005, zeros(dimension)), axis=1)
+    **{'cost_coeffs': [0.06, 0.024, 0]}
   )

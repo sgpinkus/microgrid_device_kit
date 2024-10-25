@@ -63,7 +63,7 @@ def make_model():
       Device('uncontrolled', 24, (random_uncontrolled(),)),
       IDevice2('scalable', 24, (0.5, 2), (0, 24), d0=0.3),
       CDevice('shiftable', 24, (0, 2), (12, 24)),
-      GDevice('generator', 24, (-10,0), cbounds=None, cost=generator_cost_curve()),
+      GDevice('generator', 24, (-10,0), cbounds=None, cost_coeffs=generator_cost_curve()),
       DeviceSet('sub-site1', [
           Device('uncontrolled', 24, (random_uncontrolled(),)),
           SDevice('buffer', 24, (-7, 7), c1=1.0, capacity=70, sustainment=1, efficiency=1)
