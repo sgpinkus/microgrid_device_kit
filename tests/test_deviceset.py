@@ -100,7 +100,7 @@ class TestMFDeviceSet(TestCase):
         # ('uncntrld', Device('uncntrld', 24, (uncntrld, uncntrld))),
         ('scalable', IDevice2('scalable', 24, (0., 2), (12, 18))),
         ('shiftable', CDevice2('shiftable', 24, (0, 2), (12, 24), a=0.5)), # IDevice2('shiftable', 24, (0, 2), (12, 24) Same same.
-        ('generator', GDevice('generator', 24, (-50,0), None, **{'cost': cost})),
+        ('generator', GDevice('generator', 24, (-50,0), None, **{'cost_coeffs': cost})),
     ])
     return devices
 
@@ -158,7 +158,7 @@ class TestSubBalancedDeviceSet(TestCase):
     devices = OrderedDict([
         ('uncntrld', Device('uncntrld', 24, (uncntrld, uncntrld))),
         ('scalable', IDevice2('scalable_bal_me', 24, (0., 2), (12, 18))),
-        ('shiftable', CDevice('shiftable', 24, (0, 2), (12, 24), a=0.5)),
+        ('shiftable', CDevice('shiftable', 24, (0, 2), (12, 24), a=-0.5)),
         ('generator', GDevice('generator_bal_me', 24, (-50,0), None, **{'cost_coeffs': cost})),
     ])
     return devices

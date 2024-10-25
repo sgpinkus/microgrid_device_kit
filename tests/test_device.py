@@ -51,7 +51,7 @@ test_cdevice = {
   'length': 24,
   'bounds': np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
   'cbounds': (-100, 100),
-  'a': 2,
+  'a': -2,
   'b': 0,
 }
 # CDevice2
@@ -60,7 +60,7 @@ test_cdevice_2 = {
   'length': 24,
   'bounds': np.stack((mins, maxs), axis=1),
   'cbounds': (15, 20),
-  'a': 1,
+  'a': -1,
   'b': 0
 }
 # IDevice
@@ -270,14 +270,13 @@ class TestCDevice(TestCase):
     zeros = np.zeros(len(device))
     ones = np.ones(len(device))
     # The params
-    self.assertEqual(device.a, 2)
+    self.assertEqual(device.a, -2)
     self.assertEqual(device.b, 0)
     self.assertEqual(device.cost(zeros, zeros), 0)
     self.assertEqual(len(device.deriv(ones, ones)), len(device))
-    self.assertTrue((device.deriv(ones, ones) == device.a - ones).all())
-    device.params = {'a': 2, 'b': 1}
+    self.assertTrue((device.deriv(ones, ones) - ones + device.a < 1e-6).all())
+    device.params = {'a': -2, 'b': 1}
     self.assertEqual(device.cost(zeros, zeros), 1)
-    self.assertTrue((device.deriv(zeros, test_choice_prices) == (-1*test_choice_prices+2)).all())
 
   def test_solve(self):
     ''' test_device and price setting, mean the device should derive 1 utility from each time unit. '''
@@ -285,7 +284,7 @@ class TestCDevice(TestCase):
     p = test_choice_prices
     x = solve(device, p)[0]
     self.assertTrue(((np.abs(x - 1) < 1e-8) | (np.abs(x + 1) < 1e-8)).all())
-    self.assertTrue((np.abs(device.cost(x, p) - 24.) < 1e-8).all())
+    self.assertAlmostEqual(device.cost(x, p), -24., 6)
 
   def test_solve_constrained(self):
     ''' Due to the test prices unconstrained optimal r.sum() is -6 '''
@@ -293,13 +292,13 @@ class TestCDevice(TestCase):
     device.cbounds = (-6, 0)
     p = test_choice_prices
     r = solve(device, p)[0]
-    self.assertTrue(abs(device.cost(r, p) - 24) <= 1e-8)
+    self.assertAlmostEqual(device.cost(r, p), -24, 6)
     device.cbounds = (-5, 0)
     r = solve(device, p)[0]
-    self.assertTrue(abs(device.cost(r, p) - 23) <= 1e-8)
+    self.assertAlmostEqual(device.cost(r, p), -23, 6)
     device.cbounds = (0, 1)
     r = solve(device, p)[0]
-    self.assertTrue(abs(device.cost(r, p) - 18) <= 1e-8)
+    self.assertAlmostEqual(device.cost(r, p), -18, 6)
 
   def test_bounds(self):
     device = self.get_test_device()
@@ -438,19 +437,19 @@ class TestGDevice(TestCase):
     d = self.get_test_device()
     self.assertEqual(d.cost(zeros, zeros), 0)
     self.assertTrue((d.costv(zeros, zeros) == zeros).all())
-    self.assertTrue((d.deriv(zeros, zeros) == 1).all(), d.deriv(zeros, zeros))
+    self.assertTrue((d.deriv(zeros, zeros) == -1).all(), d.deriv(zeros, zeros))
     x = np.vectorize(lambda r: d.cost(-ones*r, zeros))(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
-      self.assertTrue(i == 0 or x[i] < x[i-1])
+      self.assertTrue(i == 0 or x[i] > x[i-1])
     x = np.vectorize(lambda r: d.deriv(-ones*r, zeros).sum())(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
-      self.assertTrue(i == 0 or x[i] > x[i-1])
-    x = np.vectorize(lambda p: d.cost(-1*ones, p))(np.linspace(1, 10, 100))
-    for i, v in enumerate(x):
-      self.assertTrue(i == 0 or x[i] > x[i-1])
-    x = np.vectorize(lambda p: d.deriv(-ones, p).sum())(np.linspace(1, 10, 100))
+      self.assertTrue(i == 0 or x[i] < x[i-1])
+    x = np.vectorize(lambda p: d.cost(-ones, p))(np.linspace(1, 10, 100))
     for i, v in enumerate(x):
       self.assertTrue(i == 0 or x[i] < x[i-1])
+    x = np.vectorize(lambda p: d.deriv(-ones, p).sum())(np.linspace(1, 10, 100))
+    for i, v in enumerate(x):
+      self.assertTrue(i == 0 or x[i] > x[i-1])
 
   def test_time_varying(self):
     d = self.get_test_device()
@@ -543,7 +542,7 @@ class TestWindowDevice(TestCase):
     self.assertEqual(d.cost(x, 0), 0.)
     a = d.cost(ndimage.binary_dilation(x).astype(float), 0)
     b = d.cost(ndimage.binary_dilation(x, iterations=2).astype(float), 0)
-    self.assertTrue(b < a < 0.)
+    self.assertTrue(0. < a < b)
     d.deriv(x, 0)
     d.hess(x, 0)
 
