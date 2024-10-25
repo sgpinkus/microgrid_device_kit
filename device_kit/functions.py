@@ -66,13 +66,13 @@ class TemporalVariance():
     self.c = c # Scalar coefficient.
 
   def __call__(self, r):
-    return -self.c*TemporalVariance.inertia(r)
+    return self.c*TemporalVariance.inertia(r)
 
   def deriv(self):
-    return nd.Jacobian(lambda x: -self.c*TemporalVariance.inertia(x))
+    return nd.Jacobian(lambda x: self.c*TemporalVariance.inertia(x))
 
   def hess(self):
-    return nd.Hessian(lambda x: -self.c*TemporalVariance.inertia(x))
+    return nd.Hessian(lambda x: self.c*TemporalVariance.inertia(x))
 
   @staticmethod
   def inertia(r):
