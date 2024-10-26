@@ -1,9 +1,54 @@
 '''
 Various preference functions. Can be used with ADevice.
 '''
+from abc import ABC, abstractmethod
 import numpy as np
 from numpy import stack, hstack, zeros, ones, poly1d, polyadd
 import numdifftools as nd
+
+
+class Function(ABC):
+  @abstractmethod
+  def __call__(self, x):
+    pass
+
+  @abstractmethod
+  def deriv(self, x):
+    pass
+
+  @abstractmethod
+  def hess(self, x):
+    pass
+
+
+class NullFunction(Function):
+  ''' Default null function. f parameter has to ADevice has to look like this. '''
+
+  def __call__(self, x):
+    return 0
+
+  def deriv(self, n=1):
+    return lambda x: 0
+
+  def hess(self):
+    return lambda x: 0
+
+
+class SumFunction(Function):
+  ''' '''
+  functions = []
+
+  def __init__(self, functions: list[Function]) -> None:
+    self.functions = functions
+
+  def __call__(self, x):
+    return np.array([v(x) for v in self.functions]).sum()
+
+  def deriv(self, n=1):
+    return lambda x: np.array([v.deriv()(x) for v in self.functions]).sum()
+
+  def hess(self):
+    return lambda x: np.array([v.hess()(x) for v in self.functions]).sum()
 
 
 class poly2d():
