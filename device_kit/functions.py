@@ -104,3 +104,99 @@ class CobbDouglas():
   @staticmethod
   def cobb_douglas(r, a):
     return (r**(a/a.sum())).prod()
+
+class QuadraticCost1():
+  a = 0
+  b = 2
+  c = 1
+  x_l = None
+  x_h = None
+
+  def __init__(self, a, b, c, x_l, x_h):
+    [self.a, self.a, self.c, self.x_l, self.x_h] = a, b, c, x_l, x_h
+    self._cost_fn = lambda x: np.vectorize(QuadraticCost1._cost, otypes=[float])(x, self.a, self.b, self.c, self.x_l, self.x_h)
+    self._deriv_fn = lambda x: np.vectorize(QuadraticCost1._deriv, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h)
+    self._hess_fn = lambda x: np.diag(np.vectorize(QuadraticCost1._hess, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h))
+
+  def __call__(self, x):
+    return self._cost_fn(x).sum()
+
+  def deriv(self):
+    return self._deriv_fn
+
+  def hess(self):
+    return self._hess_fn
+
+  @staticmethod
+  def _cost(x, a, b, c, x_l, x_h):
+    ''' The cost function on scalar. '''
+    if x_l == x_h:
+      return 0
+    return (c/(1-a**b))*((1 - QuadraticCost1.scale(x, x_l, x_h, a))**b)
+
+  @staticmethod
+  def _deriv(x, a, b, c, x_l, x_h):
+    ''' The derivative of cost function on scalar. '''
+    if x_l == x_h:
+      return 0
+    return -(c/(1-a**b))*((1-a)/(x_h-x_l))*b*((1 - QuadraticCost1.scale(x, x_l, x_h, a))**(b-1))
+
+  @staticmethod
+  def _hess(x, a, b, c, x_l, x_h):
+    if x_l == x_h:
+      return 0
+    return (c/(1-a**b))*((1-a)/(x_h-x_l))**2*b*(b-1)*((1 - QuadraticCost1.scale(x, x_l, x_h, a))**(b-2))
+
+  @staticmethod
+  def scale(x, x_l, x_h, a):
+    return (1-a)*((x - x_l)/(x_h - x_l))
+
+
+class QuadraticCost2():
+  p_l = -1
+  p_h = 0
+  x_l = x_h = None
+  _cost_fn = None
+  _deriv_fn = None
+  _hess_fn = None
+
+  def __init__(self, p_l, p_h, x_l, x_h):
+    [self.p_l, self.p_h, self.x_l, self.x_h] = p_l, p_h, x_l, x_h
+    self._cost_fn = lambda x: np.vectorize(QuadraticCost2._cost, otypes=[float])(x, self.p_l, self.p_h, self.x_l, self.x_h)
+    self._deriv_fn = lambda x: np.vectorize(QuadraticCost2._deriv, otypes=[float])(np.array(x).reshape(-1), self.p_l, self.p_h, self.x_l, self.x_h)
+    self._hess_fn = lambda x: np.diag(np.vectorize(QuadraticCost2._hess, otypes=[float])(np.array(x).reshape(-1), self.p_l, self.p_h, self.x_l, self.x_h))
+
+  def __call__(self, r):
+    return self._cost_fn(r).sum()
+
+  def deriv(self):
+    return self._deriv_fn
+
+  def hess(self):
+    return self._hess_fn
+
+  @staticmethod
+  def _cost(x, p_l, p_h, x_l, x_h):
+    ''' The cost function on scalar. '''
+    if x_l == x_h:
+      return 0
+    b = p_l
+    a = (p_h - p_l)/2
+    c = a*(-b/(2*a))**2 + b*(-b/(2*a))
+    return (x_h - x_l)*np.poly1d([a, b, 0])((x - x_l)/(x_h - x_l)) - c*(x_h - x_l)
+
+  @staticmethod
+  def _deriv(x, p_l, p_h, x_l, x_h):
+    ''' The derivative of cost function on a scalar. Returned valus is expansion of:
+         np.poly1d([(p_h - p_l)/2, p_l, 0]).deriv()(QuadraticCost12.scale(x, x_l, x_h))
+    '''
+    if x_l == x_h:
+      return 0
+    return (p_h - p_l)*((x - x_l)/(x_h - x_l)) + p_l
+
+  @staticmethod
+  def _hess(x, p_l, p_h, x_l, x_h):
+    ''' The 2nd derivative of cost function on a scalar. '''
+    if x_l == x_h:
+      return 0
+    return (p_h - p_l)/(x_h - x_l)

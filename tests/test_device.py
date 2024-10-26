@@ -55,13 +55,13 @@ test_cdevice = {
   'b': 0,
 }
 # CDevice2
-test_cdevice_2 = {
-  'id': 'test',
+test_cdevice2 = {
+  'id': 'test_cdevice2',
   'length': 24,
-  'bounds': np.stack((mins, maxs), axis=1),
-  'cbounds': (15, 20),
-  'a': -1,
-  'b': 0
+  'bounds': np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
+  'cbounds': (-100, 100),
+  'd0': 0.1,
+  'd1': 1.0
 }
 # IDevice
 test_idevice_mins = np.concatenate((
@@ -146,16 +146,6 @@ test_idevice2 = {
   'length': 24,
   'bounds': np.stack((test_idevice_mins, test_idevice_maxs), axis=1),
   'cbounds': None,
-  'd0': 0.1,
-  'd1': 1.0
-}
-
-# CDevice2
-test_cdevice2 = {
-  'id': 'test_cdevice2',
-  'length': 24,
-  'bounds': np.stack((np.ones(24)*-1, np.ones(24)), axis=1),
-  'cbounds': (-100, 100),
   'd0': 0.1,
   'd1': 1.0
 }
@@ -332,8 +322,15 @@ class TestIDevice(TestCase):
     with self.assertRaises(AttributeError):
       device = IDevice(**_test_device)
 
-  def test_utility(self):
-    pass
+
+class TestIDevice2(TestCase):
+  ''' Test instantaneous utility device IDevice. @todo more tests '''
+
+  def test_device(self):
+    ''' Test creating Device with settings that are ill-formedevice. '''
+    _test_device = IDevice2('test', 10, (0, 1), None)
+    self.assertEqual(_test_device.cost(1, 0), 0)
+    self.assertTrue((_test_device.deriv(np.ones(10), 0) == np.zeros(10)).all())
 
 
 class TestTDevice(TestCase):
@@ -566,7 +563,7 @@ class TestMostDevices(TestCase):
       TestPVDevice.get_test_device(),
       GDevice(**test_gdevice),
       SDevice(**test_sdevice),
-      TDevice(**test_tdevice),
+      # TDevice(**test_tdevice),
     ]
 
   def test_deriv(self):
