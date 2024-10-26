@@ -1,5 +1,6 @@
 import numpy as np
 from device_kit import Device
+from device_kit.functions import QuadraticCost1
 
 
 class IDevice(Device):
@@ -31,43 +32,23 @@ class IDevice(Device):
   _a = 0
   _b = 2
   _c = 1
-  _s = None
+  _cost_fn = None
 
-  @staticmethod
-  def _cost(x, a, b, c, x_l, x_h):
-    ''' The cost function on scalar. '''
-    if x_l == x_h:
-      return 0
-    return (c/(1-a**b))*((1 - IDevice.scale(x, x_l, x_h, a))**b)
-
-  @staticmethod
-  def _deriv(x, a, b, c, x_l, x_h):
-    ''' The derivative of cost function on scalar. '''
-    if x_l == x_h:
-      return 0
-    return -(c/(1-a**b))*((1-a)/(x_h-x_l))*b*((1 - IDevice.scale(x, x_l, x_h, a))**(b-1))
-
-  @staticmethod
-  def _hess(x, a, b, c, x_l, x_h):
-    if x_l == x_h:
-      return 0
-    return (c/(1-a**b))*((1-a)/(x_h-x_l))**2*b*(b-1)*((1 - IDevice.scale(x, x_l, x_h, a))**(b-2))
-
-  @staticmethod
-  def scale(x, x_l, x_h, a):
-    return (1-a)*((x - x_l)/(x_h - x_l))
+  def __init__(self, id, length, bounds, cbounds=None, **kwargs):
+    super().__init__(id, length, bounds, cbounds=None, **kwargs)
+    self._cost_fn = QuadraticCost1(self.a, self.b, self.c, self.lbounds, self.hbounds)
 
   def costv(self, s, p):
-    return np.vectorize(IDevice._cost, otypes=[float])(s, self.a, self.b, self.c, self.lbounds, self.hbounds) + s*p
+    return self._cost_fn(s) + s*p
 
   def cost(self, s, p):
     return self.costv(s, p).sum()
 
   def deriv(self, s, p):
-    return np.vectorize(IDevice._deriv, otypes=[float])(s.reshape(len(self)), self.a, self.b, self.c, self.lbounds, self.hbounds) + p
+    return self._cost_fn.deriv()(s) + p
 
   def hess(self, s, p=0):
-    return np.diag(np.vectorize(IDevice._hess, otypes=[float])(s.reshape(len(self)), self.a, self.b, self.c, self.lbounds, self.hbounds))
+    return self._cost_fn.hess()(s)
 
   @property
   def a(self):

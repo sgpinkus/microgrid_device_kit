@@ -1,6 +1,7 @@
 import numpy as np
 import numdifftools as nd
 from device_kit import Device, IDevice
+from device_kit.functions import QuadraticCost1
 from device_kit.utils import soc, base_soc, sustainment_matrix
 
 
@@ -40,6 +41,7 @@ class TDevice(Device):
   t_base = None                  # temperature without out any consumption by heat engine. Derived value.
   t_cost_base = 0             # cost of t_base pre calculated & used as offset.
   sustainment_matrix = None      # stashed for use in deriv.
+  _cost_fn = None
 
   def __init__(self, id, length, bounds, sustainment, efficiency, t_init, t_optimal, t_range, t_external, c=1, cbounds=None, **meta):
     ''' Set params and check validity. Set derived vars t_base, sustainment_min|max based on params. '''
@@ -59,6 +61,7 @@ class TDevice(Device):
     self._t_range = t_range
     self._t_external = t_external
     self._c = IDevice._validate_param(c, len(self))
+    self._cost_fn = QuadraticCost1(0, 2, self.c, self.t_min, self.t_optimal)
     # Set some computed values.
     self.t_base = self._make_t_base(self.t_external, self.sustainment, self.t_init)
     self.t_cost_base = self.costv_t(self.t_base)
@@ -67,7 +70,6 @@ class TDevice(Device):
     # cause - not the externals to bring be within range. Achieving t_act_min|max may not actually be feasibile.
     self.t_act_min = (self.t_optimal - self.t_range) - self.t_base
     self.t_act_max = (self.t_optimal + self.t_range) - self.t_base
-
 
   def cost(self, s, p):
     return self.costv(s, p).sum()
@@ -83,15 +85,15 @@ class TDevice(Device):
 
   def hess(self, s, p=0):
     ''' Return hessian diagonal approximation. nd.Hessian takes long time. In testing so far
-    Hessdiag is an OOM faster and works just as good if not better.
+    Hess diag is 10x faster and works just as good if not better.
     '''
     return np.diag(nd.Hessdiag(lambda x: self.cost(x, 0))(s.reshape(len(self))))
 
   def costv_t(self, t):
-    return np.vectorize(IDevice._cost, otypes=[float])(t, 0, 2, self.c, self.t_min, self.t_optimal)
+    return self._cost_fn(t)
 
   def deriv_t(self, t):
-    return np.vectorize(IDevice._deriv, otypes=[float])(t, 0, 2, self.c, self.t_min, self.t_optimal)
+    return self._cost_fn.deriv()(t)
 
   def r2t(self, r):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer

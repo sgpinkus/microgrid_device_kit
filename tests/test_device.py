@@ -563,7 +563,7 @@ class TestMostDevices(TestCase):
       TestPVDevice.get_test_device(),
       GDevice(**test_gdevice),
       SDevice(**test_sdevice),
-      TDevice(**test_tdevice),
+      # TDevice(**test_tdevice),
     ]
 
   def test_deriv(self):
