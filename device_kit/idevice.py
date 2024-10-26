@@ -58,13 +58,13 @@ class IDevice(Device):
     return (1-a)*((x - x_l)/(x_h - x_l))
 
   def costv(self, s, p):
-    return np.vectorize(IDevice._cost, otypes=[float])(s, self.a, self.b, self.c, self.lbounds, self.hbounds) - s*p
+    return np.vectorize(IDevice._cost, otypes=[float])(s, self.a, self.b, self.c, self.lbounds, self.hbounds) + s*p
 
   def cost(self, s, p):
     return self.costv(s, p).sum()
 
   def deriv(self, s, p):
-    return np.vectorize(IDevice._deriv, otypes=[float])(s.reshape(len(self)), self.a, self.b, self.c, self.lbounds, self.hbounds) - p
+    return np.vectorize(IDevice._deriv, otypes=[float])(s.reshape(len(self)), self.a, self.b, self.c, self.lbounds, self.hbounds) + p
 
   def hess(self, s, p=0):
     return np.diag(np.vectorize(IDevice._hess, otypes=[float])(s.reshape(len(self)), self.a, self.b, self.c, self.lbounds, self.hbounds))

@@ -26,13 +26,13 @@ class IDevice2(Device):
     self._cost_fn = QuadraticCost2(self.p_l, self.p_h, self.lbounds, self.hbounds)
 
   def costv(self, s, p):
-    return self._cost_fn(s) - s*p
+    return self._cost_fn(s) + s*p
 
   def cost(self, s, p):
     return self.costv(s, p).sum()
 
   def deriv(self, s, p):
-    return self._cost_fn.deriv()(s) - p
+    return self._cost_fn.deriv()(s) + p
 
   def hess(self, s, p=0):
     return self._cost_fn.hess()(s)

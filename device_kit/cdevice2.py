@@ -16,10 +16,10 @@ class CDevice2(Device):
     self._cost_fn = QuadraticCost2(self.p_l, self.p_h, self.cbounds[0], self.cbounds[1])
 
   def cost(self, s, p):
-    return self._cost_fn(np.array(s).sum()) - np.array(s*p).sum()
+    return self._cost_fn(np.array(s).sum()) + np.array(s*p).sum()
 
   def deriv(self, s, p):
-    return np.ones(len(self))*self._cost_fn.deriv()(np.array(s).sum()) - p
+    return np.ones(len(self))*self._cost_fn.deriv()(np.array(s).sum()) + p
 
   def hess(self, s, p=0):
     return np.eye(len(self))*self._cost_fn.hess()(np.array(s).sum())
