@@ -24,6 +24,10 @@ class ADevice(Device):
   def constraints(self):
     return Device.constraints.fget(self) + self._constraints
 
+  @constraints.setter
+  def constraints(self, constraints):
+    self._constraints = constraints.copy()
+
   @property
   def f(self):
     return self._f

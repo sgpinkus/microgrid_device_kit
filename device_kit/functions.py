@@ -27,7 +27,7 @@ class NullFunction(Function):
   def __call__(self, x):
     return 0
 
-  def deriv(self, n=1):
+  def deriv(self):
     return lambda x: 0
 
   def hess(self):
@@ -39,16 +39,32 @@ class SumFunction(Function):
   functions = []
 
   def __init__(self, functions: list[Function]) -> None:
-    self.functions = functions
+    self.functions = functions if len(functions) else NullFunction()
 
   def __call__(self, x):
     return np.array([v(x) for v in self.functions]).sum()
 
-  def deriv(self, n=1):
+  def deriv(self):
     return lambda x: np.array([v.deriv()(x) for v in self.functions]).sum()
 
   def hess(self):
     return lambda x: np.array([v.hess()(x) for v in self.functions]).sum()
+
+
+class ReflectedFunction(Function):
+  function = None
+
+  def __init__(self, function: Function) -> None:
+    self.function = function
+
+  def __call__(self, x):
+    return self.function(-1*x)
+
+  def deriv(self):
+    return lambda x: self.function.deriv()(-1*x)*-1
+
+  def hess(self):
+    return lambda x: self.function.hess()(-1*x)
 
 
 class poly2d():

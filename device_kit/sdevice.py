@@ -14,20 +14,23 @@ class SDevice(Device):
   assuming the price is always +ve. The higher the price the more preferable it is. The cost has 3
   components that model:
 
-    - The cost of fast charging or discharging rates.
-    - The cost from a large number of charge discharge cycles over a day.
-    - The cost from deep discharge cycles.
+    - The cost (price) of fast charging or discharging rates.
+    - The cost (price) from a large number of charge discharge cycles over a day.
+    - The cost (price) from deep discharge cycles.
 
   There are seven parameters to SDevice:
 
     - c1,c2,c3: coefficients for the first, second, third cost terms listed above.
     - capacity: the storage capacity of the device.
     - damage_depth: how deep is a deep discharge.
-    - starti how much charge the device has at the start of the planning window as a ratio of capacity.
+    - start: how much charge the device has at the start of the planning window as a ratio of capacity.
     - reserve: how much charge must the device be storing at the end of the planning window as a ratio of capacity.
     - efficiency: The *single* trip efficiency factor - [0,1]. Applied symmetrically to in/out flow.
         This means the round-trip efficiency (RTEF) is 1/2 this: efficiency = 1-(1-RTEF)/2. Ex, if
         the RTEF=0.9 then efficiency should be set to 1-(1-0.9)/2 = 0.95.
+    - rate_clip: <rate_clip_rod, rate_clip_roc>: Must be None or >=1. If rate_clip_rod is 1 RoD is proportional to SoC/capacity, and
+        if rate_clip_roc is 1 RoC is porportional to (capacity-SoC)/capacity. When the value is >1 the clipping kicks in
+        later but the clipping rate is propotional to the value. Trapezoid ..
 
   '''
   _c1 = 1.0
