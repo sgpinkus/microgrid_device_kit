@@ -17,6 +17,7 @@ np.set_printoptions(
   },
 )
 
+
 class TestQuadraticCost2Function(TestCase):
   def test_basics(self):
     f = HLQuadraticCost(-1, 0, 0, 1) # Turns out b = -1, a = 1/2.
@@ -40,6 +41,33 @@ class TestSumFunction(TestCase):
     self.assertEqual(f(0), 1.5)
     self.assertEqual(f.deriv()(0), -3)
     self.assertEqual(f.hess()(0), 3)
+
+
+class TestPoly2D(TestCase):
+  def test_basics(self):
+    f = Poly2D([[0,0,0], [1,1,1], [1,2,3]])
+    xy = [
+      [[0,0,0], [0,1,3]],
+      [[1,1,1], [0,3,6]],
+      [[2,2,2], [0,4+2+1,4+4+3]]
+    ]
+    for [x, y] in xy:
+      self.assertTrue((y == f(x)).all())
+
+
+class TestX2D(TestCase):
+  def test_basics(self):
+    g = HLQuadraticCost(-1, 0, 0, 1)
+    h = HLQuadraticCost(0, 1, 0, 1)
+    f = X2D([g, h, g])
+    xy = [
+      [[0,0,0], [0.5,0,0.5]],
+      [[1,1,1], [0,0.5,0]],
+      [[2,2,2], [0.5,2,0.5]],
+      [[3,4,5], [2,8,8]]
+    ]
+    for [x, y] in xy:
+      self.assertTrue((y == f(x)).all())
 
 
 if __name__ == '__main__':

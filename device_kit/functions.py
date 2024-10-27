@@ -78,7 +78,7 @@ class Poly2D():
     self._polys = [poly1d(c) for c in self.coeffs]
 
   def __call__(self, x):
-    return np.array([self._polys[k](v) for k, v in enumerate(x.reshape(len(self)))])
+    return np.array([self._polys[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))])
 
   def __len__(self):
     return len(self.coeffs)
@@ -88,6 +88,29 @@ class Poly2D():
 
   def hess(self):
     return lambda x: np.diag(self.deriv(2)(x))
+
+
+class X2D():
+  ''' Make apply X scalar functions to a vector input '''
+  _functions = []
+
+  def __init__(self, functions: Function) -> None:
+    self._functions = functions
+    self._deriv = [f.deriv() for f in self._functions]
+    self._hess = [f.hess() for f in self._functions]
+
+  def __len__(self):
+    return len(self._functions)
+
+  def __call__(self, x):
+    return np.array([self._functions[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))])
+
+  def deriv(self):
+    return lambda x: np.array([f(x[k]) for k, f in enumerate(self._deriv)])
+
+  def hess(self):
+    return lambda x: np.diag([f(x[k]) for k, f in enumerate(self._hess)])
+
 
 class Poly2DOffset():
   ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. '''
@@ -101,7 +124,7 @@ class Poly2DOffset():
     self._polys = [poly1d(c) for c in self.coeffs]
 
   def __call__(self, x):
-    return np.array([self._polys[k](v + self._offsets[k]) for k, v in enumerate(x.reshape(len(self)))])
+    return np.array([self._polys[k](v + self._offsets[k]) for k, v in enumerate(np.array(x).reshape(len(self)))])
 
   def __len__(self):
     return len(self.coeffs)
