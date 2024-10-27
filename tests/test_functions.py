@@ -19,7 +19,7 @@ np.set_printoptions(
 
 class TestQuadraticCost2Function(TestCase):
   def test_basics(self):
-    f = QuadraticCost2(-1, 0, 0, 1) # Turns out b = -1, a = 1/2.
+    f = HLQuadraticCost(-1, 0, 0, 1) # Turns out b = -1, a = 1/2.
     self.assertEqual(f(1), 0)
     self.assertEqual(f(0), 0.5)
     self.assertEqual(f.deriv()(0), -1)
@@ -31,7 +31,7 @@ class TestQuadraticCost2Function(TestCase):
 class TestSumFunction(TestCase):
   def test_basics(self):
     f = SumFunction([NullFunction(), NullFunction(), NullFunction()])
-    g = QuadraticCost2(-1, 0, 0, 1)
+    g = HLQuadraticCost(-1, 0, 0, 1)
     self.assertEqual(f(1), 0)
     self.assertEqual(f.deriv()(0), 0)
     self.assertEqual(f.hess()(0), 0)

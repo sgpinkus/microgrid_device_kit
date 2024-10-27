@@ -9,7 +9,7 @@ from unittest import TestCase
 from device_kit import *
 from device_kit.solve import solve, OptimizationException
 from device_kit.utils import sustainment_matrix
-from device_kit.functions import poly2d
+from device_kit.functions import Poly2D
 
 
 np.set_printoptions(
@@ -486,7 +486,7 @@ class TestADevice(TestCase):
   ''' Basic test of the basic ADevice, which is Device that takes a utility function, f '''
 
   def test_adevice(self):
-    f = poly2d(np.random.randint(0, 4, (24, 4)))
+    f = Poly2D(np.random.randint(0, 4, (24, 4)))
     d = ADevice('s', 24, [0, 1], None, **{'f': f})
     x = np.random.random(24)
     p = np.random.random(24)

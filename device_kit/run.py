@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 ''' Convenience script to just solve for outright cost minimized balanced flow - no market sim crap.
 '''
+import sys
 from os.path import basename
 import logging
-import importlib
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
 from scipy.optimize import minimize
 import device_kit
+from device_kit import loaders
+
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -30,16 +32,19 @@ def main():
     description='Run a device_kit scenario and print result to stdout',
     prog='device_kit'
   )
-  parser.add_argument('scenario', action='store',
-    help='name of a python module containing scenario to run'
+  parser.add_argument('filename', action='store',
+    help='name of a python module file containing scenario to run'
   )
   # parser.add_argument('data_dir', type=str,
   #   help='directory containing simulation results'
   # )
+  parser.add_argument('--loader', '-l', action='store', default='module', type=str,
+    help='loader to use to load scenario file')
   args = parser.parse_args()
-
-  (deviceset, meta, cb) = load_scenario(**vars(args))
+  loader = getattr(loaders, f'{args.loader}_loader')
+  (deviceset, meta, cb) = loader(args.filename)
   deviceset.sbounds = (0,0)
+  print(str(deviceset))
   (x, solve_meta) = device_kit.solve(deviceset, solver_options={'ftol': 1e-3 }, cb=Cb(), p=0) # Convenience convex solver.
   print(solve_meta.message)
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
@@ -74,14 +79,6 @@ class Cb():
     self.i += 1
 
 
-def load_scenario(scenario):
-  def make_module_path(s):
-    ''' Convert apossible filepath to a module-path. Does nothing it s is already a module-path '''
-    return s.replace('.py', '').replace('/', '.').replace('..', '.').lstrip('.')
-  scenario = importlib.import_module(make_module_path(scenario))
-  meta = scenario.meta if hasattr(scenario, 'meta') else None
-  cb = scenario.matplot_network_writer_hook if hasattr(scenario, 'matplot_network_writer_hook') else None
-  return (scenario.make_deviceset(), meta, cb)
 
 
 main()

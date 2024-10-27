@@ -67,31 +67,51 @@ class ReflectedFunction(Function):
     return lambda x: self.function.hess()(-1*x)
 
 
-class poly2d():
+class Poly2D():
   ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. '''
-  _c = None
+  coeffs = None
   _polys = None
 
-  def __init__(self, c):
+  def __init__(self, coeffs):
     ''' `c` should be an array of arrays. Each array the coeffs of a poly1d. '''
-    self._c = np.array(c)
-    self._polys = [poly1d(c) for c in self._c]
+    self.coeffs = np.array(coeffs)
+    self._polys = [poly1d(c) for c in self.coeffs]
 
   def __call__(self, x):
     return np.array([self._polys[k](v) for k, v in enumerate(x.reshape(len(self)))])
 
   def __len__(self):
-    return len(self._c)
+    return len(self.coeffs)
 
   def deriv(self, n=1):
-    return poly2d([polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self._c])
+    return Poly2D([polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self.coeffs])
 
   def hess(self):
     return lambda x: np.diag(self.deriv(2)(x))
 
-  @property
-  def coeffs(self):
-    return self._c
+class Poly2DOffset():
+  ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. '''
+  coeffs = None
+  _polys = None
+
+  def __init__(self, coeffs):
+    ''' `c` should be an array of arrays. Each array the coeffs of a poly1d. '''
+    self.coeffs = np.array(coeffs)[:, 0:3]
+    self._offsets = np.array(coeffs)[:, 3]
+    self._polys = [poly1d(c) for c in self.coeffs]
+
+  def __call__(self, x):
+    return np.array([self._polys[k](v + self._offsets[k]) for k, v in enumerate(x.reshape(len(self)))])
+
+  def __len__(self):
+    return len(self.coeffs)
+
+  def deriv(self, n=1):
+    _coeffs = [polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self.coeffs]
+    return Poly2DOffset(np.concat((_coeffs, self._offsets.reshape((len(self),1))), axis=1))
+
+  def hess(self):
+    return lambda x: np.diag(self.deriv(2)(x))
 
 
 class InformationEntropy():
@@ -166,7 +186,8 @@ class CobbDouglas():
   def cobb_douglas(r, a):
     return (r**(a/a.sum())).prod()
 
-class QuadraticCost1():
+
+class ABCQuadraticCost():
   a = 0
   b = 2
   c = 1
@@ -175,9 +196,9 @@ class QuadraticCost1():
 
   def __init__(self, a, b, c, x_l, x_h):
     [self.a, self.a, self.c, self.x_l, self.x_h] = a, b, c, x_l, x_h
-    self._cost_fn = lambda x: np.vectorize(QuadraticCost1._cost, otypes=[float])(x, self.a, self.b, self.c, self.x_l, self.x_h)
-    self._deriv_fn = lambda x: np.vectorize(QuadraticCost1._deriv, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h)
-    self._hess_fn = lambda x: np.diag(np.vectorize(QuadraticCost1._hess, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h))
+    self._cost_fn = lambda x: np.vectorize(ABCQuadraticCost._cost, otypes=[float])(x, self.a, self.b, self.c, self.x_l, self.x_h)
+    self._deriv_fn = lambda x: np.vectorize(ABCQuadraticCost._deriv, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h)
+    self._hess_fn = lambda x: np.diag(np.vectorize(ABCQuadraticCost._hess, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h))
 
   def __call__(self, x):
     return self._cost_fn(x).sum()
@@ -193,27 +214,27 @@ class QuadraticCost1():
     ''' The cost function on scalar. '''
     if x_l == x_h:
       return 0
-    return (c/(1-a**b))*((1 - QuadraticCost1.scale(x, x_l, x_h, a))**b)
+    return (c/(1-a**b))*((1 - ABCQuadraticCost.scale(x, x_l, x_h, a))**b)
 
   @staticmethod
   def _deriv(x, a, b, c, x_l, x_h):
     ''' The derivative of cost function on scalar. '''
     if x_l == x_h:
       return 0
-    return -(c/(1-a**b))*((1-a)/(x_h-x_l))*b*((1 - QuadraticCost1.scale(x, x_l, x_h, a))**(b-1))
+    return -(c/(1-a**b))*((1-a)/(x_h-x_l))*b*((1 - ABCQuadraticCost.scale(x, x_l, x_h, a))**(b-1))
 
   @staticmethod
   def _hess(x, a, b, c, x_l, x_h):
     if x_l == x_h:
       return 0
-    return (c/(1-a**b))*((1-a)/(x_h-x_l))**2*b*(b-1)*((1 - QuadraticCost1.scale(x, x_l, x_h, a))**(b-2))
+    return (c/(1-a**b))*((1-a)/(x_h-x_l))**2*b*(b-1)*((1 - ABCQuadraticCost.scale(x, x_l, x_h, a))**(b-2))
 
   @staticmethod
   def scale(x, x_l, x_h, a):
     return (1-a)*((x - x_l)/(x_h - x_l))
 
 
-class QuadraticCost2():
+class HLQuadraticCost():
   p_l = -1
   p_h = 0
   x_l = x_h = None
@@ -223,9 +244,9 @@ class QuadraticCost2():
 
   def __init__(self, p_l, p_h, x_l, x_h):
     [self.p_l, self.p_h, self.x_l, self.x_h] = p_l, p_h, x_l, x_h
-    self._cost_fn = lambda x: np.vectorize(QuadraticCost2._cost, otypes=[float])(x, self.p_l, self.p_h, self.x_l, self.x_h)
-    self._deriv_fn = lambda x: np.vectorize(QuadraticCost2._deriv, otypes=[float])(np.array(x).reshape(-1), self.p_l, self.p_h, self.x_l, self.x_h)
-    self._hess_fn = lambda x: np.diag(np.vectorize(QuadraticCost2._hess, otypes=[float])(np.array(x).reshape(-1), self.p_l, self.p_h, self.x_l, self.x_h))
+    self._cost_fn = lambda x: np.vectorize(HLQuadraticCost._cost, otypes=[float])(x, self.p_l, self.p_h, self.x_l, self.x_h)
+    self._deriv_fn = lambda x: np.vectorize(HLQuadraticCost._deriv, otypes=[float])(np.array(x).reshape(-1), self.p_l, self.p_h, self.x_l, self.x_h)
+    self._hess_fn = lambda x: np.diag(np.vectorize(HLQuadraticCost._hess, otypes=[float])(np.array(x).reshape(-1), self.p_l, self.p_h, self.x_l, self.x_h))
 
   def __call__(self, r):
     return self._cost_fn(r).sum()
@@ -261,3 +282,5 @@ class QuadraticCost2():
     if x_l == x_h:
       return 0
     return (p_h - p_l)/(x_h - x_l)
+
+# class HLQuadraticCost

@@ -1,6 +1,6 @@
 import numpy as np
 from device_kit import Device
-from .functions import poly2d
+from .functions import Poly2D
 
 
 class GDevice(Device):
@@ -80,7 +80,7 @@ class GDevice(Device):
       self._cost_d1_fn = self._cost_fn.deriv()
       self._cost_d2_fn = self._cost_fn.deriv(2)
     elif np.array(cost).ndim == 2:
-      self._cost_fn = poly2d(cost)
+      self._cost_fn = Poly2D(cost)
       self._cost_d1_fn = self._cost_fn.deriv()
       self._cost_d2_fn = self._cost_fn.deriv(2)
     else:

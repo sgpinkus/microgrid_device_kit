@@ -17,7 +17,6 @@ from .subbalanceddeviceset import SubBalancedDeviceSet
 from .mfdeviceset import MFDeviceSet
 from .tworatiomfdeviceset import TwoRatioMFDeviceSet
 
-
 __all__ = [
   'BaseDevice', 'DeviceSet', 'SubBalancedDeviceSet',
   'care2bounds', 'on2bounds', 'zmm', 'project',

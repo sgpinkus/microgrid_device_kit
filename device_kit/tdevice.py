@@ -1,7 +1,7 @@
 import numpy as np
 import numdifftools as nd
 from device_kit import Device, IDevice
-from device_kit.functions import QuadraticCost1
+from device_kit.functions import ABCQuadraticCost
 from device_kit.utils import soc, base_soc, sustainment_matrix
 
 
@@ -61,7 +61,7 @@ class TDevice(Device):
     self._t_range = t_range
     self._t_external = t_external
     self._c = IDevice._validate_param(c, len(self))
-    self._cost_fn = QuadraticCost1(0, 2, self.c, self.t_min, self.t_optimal)
+    self._cost_fn = ABCQuadraticCost(0, 2, self.c, self.t_min, self.t_optimal)
     # Set some computed values.
     self.t_base = self._make_t_base(self.t_external, self.sustainment, self.t_init)
     self.t_cost_base = self.costv_t(self.t_base)

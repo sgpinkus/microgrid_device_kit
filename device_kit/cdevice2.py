@@ -1,6 +1,6 @@
 import numpy as np
 from device_kit import Device, IDevice, IDevice2
-from device_kit.functions import QuadraticCost2
+from device_kit.functions import HLQuadraticCost
 
 
 class CDevice2(Device):
@@ -13,7 +13,7 @@ class CDevice2(Device):
     super().__init__(id, length, bounds, cbounds, **kwargs)
     # if(not self.cbounds):
     #   self.cbounds = [self.lbounds.sum(), self.hbounds.sum()]
-    self._cost_fn = QuadraticCost2(self.p_l, self.p_h, self.cbounds[0], self.cbounds[1])
+    self._cost_fn = HLQuadraticCost(self.p_l, self.p_h, self.cbounds[0], self.cbounds[1])
 
   def cost(self, s, p):
     return self._cost_fn(np.array(s).sum()) + np.array(s*p).sum()

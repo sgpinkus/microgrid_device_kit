@@ -6,13 +6,13 @@ from copy import deepcopy
 import unittest
 from unittest import TestCase
 from device_kit.utils import *
-from device_kit.functions import poly2d
+from device_kit.functions import Poly2D
 
 
 class TestBaseDevice(TestCase):
 
   def test_poly2d_shape(self):
-    f = poly2d(np.random.randint(0, 4, (24, 4)))
+    f = Poly2D(np.random.randint(0, 4, (24, 4)))
     r = np.random.random(24)
     self.assertEqual(len(f(r)), 24)
     self.assertEqual(len(f.deriv()(r)), 24)

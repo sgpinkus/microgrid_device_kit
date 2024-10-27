@@ -1,6 +1,6 @@
 import numpy as np
 from device_kit import Device
-from device_kit.functions import QuadraticCost1
+from device_kit.functions import ABCQuadraticCost
 
 
 class IDevice(Device):
@@ -36,7 +36,7 @@ class IDevice(Device):
 
   def __init__(self, id, length, bounds, cbounds=None, **kwargs):
     super().__init__(id, length, bounds, cbounds=None, **kwargs)
-    self._cost_fn = QuadraticCost1(self.a, self.b, self.c, self.lbounds, self.hbounds)
+    self._cost_fn = ABCQuadraticCost(self.a, self.b, self.c, self.lbounds, self.hbounds)
 
   def costv(self, s, p):
     return self._cost_fn(s) + s*p
