@@ -7,7 +7,8 @@ from unittest import TestCase
 from test_projection import *
 from test_device import *
 from test_deviceset import *
-
+from test_functions import *
+from test_device_utils import *
 
 if __name__ == "__main__":
     unittest.main()

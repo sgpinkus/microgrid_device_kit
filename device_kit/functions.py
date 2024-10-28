@@ -67,8 +67,11 @@ class ReflectedFunction(Function):
     return lambda x: self.function.hess()(-1*x)
 
 
-class Poly2D():
-  ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. '''
+class Poly2D(Function):
+  ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. Not when called with a vector poly1d returns
+  a vector of the singular polynomial applied to each index of the input vector. But that means deriv is technically
+  incorrect. Poly2D call return the scalar sum of the said vector to be consistent with other functions.
+  '''
   coeffs = None
   _polys = None
 
@@ -78,13 +81,47 @@ class Poly2D():
     self._polys = [poly1d(c) for c in self.coeffs]
 
   def __call__(self, x):
-    return np.array([self._polys[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))])
+    return self.vector(x).sum()
 
   def __len__(self):
     return len(self.coeffs)
 
+  def vector(self, x):
+    return np.array([self._polys[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))])
+
   def deriv(self, n=1):
-    return Poly2D([polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self.coeffs])
+    _deriv = Poly2D([polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self.coeffs])
+    return lambda x: _deriv.vector(x)
+
+  def hess(self):
+    return lambda x: np.diag(self.deriv(2)(x))
+
+
+class Poly2DOffset(Function):
+  ''' @see Poly2D
+  '''
+  coeffs = None
+  _polys = None
+
+  def __init__(self, coeffs):
+    ''' `c` should be an array of arrays. Each array the coeffs of a poly1d. '''
+    self.coeffs = np.array(coeffs)[:, 0:3]
+    self._offsets = np.array(coeffs)[:, 3]
+    self._polys = [poly1d(c) for c in self.coeffs]
+
+  def __call__(self, x):
+    return self.vector(x).sum()
+
+  def __len__(self):
+    return len(self.coeffs)
+
+  def vector(self, x):
+    return np.array([self._polys[k](v + self._offsets[k]) for k, v in enumerate(np.array(x).reshape(len(self)))])
+
+  def deriv(self, n=1):
+    _coeffs = [polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self.coeffs]
+    _deriv = Poly2DOffset(np.concat((_coeffs, self._offsets.reshape((len(self),1))), axis=1))
+    return lambda x: _deriv(x)
 
   def hess(self):
     return lambda x: np.diag(self.deriv(2)(x))
@@ -110,31 +147,6 @@ class X2D():
 
   def hess(self):
     return lambda x: np.diag([f(x[k]) for k, f in enumerate(self._hess)])
-
-
-class Poly2DOffset():
-  ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. '''
-  coeffs = None
-  _polys = None
-
-  def __init__(self, coeffs):
-    ''' `c` should be an array of arrays. Each array the coeffs of a poly1d. '''
-    self.coeffs = np.array(coeffs)[:, 0:3]
-    self._offsets = np.array(coeffs)[:, 3]
-    self._polys = [poly1d(c) for c in self.coeffs]
-
-  def __call__(self, x):
-    return np.array([self._polys[k](v + self._offsets[k]) for k, v in enumerate(np.array(x).reshape(len(self)))])
-
-  def __len__(self):
-    return len(self.coeffs)
-
-  def deriv(self, n=1):
-    _coeffs = [polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self.coeffs]
-    return Poly2DOffset(np.concat((_coeffs, self._offsets.reshape((len(self),1))), axis=1))
-
-  def hess(self):
-    return lambda x: np.diag(self.deriv(2)(x))
 
 
 class InformationEntropy():

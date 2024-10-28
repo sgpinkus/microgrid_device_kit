@@ -80,8 +80,8 @@ class GDevice(Device):
       self._cost_d1_fn = self._cost_fn.deriv()
       self._cost_d2_fn = self._cost_fn.deriv(2)
     elif np.array(cost).ndim == 2:
-      self._cost_fn = Poly2D(cost)
-      self._cost_d1_fn = self._cost_fn.deriv()
-      self._cost_d2_fn = self._cost_fn.deriv(2)
+      self._cost_fn = lambda x: Poly2D(cost).vector(x)
+      self._cost_d1_fn = Poly2D(cost).deriv()
+      self._cost_d2_fn = Poly2D(cost).deriv(2)
     else:
       raise ValueError('cost param must be array with 1 or 2 dimensions.')

@@ -6,7 +6,6 @@ from copy import deepcopy
 import unittest
 from unittest import TestCase
 from device_kit.utils import *
-from device_kit.functions import Poly2D
 
 
 class TestBaseDevice(TestCase):

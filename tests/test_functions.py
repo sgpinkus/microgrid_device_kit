@@ -47,12 +47,28 @@ class TestPoly2D(TestCase):
   def test_basics(self):
     f = Poly2D([[0,0,0], [1,1,1], [1,2,3]])
     xy = [
-      [[0,0,0], [0,1,3]],
-      [[1,1,1], [0,3,6]],
-      [[2,2,2], [0,4+2+1,4+4+3]]
+      [[0,0,0], [0,1,3], [0,1,2]],
+      [[1,1,1], [0,3,6], [0,3,4]],
+      [[2,2,2], [0,7,11],[0,5,6]]
+    ]
+    for [x, y, dy] in xy:
+      self.assertTrue((y == f.vector(x)).all())
+      self.assertTrue((dy == f.deriv()(x)).all())
+      self.assertTrue(np.array(y).sum() == f(x))
+      self.assertTrue((np.diag(f.hess()(x)) == [0,2,2]).all())
+
+class TestPoly2DOffset(TestCase):
+  def test_basics(self):
+    f = Poly2DOffset([[0,0,0,1], [1,1,1,1], [1,2,3,1]])
+    xy = [
+      [[-1,-1,-1], [0,1,3]],
+      [[0,0,0], [0,3,6]],
+      [[1,1,1], [0,4+2+1,4+4+3]]
     ]
     for [x, y] in xy:
-      self.assertTrue((y == f(x)).all())
+      self.assertTrue((y == f.vector(x)).all())
+      self.assertTrue(np.array(y).sum() == f(x))
+
 
 
 class TestX2D(TestCase):

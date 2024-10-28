@@ -68,5 +68,5 @@ def matplot_network_writer_hook(event, fig, writer=None):
   if event != 'after-update':
     return
   p = Poly2D(cost)
-  fig.axes[0].plot(p(np.ones(dimension)), label='quad_cost')
+  fig.axes[0].plot(p.vector(np.ones(dimension)), label='quad_cost')
   fig.axes[0].set_ylim(0,6)

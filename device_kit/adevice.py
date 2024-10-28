@@ -1,6 +1,6 @@
 import numpy as np
 from device_kit import Device
-from device_kit.functions import Poly2D, NullFunction
+from device_kit.functions import NullFunction
 
 
 class ADevice(Device):
