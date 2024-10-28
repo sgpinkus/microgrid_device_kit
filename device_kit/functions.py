@@ -1,9 +1,10 @@
 '''
 Various preference functions. Can be used with ADevice.
+TODO: Function.deriv|hess() return a function. Can't remember why. Because poly1d does that (?), but polys are a special case.
+Try not doing this.
 '''
 from abc import ABC, abstractmethod
 import numpy as np
-from numpy import stack, hstack, zeros, ones, poly1d, polyadd
 import numdifftools as nd
 
 
@@ -68,7 +69,7 @@ class ReflectedFunction(Function):
 
 
 class Poly2D(Function):
-  ''' Wraps up an vector of poly1ds. Makes it slightly easier to get derivs. Not when called with a vector poly1d returns
+  ''' Wraps up an vector of np.poly1ds. Makes it slightly easier to get derivs. Not when called with a vector np.poly1d returns
   a vector of the singular polynomial applied to each index of the input vector. But that means deriv is technically
   incorrect. Poly2D call return the scalar sum of the said vector to be consistent with other functions.
   '''
@@ -76,9 +77,9 @@ class Poly2D(Function):
   _polys = None
 
   def __init__(self, coeffs):
-    ''' `c` should be an array of arrays. Each array the coeffs of a poly1d. '''
+    ''' `c` should be an array of arrays. Each array the coeffs of a np.poly1d. '''
     self.coeffs = np.array(coeffs)
-    self._polys = [poly1d(c) for c in self.coeffs]
+    self._polys = [np.poly1d(c) for c in self.coeffs]
 
   def __call__(self, x):
     return self.vector(x).sum()
@@ -90,7 +91,7 @@ class Poly2D(Function):
     return np.array([self._polys[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))])
 
   def deriv(self, n=1):
-    _deriv = Poly2D([polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self.coeffs])
+    _deriv = Poly2D([np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv(n).coeffs) for c in self.coeffs])
     return lambda x: _deriv.vector(x)
 
   def hess(self):
@@ -104,10 +105,10 @@ class Poly2DOffset(Function):
   _polys = None
 
   def __init__(self, coeffs):
-    ''' `c` should be an array of arrays. Each array the coeffs of a poly1d. '''
+    ''' `c` should be an array of arrays. Each array the coeffs of a np.poly1d. '''
     self.coeffs = np.array(coeffs)[:, 0:3]
     self._offsets = np.array(coeffs)[:, 3]
-    self._polys = [poly1d(c) for c in self.coeffs]
+    self._polys = [np.poly1d(c) for c in self.coeffs]
 
   def __call__(self, x):
     return self.vector(x).sum()
@@ -119,7 +120,7 @@ class Poly2DOffset(Function):
     return np.array([self._polys[k](v + self._offsets[k]) for k, v in enumerate(np.array(x).reshape(len(self)))])
 
   def deriv(self, n=1):
-    _coeffs = [polyadd(zeros(len(c)), poly1d(c).deriv(n).coeffs) for c in self.coeffs]
+    _coeffs = [np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv(n).coeffs) for c in self.coeffs]
     _deriv = Poly2DOffset(np.concat((_coeffs, self._offsets.reshape((len(self),1))), axis=1))
     return lambda x: _deriv(x)
 
@@ -128,7 +129,7 @@ class Poly2DOffset(Function):
 
 
 class X2D():
-  ''' Make apply X *scalar* functions to a vector input. Assumes function take a scalar input. '''
+  ''' Make apply X *scalar* functions to a vector input. Assumes function takes a scalar input. '''
   _functions = []
 
   def __init__(self, functions: Function) -> None:
@@ -140,7 +141,7 @@ class X2D():
     return len(self._functions)
 
   def __call__(self, x):
-    return np.array([self._functions[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))])
+    return np.array([self._functions[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))]).sum()
 
   def deriv(self):
     return lambda x: np.array([f(x[k]) for k, f in enumerate(self._deriv)]).reshape(-1)
@@ -322,4 +323,31 @@ class HLQuadraticCost():
       return 0
     return (p_h - p_l)/(x_h - x_l)
 
-# class HLQuadraticCost
+
+class DemandFunction(Function):
+  ''' Not CD but convex if is convex '''
+
+  def __init__(self, f: np.poly1d) -> None:
+    ''' f should be a scalar functional like poly1d '''
+    self._f = f
+
+  def __call__(self, x):
+    return self._f(np.max(x))
+
+  def deriv(self):
+    return lambda x: self._deriv(x)
+
+  def hess(self):
+    return lambda x: self._hess(x)
+
+  def _deriv(self, x):
+    _x = np.zeros(np.array(x).shape)
+    i = np.argmax(x)
+    _x[i] = self._f.deriv()(x[i])
+    return _x
+
+  def _hess(self, x):
+    _x = np.zeros(np.array(x).shape)
+    i = np.argmax(x)
+    _x[i] = self._f.deriv(2)(x[i])
+    return np.diag(_x)

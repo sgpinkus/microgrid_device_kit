@@ -111,7 +111,7 @@ def load_cost_function(d, bounds, cbounds, basis):
     raise Exception('Not implemented')
   if 'peak_flow' in costs_data:
     logger.info(f'Found peak_flow for {d['type']}')
-    raise Exception('Not implemented')
+    costs += [DemandFunction(np.poly1d(costs_data['peak_flow']))]
   return SumFunction(costs) if len(costs) else None
 
 

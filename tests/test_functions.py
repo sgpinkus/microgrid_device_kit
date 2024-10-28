@@ -82,10 +82,25 @@ class TestX2D(TestCase):
       [[3,4,5], [2,8,8]]
     ]
     for [x, y] in xy:
-      self.assertTrue((y == f(x)).all())
+      self.assertTrue(np.array(y).sum() == f(x))
       self.assertEqual(f.deriv()(x).shape, (3,))
       self.assertEqual(f.hess()(x).shape, (3,3))
       # print(x, f.hess()(x))
+
+
+class TestDemandFunction(TestCase):
+  def test_test(self):
+    f = DemandFunction(np.poly1d([1,1,1]))
+    x = np.ones(10)
+    x[5] = 2
+    self.assertEqual(f(x), 7)
+    self.assertEqual(f.deriv()(x)[5], 5)
+    self.assertEqual(f.deriv()(x)[0], f.deriv()(x)[9], 0)
+    self.assertEqual(f.hess()(x)[5][5], 2)
+    # f = DemandFunction(np.poly1d([1,0]))
+    # print(f(x))
+    # print(f.deriv()(x))
+    # print(f.hess()(x))
 
 
 if __name__ == '__main__':
