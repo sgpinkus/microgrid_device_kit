@@ -6,7 +6,7 @@ import numpy as np
 import argparse
 from scipy.optimize import minimize
 import device_kit
-from device_kit import functions
+from device_kit.functions import *
 from pprint import pprint
 import logging
 
@@ -40,7 +40,7 @@ def load_load_device(d, basis: int):
   cbounds = None
   device_id = d['title'] if 'title' in d else d['type']
   params = {}
-  cost_function = load_cost_function(d['costs'], basis)
+  cost_function = load_cost_function(d, bounds, cbounds, basis)
   if cost_function:
     params = { 'f': cost_function }
   return device_kit.ADevice(device_id, basis, bounds, cbounds, **params)
@@ -51,8 +51,6 @@ def load_fixed_load_device(d, basis: int):
   device_id = d['title'] if 'title' in d else d['type']
   cbounds = None
   if (bounds[:,0] != bounds[:,1]).all():
-    raise Exception('Invalid fixed load device')
-  if load_cost_function(d['costs'], basis):
     raise Exception('Invalid fixed load device')
   return device_kit.ADevice(device_id, basis, bounds, cbounds)
 
@@ -88,32 +86,33 @@ def load_supply_device(d, basis: int):
   cbounds = None
   device_id = d['title'] if 'title' in d else d['type']
   params = {}
-  cost_function = load_cost_function(d, basis)
+  cost_function = load_cost_function(d, bounds, cbounds, basis)
   if cost_function:
-    params = { 'f': functions.ReflectedFunction(cost_function) }
+    params = { 'f': ReflectedFunction(cost_function) }
   return device_kit.ADevice(device_id, basis, bounds, cbounds, **params)
 
 
-def load_cost_function(d, basis):
+def load_cost_function(d, bounds, cbounds, basis):
   costs_data = d['costs']
   costs = []
   if 'flow' in costs_data:
     logger.info(f'Found flow costs for {d['type']}')
     coeffs = _reshape_offset_quad_coeffs(costs_data['flow'])
-    costs += [functions.Poly2DOffset(coeffs)]
+    costs += [Poly2DOffset(coeffs)]
   if 'cumulative_flow' in costs_data:
     logger.info(f'Found cumulative_flow for {d['type']}')
     raise Exception('Not implemented')
   if 'flow_bounds_relative' in costs_data:
     logger.info(f'Found flow_bounds_relative for {d['type']}')
-    raise Exception('Not implemented')
+    _functions = [HLQuadraticCost(v[0], v[1], bounds[i,0], bounds[i, 1]) for i, v in enumerate(costs_data['flow_bounds_relative'])]
+    costs += [X2D(_functions)]
   if 'cumulative_flow_bounds_relative' in costs_data:
     logger.info(f'Found cumulative_flow_bounds_relative for {d['type']}')
     raise Exception('Not implemented')
   if 'peak_flow' in costs_data:
     logger.info(f'Found peak_flow for {d['type']}')
     raise Exception('Not implemented')
-  return functions.SumFunction(costs) if len(costs) else None
+  return SumFunction(costs) if len(costs) else None
 
 
 def _reshape_offset_quad_coeffs(x):

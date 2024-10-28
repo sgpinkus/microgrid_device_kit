@@ -70,7 +70,6 @@ class TestPoly2DOffset(TestCase):
       self.assertTrue(np.array(y).sum() == f(x))
 
 
-
 class TestX2D(TestCase):
   def test_basics(self):
     g = HLQuadraticCost(-1, 0, 0, 1)
@@ -84,6 +83,9 @@ class TestX2D(TestCase):
     ]
     for [x, y] in xy:
       self.assertTrue((y == f(x)).all())
+      self.assertEqual(f.deriv()(x).shape, (3,))
+      self.assertEqual(f.hess()(x).shape, (3,3))
+      # print(x, f.hess()(x))
 
 
 if __name__ == '__main__':

@@ -45,10 +45,10 @@ class SumFunction(Function):
     return np.array([v(x) for v in self.functions]).sum()
 
   def deriv(self):
-    return lambda x: np.array([v.deriv()(x) for v in self.functions]).sum()
+    return lambda x: np.array([v.deriv()(x) for v in self.functions]).sum(axis=0)
 
   def hess(self):
-    return lambda x: np.array([v.hess()(x) for v in self.functions]).sum()
+    return lambda x: np.array([v.hess()(x) for v in self.functions]).sum(axis=0)
 
 
 class ReflectedFunction(Function):
@@ -128,7 +128,7 @@ class Poly2DOffset(Function):
 
 
 class X2D():
-  ''' Make apply X scalar functions to a vector input '''
+  ''' Make apply X *scalar* functions to a vector input. Assumes function take a scalar input. '''
   _functions = []
 
   def __init__(self, functions: Function) -> None:
@@ -143,10 +143,11 @@ class X2D():
     return np.array([self._functions[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))])
 
   def deriv(self):
-    return lambda x: np.array([f(x[k]) for k, f in enumerate(self._deriv)])
+    return lambda x: np.array([f(x[k]) for k, f in enumerate(self._deriv)]).reshape(-1)
 
   def hess(self):
-    return lambda x: np.diag([f(x[k]) for k, f in enumerate(self._hess)])
+    ''' Each hess value should be an 1x1 matrix '''
+    return lambda x: np.diag(np.array([f(x[k]) for k, f in enumerate(self._hess)]).flatten())
 
 
 class InformationEntropy():
@@ -285,6 +286,9 @@ class HLQuadraticCost():
 
   def __call__(self, r):
     return self._cost_fn(r).sum()
+
+  def __str__(self):
+    return f'p_l={self.p_l}, p_h={self.p_h}, x_l={self.x_l}, x_h={self.x_h}'
 
   def deriv(self):
     return self._deriv_fn

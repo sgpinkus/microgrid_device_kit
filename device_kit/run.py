@@ -45,12 +45,12 @@ def main():
   (deviceset, meta, cb) = loader(args.filename)
   deviceset.sbounds = (0,0)
   print(str(deviceset))
-  (x, solve_meta) = device_kit.solve(deviceset, solver_options={'ftol': 1e-3 }, cb=Cb(), p=0) # Convenience convex solver.
+  (x, solve_meta) = device_kit.solve(deviceset, solver_options={'ftol': 5e-3 }, cb=Cb(), p=0) # Convenience convex solver.
   print(solve_meta.message)
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
   plot_bars(df, meta.get('title') if meta else None, cb)
   df.loc['total'] = df.sum()
-  pd.set_option('display.float_format', lambda v: '%+0.3f' % (v,),)
+  pd.set_option('display.float_format', lambda v: '%+0.2f' % (v,),)
   print(df.sort_index())
 
 def plot_bars(df, title, cb=None, aggregation_level=2):
