@@ -24,6 +24,7 @@ class GDevice(Device):
   _cost_fn = None
   _cost_d1_fn = None
   _cost_d2_fn = None
+  _cost_coeffs = None
 
   def costv(self, s, p):
     ''' Get cost vector for s, p. '''
@@ -49,7 +50,7 @@ class GDevice(Device):
   @property
   def cost_coeffs(self):
     ''' Return arrays of coeffs of cost function not an actual function. '''
-    return self._cost_fn.coeffs
+    return self._cost_coeffs
 
   @bounds.setter
   def bounds(self, bounds):
@@ -61,6 +62,7 @@ class GDevice(Device):
 
   @cost_coeffs.setter
   def cost_coeffs(self, cost):
+    self._cost_coeffs = cost
     if np.array(cost).ndim == 1:
       self._cost_fn = np.poly1d(cost)
       self._cost_d1_fn = self._cost_fn.deriv()

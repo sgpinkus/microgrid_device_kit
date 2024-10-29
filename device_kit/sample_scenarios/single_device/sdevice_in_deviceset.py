@@ -7,8 +7,8 @@ See sdevice_scenario.py
 '''
 import numpy as np
 from device_kit import *
-from device_kit.sample_scenarios.single_device import idevice_scenario
-from device_kit.sample_scenarios.single_device import sdevice_scenario
+from device_kit.sample_scenarios.single_device import idevice
+from device_kit.sample_scenarios.single_device import sdevice
 
 meta = {
   'title': 'Single IDevice scenario augmented with storage'
@@ -16,6 +16,6 @@ meta = {
 
 
 def make_deviceset():
-  (demand, demand2, supply) = idevice_scenario.make_devices().values()
-  battery = sdevice_scenario.make_devices()['battery']
+  (demand, demand2, supply) = idevice.make_devices().values()
+  battery = sdevice.make_devices()['battery']
   return DeviceSet('nw', [DeviceSet('demand-w-battery', [demand, battery]), supply])

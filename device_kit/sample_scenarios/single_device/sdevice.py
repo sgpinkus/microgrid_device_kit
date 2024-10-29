@@ -1,12 +1,12 @@
 '''
 A battery won't do anything unless there is supply and demand to work with. Need at least one supply
-and and demand agent. So this scenario adds a battery (SDevice) to existing single idevice_scenario.
-See idevice_scenario.py
+and and demand agent. So this scenario adds a battery (SDevice) to existing single idevice.
+See idevice.py
 '''
 import numpy as np
 import logging
 from device_kit import *
-from device_kit.sample_scenarios.single_device import idevice_scenario
+from device_kit.sample_scenarios.single_device import idevice
 
 
 logging.basicConfig()
@@ -17,7 +17,7 @@ meta = {
 
 
 def make_deviceset():
-  devices = list(idevice_scenario.make_devices().values())
+  devices = list(idevice.make_devices().values())
   battery = make_devices()['battery']
   devices.append(battery)
   return DeviceSet('nw', devices)

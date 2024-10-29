@@ -44,8 +44,8 @@ class BlobDevice(ADevice):
 
 
 def make_deviceset():
-  care = hstack((zeros(4), ones(16), zeros(4)))  # {18-23}
-  bounds = stack((care*0, care*6), axis=1)
+  care = np.hstack((np.zeros(4), np.ones(16), np.zeros(4)))  # {18-23}
+  bounds = np.stack((care*0, care*6), axis=1)
   return DeviceSet('nw', [
     BlobDevice(
       'demand',
