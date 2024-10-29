@@ -8,6 +8,7 @@ from scipy.optimize import minimize
 import device_kit
 from device_kit.functions import *
 from pprint import pprint
+from device_kit.utils import flatten
 import logging
 
 logger = logging.getLogger()
@@ -36,9 +37,11 @@ def load(filename):
 
 
 def load_load_device(d, basis: int):
-  bounds = np.array(d['bounds']).reshape((basis, 2))
-  cbounds = None
   device_id = d['title'] if 'title' in d else d['type']
+  bounds = np.array(d['bounds']).reshape((basis, 2))
+  cbounds = load_cbounds(d)
+  if cbounds:
+    print(f'Found cbounds for device {device_id}: {cbounds}')
   params = {}
   cost_function = load_cost_function(d, bounds, cbounds, basis)
   if cost_function:
@@ -92,25 +95,30 @@ def load_supply_device(d, basis: int):
   return device_kit.ADevice(device_id, basis, bounds, cbounds, **params)
 
 
+def load_cbounds(d):
+  return [c[0:3] + [c[3]+1] for c in [flatten(c) for c in d['cumulative_bounds']]] if 'cumulative_bounds' in d else None
+
 def load_cost_function(d, bounds, cbounds, basis):
   costs_data = d['costs']
   costs = []
   if 'flow' in costs_data:
-    logger.info(f'Found flow costs for {d['type']}')
+    logger.info(f'Found flow cost for {d['type']}')
     coeffs = _reshape_offset_quad_coeffs(costs_data['flow'])
     costs += [Poly2DOffset(coeffs)]
   if 'cumulative_flow' in costs_data:
     logger.info(f'Found cumulative_flow for {d['type']}')
     raise Exception('Not implemented')
   if 'flow_bounds_relative' in costs_data:
-    logger.info(f'Found flow_bounds_relative for {d['type']}')
+    logger.info(f'Found flow_bounds_relative cost for {d['type']}')
     _functions = [HLQuadraticCost(v[0], v[1], bounds[i,0], bounds[i, 1]) for i, v in enumerate(costs_data['flow_bounds_relative'])]
     costs += [X2D(_functions)]
   if 'cumulative_flow_bounds_relative' in costs_data:
-    logger.info(f'Found cumulative_flow_bounds_relative for {d['type']}')
-    raise Exception('Not implemented')
+    logger.info(f'Found cumulative_flow_bounds_relative cost for {d['type']}: {costs_data['cumulative_flow_bounds_relative']}')
+    p_l, p_h = costs_data['cumulative_flow_bounds_relative']
+    costs += [RangesFunction([((c[2], c[3]), InnerSumFunction(HLQuadraticCost(p_l, p_h, c[0], c[1]))) for c in cbounds])]
+    # costs += [HLQuadraticCost(p_l, p_h, cbounds[0][0], cbounds[0][1])]
   if 'peak_flow' in costs_data:
-    logger.info(f'Found peak_flow for {d['type']}')
+    logger.info(f'Found peak_flow cost for {d['type']}')
     costs += [DemandFunction(np.poly1d(costs_data['peak_flow']))]
   return SumFunction(costs) if len(costs) else None
 

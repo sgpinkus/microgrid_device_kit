@@ -2,6 +2,7 @@ import functools
 import numpy as np
 from copy import deepcopy
 from scipy.optimize import minimize
+from functools import reduce
 
 
 def base_soc(b, s, l):
@@ -97,3 +98,7 @@ def project(p, x0, bounds=[], constraints=[], solver_options={}):
     constraints = constraints
   )
   return (o.x.reshape(x0.shape), o)
+
+
+def flatten(x):
+  return reduce(lambda a, b: list(a) + list(b), x, [])
