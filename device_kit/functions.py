@@ -1,7 +1,5 @@
 '''
 Various preference functions. Can be used with ADevice.
-TODO: Function.deriv|hess() return a function. Can't remember why. Because poly1d does that (?), but polys are a special case.
-Try not doing this.
 '''
 from abc import ABC, abstractmethod
 import numpy as np
@@ -29,11 +27,11 @@ class NullFunction(Function):
   def __call__(self, x):
     return 0
 
-  def deriv(self):
-    return lambda x: 0
+  def deriv(self, x):
+    return 0
 
-  def hess(self):
-    return lambda x: 0
+  def hess(self, x):
+    return 0
 
 
 class SumFunction(Function):
@@ -46,11 +44,11 @@ class SumFunction(Function):
   def __call__(self, x):
     return np.array([v(x) for v in self.functions]).sum()
 
-  def deriv(self):
-    return lambda x: np.array([v.deriv()(x) for v in self.functions]).sum(axis=0)
+  def deriv(self, x):
+    return np.array([v.deriv(x) for v in self.functions]).sum(axis=0)
 
-  def hess(self):
-    return lambda x: np.array([v.hess()(x) for v in self.functions]).sum(axis=0)
+  def hess(self, x):
+    return np.array([v.hess(x) for v in self.functions]).sum(axis=0)
 
 
 class ReflectedFunction(Function):
@@ -62,11 +60,11 @@ class ReflectedFunction(Function):
   def __call__(self, x):
     return self.function(-1*x)
 
-  def deriv(self):
-    return lambda x: self.function.deriv()(-1*x)*-1
+  def deriv(self, x):
+    return self.function.deriv(-1*x)*-1
 
-  def hess(self):
-    return lambda x: self.function.hess()(-1*x)
+  def hess(self, x):
+    return self.function.hess(-1*x)
 
 
 class Poly2D(Function):
@@ -76,6 +74,8 @@ class Poly2D(Function):
   '''
   coeffs = None
   _polys = None
+  _deriv = None
+  _hess = None
 
   def __init__(self, coeffs):
     ''' `c` should be an array of arrays. Each array the coeffs of a np.poly1d. '''
@@ -91,12 +91,15 @@ class Poly2D(Function):
   def vector(self, x):
     return np.array([self._polys[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))])
 
-  def deriv(self, n=1):
-    _deriv = Poly2D([np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv(n).coeffs) for c in self.coeffs])
-    return lambda x: _deriv.vector(x)
+  def deriv(self, x):
+    if not self._deriv:
+      self._deriv = Poly2D([np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv().coeffs) for c in self.coeffs])
+    return self._deriv.vector(x)
 
-  def hess(self):
-    return lambda x: np.diag(self.deriv(2)(x))
+  def hess(self, x):
+    if not self._hess:
+      self._hess = Poly2D([np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv(2).coeffs) for c in self.coeffs])
+    return np.diag(self._hess.vector(x))
 
 
 class Poly2DOffset(Function):
@@ -104,11 +107,13 @@ class Poly2DOffset(Function):
   '''
   coeffs = None
   _polys = None
+  _deriv = None
+  _hess = None
 
   def __init__(self, coeffs):
     ''' `c` should be an array of arrays. Each array the coeffs of a np.poly1d. '''
     self.coeffs = np.array(coeffs)[:, 0:3]
-    self._offsets = np.array(coeffs)[:, 3]
+    self.offsets = np.array(coeffs)[:, 3]
     self._polys = [np.poly1d(c) for c in self.coeffs]
 
   def __call__(self, x):
@@ -118,39 +123,41 @@ class Poly2DOffset(Function):
     return len(self.coeffs)
 
   def vector(self, x):
-    return np.array([self._polys[k](v + self._offsets[k]) for k, v in enumerate(np.array(x).reshape(len(self)))])
+    return np.array([self._polys[k](v + self.offsets[k]) for k, v in enumerate(np.array(x).reshape(len(self)))])
 
-  def deriv(self, n=1):
-    _coeffs = [np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv(n).coeffs) for c in self.coeffs]
-    _deriv = Poly2DOffset(np.concat((_coeffs, self._offsets.reshape((len(self),1))), axis=1))
-    return lambda x: _deriv(x)
+  def deriv(self, x):
+    if not self._deriv:
+      _coeffs = [np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv().coeffs) for c in self.coeffs]
+      self._deriv = Poly2DOffset(np.concat((_coeffs, self.offsets.reshape((len(self),1))), axis=1))
+    return self._deriv.vector(x)
 
-  def hess(self):
-    return lambda x: np.diag(self.deriv(2)(x))
+  def hess(self, x):
+    if not self._hess:
+      _coeffs = [np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv(2).coeffs) for c in self.coeffs]
+      self._hess = Poly2DOffset(np.concat((_coeffs, self.offsets.reshape((len(self),1))), axis=1))
+    return np.diag(self._hess.vector(x))
 
 
 class X2D(Function):
   ''' Apply X *scalar* functions to a vector input. Assumes function takes a scalar input. Function does not accept
   scalar input. '''
-  _functions = []
+  functions = []
 
   def __init__(self, functions: Function) -> None:
-    self._functions = functions
-    self._deriv = [f.deriv() for f in self._functions]
-    self._hess = [f.hess() for f in self._functions]
+    self.functions = functions
 
   def __len__(self):
-    return len(self._functions)
+    return len(self.functions)
 
   def __call__(self, x):
-    return np.array([self._functions[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))]).sum()
+    return np.array([self.functions[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))]).sum()
 
-  def deriv(self):
-    return lambda x: np.array([f(x[k]) for k, f in enumerate(self._deriv)]).reshape(-1)
+  def deriv(self, x):
+    return np.array([f.deriv(x[k]) for k, f in enumerate(self.functions)]).reshape(-1)
 
-  def hess(self):
+  def hess(self, x):
     ''' Each hess value should be an 1x1 matrix '''
-    return lambda x: np.diag(np.array([f(x[k]) for k, f in enumerate(self._hess)]).flatten())
+    return np.diag(np.array([f.hess(x[k]) for k, f in enumerate(self.functions)]).flatten())
 
 
 class RangesFunction(Function):
@@ -158,35 +165,29 @@ class RangesFunction(Function):
   covered by the ranges '''
 
   def __init__(self, functions: tuple[tuple[int, int], Function]) -> None:
-    self._ranges = [f[0] for f in functions]
-    self._validate_ranges(self._ranges)
-    self._functions = [f[1] for f in functions]
-    self._derivs = [f.deriv() for f in self._functions]
-    self._hessians = [f.hess() for f in self._functions]
-    self._len = self._ranges[-1][1]
+    self.ranges = [f[0] for f in functions]
+    self._validate_ranges(self.ranges)
+    self.functions = [f[1] for f in functions]
+    self._derivs = [f.deriv for f in self.functions]
+    self._hessians = [f.hess for f in self.functions]
+    self._len = self.ranges[-1][1]
 
   def __len__(self):
     return self._len
 
   def __call__(self, x):
-    return np.array([self._functions[k](x[range(*_range)]) for k, _range in enumerate(self._ranges)]).sum()
+    return np.array([self.functions[k](x[range(*_range)]) for k, _range in enumerate(self.ranges)]).sum()
 
-  def _deriv(self, x):
-    range_derivs = [self._derivs[k](x[range(*_range)]) for k, _range in enumerate(self._ranges)]
+  def deriv(self, x):
+    range_derivs = [self.functions[k].deriv(x[range(*_range)]) for k, _range in enumerate(self.ranges)]
     return np.array(reduce(lambda a, b: list(a) + list(b), range_derivs, [])) # np.flatten() or "+" doesn't work with inhomogenous.
 
-  def _hess(self, x):
-    v = [self._hessians[k](x[range(*_range)]) for k, _range in enumerate(self._ranges)]
+  def hess(self, x):
+    range_hessians = [self.functions[k].hess(x[range(*_range)]) for k, _range in enumerate(self.ranges)]
     y = np.zeros((len(self), len(self)))
-    for i, m in zip([r[0] for r in self._ranges], v):
+    for i, m in zip([r[0] for r in self.ranges], range_hessians):
       y[i:i+m.shape[0],i:i+m.shape[1]] = m
     return y
-
-  def deriv(self):
-    return lambda x: self._deriv(x)
-
-  def hess(self):
-    return lambda x: self._hess(x)
 
   def _validate_ranges(self, ranges):
     if ranges[0][0] != 0:
@@ -196,28 +197,20 @@ class RangesFunction(Function):
 
 
 class InnerSumFunction(Function):
-  ''' This is a special simple case of composition f o g - because deriv of x.sum() is just ones.
+  ''' This is a special simple case of composition, f o g - because deriv of x.sum() is just ones.
   TODO: Just impl composition and chain rule ..
   '''
   def __init__(self, outer_function) -> None:
-    self._f = outer_function
-    self._f_deriv = outer_function.deriv()
-    self._f_hess = outer_function.hess()
+    self.outer_function = outer_function
 
   def __call__(self, x):
-    return self._f(np.array(x).sum())
+    return self.outer_function(np.array(x).sum())
 
-  def deriv(self):
-    return lambda x: self._deriv(x)
+  def deriv(self, x):
+    return self.outer_function.deriv(np.array(x).sum())*np.ones(len(x))
 
-  def hess(self):
-    return lambda x: self._hess(x)
-
-  def _deriv(self, x):
-    return self._f_deriv(np.array(x).sum())*np.ones(len(x))
-
-  def _hess(self, x):
-    return self._f_hess(np.array(x).sum())*np.eye(len(x))
+  def hess(self, x):
+    return self.outer_function.hess(np.array(x).sum())*np.eye(len(x))
 
 class InformationEntropy():
   ''' Information entropy preference function. Entropy is bad.
@@ -230,11 +223,11 @@ class InformationEntropy():
   def __call__(self, r):
     return self.c*InformationEntropy.info_entropy(r)
 
-  def deriv(self):
-    return nd.Jacobian(lambda x: self.c*InformationEntropy.info_entropy(x))
+  def deriv(self, x):
+    return nd.Jacobian(lambda x: self.c*InformationEntropy.info_entropy(x))(x)
 
-  def hess(self):
-    return nd.Hessian(lambda x: self.c*InformationEntropy.info_entropy(x))
+  def hess(self, x):
+    return nd.Hessian(lambda x: self.c*InformationEntropy.info_entropy(x))(x)
 
   @staticmethod
   def info_entropy(r):
@@ -254,11 +247,11 @@ class TemporalVariance():
   def __call__(self, r):
     return self.c*TemporalVariance.inertia(r)
 
-  def deriv(self):
-    return nd.Jacobian(lambda x: self.c*TemporalVariance.inertia(x))
+  def deriv(self, x):
+    return nd.Jacobian(lambda x: self.c*TemporalVariance.inertia(x))(x)
 
-  def hess(self):
-    return nd.Hessian(lambda x: self.c*TemporalVariance.inertia(x))
+  def hess(self, x):
+    return nd.Hessian(lambda x: self.c*TemporalVariance.inertia(x))(x)
 
   @staticmethod
   def inertia(r):
@@ -281,11 +274,11 @@ class CobbDouglas():
   def __call__(self, r):
     return self.c*CobbDouglas.cobb_douglas(r, self.a)
 
-  def deriv(self):
-    return nd.Jacobian(lambda x: self.c*CobbDouglas.cobb_douglas(x, self.a))
+  def deriv(self, x):
+    return nd.Jacobian(lambda x: self.c*CobbDouglas.cobb_douglas(x, self.a))(x)
 
-  def hess(self):
-    return nd.Hessian(lambda x: self.c*CobbDouglas.cobb_douglas(x, self.a))
+  def hess(self, x):
+    return nd.Hessian(lambda x: self.c*CobbDouglas.cobb_douglas(x, self.a))(x)
 
   @staticmethod
   def cobb_douglas(r, a):
@@ -308,11 +301,11 @@ class ABCQuadraticCost():
   def __call__(self, x):
     return self._cost_fn(x).sum()
 
-  def deriv(self):
-    return self._deriv_fn
+  def deriv(self, x):
+    return self._deriv_fn(x)
 
-  def hess(self):
-    return self._hess_fn
+  def hess(self, x):
+    return self._hess_fn(x)
 
   @staticmethod
   def _cost(x, a, b, c, x_l, x_h):
@@ -359,11 +352,11 @@ class HLQuadraticCost():
   def __str__(self):
     return f'p_l={self.p_l}, p_h={self.p_h}, x_l={self.x_l}, x_h={self.x_h}'
 
-  def deriv(self):
-    return self._deriv_fn
+  def deriv(self, x):
+    return self._deriv_fn(x)
 
-  def hess(self):
-    return self._hess_fn
+  def hess(self, x):
+    return self._hess_fn(x)
 
   @staticmethod
   def _cost(x, p_l, p_h, x_l, x_h):
@@ -378,7 +371,7 @@ class HLQuadraticCost():
   @staticmethod
   def _deriv(x, p_l, p_h, x_l, x_h):
     ''' The derivative of cost function on a scalar. Returned valus is expansion of:
-         np.poly1d([(p_h - p_l)/2, p_l, 0]).deriv()(QuadraticCost12.scale(x, x_l, x_h))
+         np.poly1d([(p_h - p_l)/2, p_l, 0]).deriv(QuadraticCost12.scale(x, x_l, x_h))
     '''
     if x_l == x_h:
       return 0
@@ -395,27 +388,21 @@ class HLQuadraticCost():
 class DemandFunction(Function):
   ''' Not CD but convex if is convex '''
 
-  def __init__(self, f: np.poly1d) -> None:
+  def __init__(self, inner_function: np.poly1d) -> None:
     ''' f should be a scalar functional like poly1d '''
-    self._f = f
+    self.inner_function = inner_function
 
   def __call__(self, x):
-    return self._f(np.max(x))
+    return self.inner_function(np.max(x))
 
-  def deriv(self):
-    return lambda x: self._deriv(x)
-
-  def hess(self):
-    return lambda x: self._hess(x)
-
-  def _deriv(self, x):
+  def deriv(self, x):
     _x = np.zeros(np.array(x).shape)
     i = np.argmax(x)
-    _x[i] = self._f.deriv()(x[i])
+    _x[i] = self.inner_function.deriv()(x[i])
     return _x
 
-  def _hess(self, x):
+  def hess(self, x):
     _x = np.zeros(np.array(x).shape)
     i = np.argmax(x)
-    _x[i] = self._f.deriv(2)(x[i])
+    _x[i] = self.inner_function.deriv(2)(x[i])
     return np.diag(_x)

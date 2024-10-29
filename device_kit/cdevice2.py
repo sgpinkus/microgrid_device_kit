@@ -22,10 +22,10 @@ class CDevice2(Device):
     return self._cost_fn(s) + np.array(s*p).sum()
 
   def deriv(self, s, p):
-    return np.ones(len(self))*self._cost_fn.deriv()(s) + p
+    return np.ones(len(self))*self._cost_fn.deriv(s) + p
 
   def hess(self, s, p=0):
-    return np.eye(len(self))*self._cost_fn.hess()(s)
+    return np.eye(len(self))*self._cost_fn.hess(s)
 
   @property
   def p_h(self):

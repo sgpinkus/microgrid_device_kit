@@ -34,7 +34,7 @@ class WindowDevice(ADevice):
   def w(self, w):
     self._w = w
 
-class WindowPenalty():
+class WindowPenalty(Function):
   ''' @todo deriv() is not correct?
   '''
 
@@ -45,11 +45,11 @@ class WindowPenalty():
   def __call__(self, r):
     return self.c*(WindowPenalty.weights(r, self.w)*r).sum()
 
-  def deriv(self):
-    return lambda x: self.c*WindowPenalty.weights(x, self.w)
+  def deriv(self, x):
+    return self.c*WindowPenalty.weights(x, self.w)
 
-  def hess(self):
-    return lambda x: np.zeros((len(x), len(x)))
+  def hess(self, x):
+    return np.zeros((len(x), len(x)))
 
   @staticmethod
   def weights(r, w):

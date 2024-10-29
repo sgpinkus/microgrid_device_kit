@@ -93,7 +93,7 @@ class TDevice(Device):
     return self._cost_fn(t)
 
   def deriv_t(self, t):
-    return self._cost_fn.deriv()(t)
+    return self._cost_fn.deriv(t)
 
   def r2t(self, r):
     ''' Map `r` consumption vector to its effective heating or cooling effect, given heat transfer

@@ -45,10 +45,10 @@ class IDevice(Device):
     return self.costv(s, p).sum()
 
   def deriv(self, s, p):
-    return self._cost_fn.deriv()(s) + p
+    return self._cost_fn.deriv(s) + p
 
   def hess(self, s, p=0):
-    return self._cost_fn.hess()(s)
+    return self._cost_fn.hess(s)
 
   @property
   def a(self):

@@ -23,10 +23,10 @@ class TestQuadraticCost2Function(TestCase):
     f = HLQuadraticCost(-1, 0, 0, 1) # Turns out b = -1, a = 1/2.
     self.assertEqual(f(1), 0)
     self.assertEqual(f(0), 0.5)
-    self.assertEqual(f.deriv()(0), -1)
-    self.assertEqual(f.deriv()(1), 0.)
-    self.assertEqual(f.hess()([0]), f.hess()(0), [[1.]])
-    self.assertTrue((f.hess()([1,1]) == f.hess()([253,2])).all())
+    self.assertEqual(f.deriv(0), -1)
+    self.assertEqual(f.deriv(1), 0.)
+    self.assertEqual(f.hess([0]), f.hess(0), [[1.]])
+    self.assertTrue((f.hess([1,1]) == f.hess([253,2])).all())
 
 
 class TestSumFunction(TestCase):
@@ -34,13 +34,13 @@ class TestSumFunction(TestCase):
     f = SumFunction([NullFunction(), NullFunction(), NullFunction()])
     g = HLQuadraticCost(-1, 0, 0, 1)
     self.assertEqual(f(1), 0)
-    self.assertEqual(f.deriv()(0), 0)
-    self.assertEqual(f.hess()(0), 0)
+    self.assertEqual(f.deriv(0), 0)
+    self.assertEqual(f.hess(0), 0)
     f = SumFunction([g, g, g])
     self.assertEqual(f(1), 0)
     self.assertEqual(f(0), 1.5)
-    self.assertEqual(f.deriv()(0), -3)
-    self.assertEqual(f.hess()(0), 3)
+    self.assertEqual(f.deriv(0), -3)
+    self.assertEqual(f.hess(0), 3)
 
 
 class TestPoly2D(TestCase):
@@ -53,9 +53,9 @@ class TestPoly2D(TestCase):
     ]
     for [x, y, dy] in xy:
       self.assertTrue((y == f.vector(x)).all())
-      self.assertTrue((dy == f.deriv()(x)).all())
+      self.assertTrue((dy == f.deriv(x)).all())
       self.assertTrue(np.array(y).sum() == f(x))
-      self.assertTrue((np.diag(f.hess()(x)) == [0,2,2]).all())
+      self.assertTrue((np.diag(f.hess(x)) == [0,2,2]).all())
 
 class TestPoly2DOffset(TestCase):
   def test_basics(self):
@@ -83,9 +83,9 @@ class TestX2D(TestCase):
     ]
     for [x, y] in xy:
       self.assertTrue(np.array(y).sum() == f(x))
-      self.assertEqual(f.deriv()(x).shape, (3,))
-      self.assertEqual(f.hess()(x).shape, (3,3))
-      # print(x, f.hess()(x))
+      self.assertEqual(f.deriv(x).shape, (3,))
+      self.assertEqual(f.hess(x).shape, (3,3))
+      # print(x, f.hess(x))
 
 
 class TestDemandFunction(TestCase):
@@ -94,13 +94,13 @@ class TestDemandFunction(TestCase):
     x = np.ones(10)
     x[5] = 2
     self.assertEqual(f(x), 7)
-    self.assertEqual(f.deriv()(x)[5], 5)
-    self.assertEqual(f.deriv()(x)[0], f.deriv()(x)[9], 0)
-    self.assertEqual(f.hess()(x)[5][5], 2)
+    self.assertEqual(f.deriv(x)[5], 5)
+    self.assertEqual(f.deriv(x)[0], f.deriv(x)[9], 0)
+    self.assertEqual(f.hess(x)[5][5], 2)
     # f = DemandFunction(np.poly1d([1,0]))
     # print(f(x))
-    # print(f.deriv()(x))
-    # print(f.hess()(x))
+    # print(f.deriv(x))
+    # print(f.hess(x))
 
 
 class TestRangesFunction(TestCase):
@@ -111,8 +111,8 @@ class TestRangesFunction(TestCase):
     f = RangesFunction([((0, 2), a), ((2, 4), b), ((4, 6), c)])
     x = np.ones(6)
     # print(f(x))
-    # print(f.deriv()(x), a.deriv()(x[0:2]), b.deriv()(x[2:4]), c.deriv()(x[4:6]))
-    # print(f.hess()(x), b.hess()(x[2:4]))
+    # print(f.deriv(x), a.deriv(x[0:2]), b.deriv(x[2:4]), c.deriv(x[4:6]))
+    # print(f.hess(x), b.hess(x[2:4]))
 
 if __name__ == '__main__':
     unittest.main()

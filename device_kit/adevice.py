@@ -14,11 +14,11 @@ class ADevice(Device):
 
   def deriv(self, s, p):
     s = s.reshape(len(self))
-    return self.f.deriv()(s) + p
+    return self.f.deriv(s) + p
 
   def hess(self, s, p=0):
     s = s.reshape(len(self))
-    return self.f.hess()(s)
+    return self.f.hess(s)
 
   @property
   def constraints(self):
