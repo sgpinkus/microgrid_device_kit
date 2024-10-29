@@ -11,7 +11,7 @@ class Device(BaseDevice):
   _id = None              # The identifier of this device.
   _len = 0                # Fixed length of the following vectors / the planning window.
   _bounds = None          # Vector of 2-tuple min/max bounds on r.
-  _cbounds = None         # 2-Tuple cummulative min/max bounds. Cummulative bounds are optional.
+  _cbounds = None         # list of 4-Tuple cummulative min/max bounds. Cummulative bounds are optional.
   _feasible_region = None  # Convex region representing *only* bounds and cbounds. Convenience.
   _keys = None
 
@@ -114,16 +114,18 @@ class Device(BaseDevice):
     '''
     constraints = []
     if self.cbounds:
-      constraints += [{
-        'type': 'ineq',
-        'fun': lambda s: s.dot(np.ones(len(self))) - self.cbounds[0],
-        'jac': lambda s: np.ones(len(self))
-      },
-      {
-        'type': 'ineq',
-        'fun': lambda s: self.cbounds[1] - s.dot(np.ones(len(self))),
-        'jac': lambda s: -1*np.ones(len(self))
-      }]
+      for cbound in self.cbounds:
+        l, h, s, e = cbound
+        constraints += [{
+          'type': 'ineq',
+          'fun': lambda s: s.dot(np.ones(len(self))) - l,
+          'jac': lambda s: np.ones(len(self))
+        },
+        {
+          'type': 'ineq',
+          'fun': lambda s: h - s.dot(np.ones(len(self))),
+          'jac': lambda s: -1*np.ones(len(self))
+        }]
     return constraints
 
   @property
@@ -140,20 +142,32 @@ class Device(BaseDevice):
 
   @cbounds.setter
   def cbounds(self, cbounds):
-    ''' Set cbounds ensuring they are feasible wrt (l|h)bounds. '''
+    ''' Set cbounds ensuring they are feasible wrt (l|h)bounds. cbounds is either a 2-tuple or a list of 4-tuples. Each
+    4-tuple is (lower_bound, upper_bound, start_index, end_index). cbounds are always stored in 4-tuple form.
+    The actual range is [s,e) just like a python range, so to be contiguous e_{i} == s_{i+1}, although continuity isn't
+    checked here.
+    '''
+    def set_cbound(cbound):
+      if not hasattr(cbound, '__len__') or len(cbound) != 4:
+        raise ValueError(f'cbound must be a 4-tuple not "{cbound}"')
+      if cbound[1] <= cbound[0]:
+        raise ValueError('max cbound (%f) must be > min cbound (%f)' % (cbound[1], cbound[0]))
+      if self.lbounds[cbound[2]:cbound[3]].sum() > cbound[1]:
+        raise ValueError('cbounds infeasible; min possible sum (%f) is > max cbounds (%f)' % (self.lbounds[cbound[2]:cbound[3]].sum(), cbound[1]))
+      if self.hbounds[cbound[2]:cbound[3]].sum() < cbound[0]:
+        raise ValueError('cbounds infeasible; max possible sum (%f) is < min cbounds (%f)' % (self.hbounds[cbound[2]:cbound[3]].sum(), cbound[0]))
+      self.cbounds.append(cbound)
+    self._cbounds = []
     if cbounds is None:
       self._cbounds = None
       return
-    if not hasattr(cbounds, '__len__') or len(cbounds) != 2:
-      raise ValueError('len(cbounds) must be 2')
-    if cbounds[1] - cbounds[0] < 0:
-      raise ValueError('max cbound (%f) must be >= min cbound (%f)' % (cbounds[1], cbounds[0]))
-    if self.lbounds.sum() > cbounds[1]:
-      raise ValueError('cbounds infeasible; min possible sum (%f) is > max cbounds (%f)' % (self.lbounds.sum(), cbounds[1]))
-    if self.hbounds.sum() < cbounds[0]:
-      raise ValueError('cbounds infeasible; max possible sum (%f) is < min cbounds (%f)' % (self.hbounds.sum(), cbounds[0]))
-    self._cbounds = tuple(cbounds)
-    self._build_feasible_region()
+    elif not hasattr(cbounds, '__len__'):
+      raise  ValueError('cbounds should be a list of 4-tuples or a 2-tuple')
+    if len(cbounds) == 2 and not hasattr(cbounds[0], '__len__'):
+      set_cbound(tuple(cbounds) + (0, len(self)))
+    else:
+      for cbound in cbounds:
+        set_cbound(cbound)
 
   @params.setter
   def params(self, params):
@@ -173,6 +187,6 @@ class Device(BaseDevice):
 
   def _build_feasible_region(self):
     region = HyperCube(self.bounds)
-    if self.cbounds is not None:
-      region = Intersection(region, Slice(np.ones(len(self)), self.cbounds[0], self.cbounds[1]))
+    # if self.cbounds is not None:
+    #   region = Intersection(region, Slice(np.ones(len(self)), self.cbounds[0], self.cbounds[1]))
     self._feasible_region = region

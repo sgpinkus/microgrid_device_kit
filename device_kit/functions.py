@@ -6,6 +6,7 @@ Try not doing this.
 from abc import ABC, abstractmethod
 import numpy as np
 import numdifftools as nd
+from functools import reduce
 
 
 class Function(ABC):
@@ -128,8 +129,9 @@ class Poly2DOffset(Function):
     return lambda x: np.diag(self.deriv(2)(x))
 
 
-class X2D():
-  ''' Make apply X *scalar* functions to a vector input. Assumes function takes a scalar input. '''
+class X2D(Function):
+  ''' Apply X *scalar* functions to a vector input. Assumes function takes a scalar input. Function does not accept
+  scalar input. '''
   _functions = []
 
   def __init__(self, functions: Function) -> None:
@@ -150,6 +152,72 @@ class X2D():
     ''' Each hess value should be an 1x1 matrix '''
     return lambda x: np.diag(np.array([f(x[k]) for k, f in enumerate(self._hess)]).flatten())
 
+
+class RangesFunction(Function):
+  ''' Apply i-th function to the i-th range. Assumes input is a vector and has len equal to that
+  covered by the ranges '''
+
+  def __init__(self, functions: tuple[tuple[int, int], Function]) -> None:
+    self._ranges = [f[0] for f in functions]
+    self._validate_ranges(self._ranges)
+    self._functions = [f[1] for f in functions]
+    self._derivs = [f.deriv() for f in self._functions]
+    self._hessians = [f.hess() for f in self._functions]
+    self._len = self._ranges[-1][1]
+
+  def __len__(self):
+    return self._len
+
+  def __call__(self, x):
+    return np.array([self._functions[k](x[range(*_range)]) for k, _range in enumerate(self._ranges)]).sum()
+
+  def _deriv(self, x):
+    range_derivs = [self._derivs[k](x[range(*_range)]) for k, _range in enumerate(self._ranges)]
+    return np.array(reduce(lambda a, b: list(a) + list(b), range_derivs, [])) # np.flatten() or "+" doesn't work with inhomogenous.
+
+  def _hess(self, x):
+    v = [self._hessians[k](x[range(*_range)]) for k, _range in enumerate(self._ranges)]
+    y = np.zeros((len(self), len(self)))
+    for i, m in zip([r[0] for r in self._ranges], v):
+      y[i:i+m.shape[0],i:i+m.shape[1]] = m
+    return y
+
+  def deriv(self):
+    return lambda x: self._deriv(x)
+
+  def hess(self):
+    return lambda x: self._hess(x)
+
+  def _validate_ranges(self, ranges):
+    if ranges[0][0] != 0:
+      raise ValueError('ranges must start at zero')
+    if not (np.array([v[0] - (ranges[i-1][1] if i > 0 else 0) for i, v in enumerate(ranges)]) == 0).all():
+      raise ValueError(f'ranges must be contiguous and non overlapping not {ranges}')
+
+
+class InnerSumFunction(Function):
+  ''' This is a special simple case of composition f o g - because deriv of x.sum() is just ones.
+  TODO: Just impl composition and chain rule ..
+  '''
+  def __init__(self, outer_function) -> None:
+    self._f = outer_function
+    self._f_deriv = outer_function.deriv()
+    self._f_hess = outer_function.hess()
+
+  def __call__(self, x):
+    return self._f(np.array(x).sum())
+
+  def deriv(self):
+    return lambda x: self._deriv(x)
+
+  def hess(self):
+    return lambda x: self._hess(x)
+
+  def _deriv(self, x):
+    return self._f_deriv(np.array(x).sum())*np.ones(len(x))
+
+  def _hess(self, x):
+    return self._f_hess(np.array(x).sum())*np.eye(len(x))
 
 class InformationEntropy():
   ''' Information entropy preference function. Entropy is bad.

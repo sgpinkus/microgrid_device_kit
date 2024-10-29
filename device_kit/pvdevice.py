@@ -25,10 +25,6 @@ class PVDevice(Device):
   def bounds(self):
     return Device.bounds.fget(self)
 
-  @property
-  def cbounds(self):
-    return self._cbounds
-
   @bounds.setter
   def bounds(self, bounds):
     ''' @override bounds setter to ensure hbounds <= 0. '''
@@ -37,12 +33,3 @@ class PVDevice(Device):
     if not (self.hbounds <= 0).all():
       raise ValueError('hbounds must be <= 0')
 
-  @cbounds.setter
-  def cbounds(self, cbounds):
-    ''' @override don't allow cbounds
-    @todo to allow -ve cbounds.
-    '''
-    if cbounds is None:
-      self._cbounds = None
-    else:
-      raise ValueError('cbounds not allowed for PVDevice currently')

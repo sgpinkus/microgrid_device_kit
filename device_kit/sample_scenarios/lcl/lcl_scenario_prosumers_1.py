@@ -47,9 +47,8 @@ def make_battery(type, id, max_rate=1.8, capacity=5.5):
   ''' No diff for battery '''
   p_range = [-max_rate, max_rate]
   bounds = stack((np.ones(24)*p_range[0], np.ones(24)*p_range[1]), axis=1)
-  cbounds = None
   params = {'c1': 0.1, 'c2': 0.0, 'c3': 0.0, 'damage_depth': 0.1, 'reserve': 0.5, 'capacity': capacity+irandom()}
-  return SDevice('battery', 24, bounds, cbounds, **params)
+  return SDevice('battery', 24, bounds, **params)
 
 
 # def matplot_network_writer_hook(event, plt, writer=None):

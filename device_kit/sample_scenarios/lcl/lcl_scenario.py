@@ -126,11 +126,10 @@ def make_lighting(type, id):
   care = hstack((zeros(10), ones(5), zeros(9)))  # {18-23}
   p_range = [0.2, 0.8]
   bounds = stack((care*p_range[0], care*p_range[1]), axis=1)
-  cbounds = None
   params = {'a': 0, 'b': 4, 'c': 0.25}
   if type == 3:
     params = {'a': care*0.1, 'b': 4, 'c': 2.5}
-  return IDevice('lighting', 24, bounds, cbounds, **params)
+  return IDevice('lighting', 24, bounds, **params)
 
 
 def make_entertainment(type, id):
@@ -150,9 +149,8 @@ def make_entertainment(type, id):
 
 def make_battery(type, id, max_rate=1.8, capacity=5.5):
   ''' No diff for battery '''
-  cbounds = None
   params = {'c1': 0.1, 'c2': 0.0, 'c3': 0.0, 'damage_depth': 0.1, 'reserve': 0.5, 'capacity': capacity+irandom()}
-  return SDevice('battery', 24, [-max_rate, max_rate], cbounds, **params)
+  return SDevice('battery', 24, [-max_rate, max_rate], **params)
 
 
 def make_pv(type, id, max_rate=3, area=5, efficiency = 0.9):

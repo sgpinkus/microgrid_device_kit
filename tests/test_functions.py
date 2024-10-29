@@ -103,5 +103,16 @@ class TestDemandFunction(TestCase):
     # print(f.hess()(x))
 
 
+class TestRangesFunction(TestCase):
+  def test_test(self):
+    a = Poly2D([[0,0,0],[0,0,0]])
+    b = Poly2D([[1,1,1],[1,1,1]])
+    c = Poly2D([[2,2,2],[2,2,2]])
+    f = RangesFunction([((0, 2), a), ((2, 4), b), ((4, 6), c)])
+    x = np.ones(6)
+    # print(f(x))
+    # print(f.deriv()(x), a.deriv()(x[0:2]), b.deriv()(x[2:4]), c.deriv()(x[4:6]))
+    # print(f.hess()(x), b.hess()(x[2:4]))
+
 if __name__ == '__main__':
     unittest.main()

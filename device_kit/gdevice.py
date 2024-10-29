@@ -51,10 +51,6 @@ class GDevice(Device):
     ''' Return arrays of coeffs of cost function not an actual function. '''
     return self._cost_fn.coeffs
 
-  @property
-  def cbounds(self):
-    return self._cbounds
-
   @bounds.setter
   def bounds(self, bounds):
     ''' @override bounds setter to ensure hbounds <= 0. '''
@@ -62,16 +58,6 @@ class GDevice(Device):
     bounds = np.array(bounds)
     if not (self.hbounds <= 0).all():
       raise ValueError('hbounds must be <= 0')
-
-  @cbounds.setter
-  def cbounds(self, cbounds):
-    ''' @override don't allow cbounds
-    @todo to allow -ve cbounds.
-    '''
-    if cbounds is None:
-      self._cbounds = None
-    else:
-      raise ValueError('cbounds not allowed for GDevice currently')
 
   @cost_coeffs.setter
   def cost_coeffs(self, cost):
