@@ -14,7 +14,7 @@ class CDevice2(Device):
     if not self.cbounds:
       self.cbounds = [self.lbounds.sum(), self.hbounds.sum()]
     if len(self.cbounds) == 1:
-      self._cost_fn = HLQuadraticCost(self.p_l, self.p_h, self.cbounds[0][0], self.cbounds[0][1])
+      self._cost_fn = InnerSumFunction(HLQuadraticCost(self.p_l, self.p_h, self.cbounds[0][0], self.cbounds[0][1]))
     else:
       self._cost_fn = RangesFunction([((c[2], c[3]), InnerSumFunction(HLQuadraticCost(self.p_l, self.p_h, c[0], c[1]))) for c in self.cbounds])
 

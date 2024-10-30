@@ -53,6 +53,9 @@ class SumFunction(Function):
   def __call__(self, x):
     return np.array([v(x) for v in self.functions]).sum()
 
+  def __str__(self):
+    return f'Sum({[str(f) for f in self.functions]})'
+
   def deriv(self, x):
     return np.array([v.deriv(x) for v in self.functions]).sum(axis=0)
 
@@ -68,6 +71,9 @@ class ReflectedFunction(Function):
 
   def __call__(self, x):
     return self.function(-1*x)
+
+  def __str__(self):
+    return f'{str(self.function)} o -x'
 
   def deriv(self, x):
     return self.function.deriv(-1*x)*-1
@@ -147,6 +153,20 @@ class Poly2DOffset(Function):
     return np.diag(self._hess.vector(x))
 
 
+class Poly1D():
+  def __init__(self, poly1d):
+    self.f = poly1d
+
+  def __call__(self, x):
+    return self.f(x).sum()
+
+  def deriv(self, x):
+    return self.f.deriv()(x)
+
+  def hess(self, x):
+    return np.diag(self.f.deriv(2)(x))
+
+
 class X2D(Function):
   ''' Apply X *scalar* functions to a vector input. Assumes function takes a scalar input. Function does not accept
   scalar input. '''
@@ -180,18 +200,22 @@ class RangesFunction(Function):
     self._derivs = [f.deriv for f in self.functions]
     self._hessians = [f.hess for f in self.functions]
     self._len = self.ranges[-1][1]
+    print(len(self), self.ranges)
 
   def __len__(self):
     return self._len
 
   def __call__(self, x):
+    x = x.reshape((len(self),))
     return np.array([self.functions[k](x[range(*_range)]) for k, _range in enumerate(self.ranges)]).sum()
 
   def deriv(self, x):
+    x = x.reshape((len(self),))
     range_derivs = [self.functions[k].deriv(x[range(*_range)]) for k, _range in enumerate(self.ranges)]
     return np.array(reduce(lambda a, b: list(a) + list(b), range_derivs, [])) # np.flatten() or "+" doesn't work with inhomogenous.
 
   def hess(self, x):
+    x = x.reshape((len(self),))
     range_hessians = [self.functions[k].hess(x[range(*_range)]) for k, _range in enumerate(self.ranges)]
     y = np.zeros((len(self), len(self)))
     for i, m in zip([r[0] for r in self.ranges], range_hessians):

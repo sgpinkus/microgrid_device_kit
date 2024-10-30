@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 ''' Convenience script to just solve for outright cost minimized balanced flow - no market sim crap.
 '''
-import sys
-from os.path import basename
+from os.path import splitext
 import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
-from scipy.optimize import minimize
 import device_kit
 from device_kit import loaders
 
@@ -48,13 +46,14 @@ def main():
   (x, solve_meta) = device_kit.solve(deviceset, solver_options={'ftol': 1e-6 }, cb=Cb(), p=0) # Convenience convex solver.
   print(solve_meta.message)
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
-  plot_bars(df, meta.get('title') if meta else None, cb)
+  plot_bars(df, meta.get('title') if meta else None, splitext(args.filename)[0] + '.png', cb)
   df.loc['total'] = df.sum()
   df['cumulative'] = df.sum(axis=1)
   print(df.sort_index())
+  df.to_csv(splitext(args.filename)[0] + '.csv', float_format='%.3f')
 
 
-def plot_bars(df, title, cb=None, aggregation_level=2):
+def plot_bars(df, title, filename, cb=None, aggregation_level=2, ):
   df_sums = df.groupby(lambda l: '.'.join(l.split('.')[0:aggregation_level])).sum()
   cm=plt.get_cmap('Paired', len(df_sums)+1)
   f = plt.figure(0)
@@ -67,7 +66,7 @@ def plot_bars(df, title, cb=None, aggregation_level=2):
   plt.xlabel('Time (H)')
   if cb:
     cb('after-update', f)
-  plt.savefig('run.png')
+  plt.savefig(filename)
   plt.clf()
 
 
@@ -78,8 +77,6 @@ class Cb():
   def __call__(self, device, x):
     logger.info('step=%d; cost=%.6f' % (self.i, device.cost(x, 0)))
     self.i += 1
-
-
 
 
 main()
