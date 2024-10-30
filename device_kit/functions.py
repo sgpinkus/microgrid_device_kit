@@ -1,5 +1,6 @@
 '''
-Various preference functions. Can be used with ADevice.
+Various preference functions. Can be used with ADevice and else where.
+See notes on Function.
 '''
 from abc import ABC, abstractmethod
 import numpy as np
@@ -8,6 +9,14 @@ from functools import reduce
 
 
 class Function(ABC):
+  ''' Input x should typically be a vector with __call_, deriv, hess returning
+  scalar, (N,), (N,N) shaped results. Some functions may accept scalars for all
+  of __call_, deriv, hess and in that case return scalars, but this should be
+  considered a special sub-type.
+  NOTE/TODO: Some sub-types also happen to accept a scalar only for __call__() with same
+  result as array of len 1 but won't accept a scalar for deriv, hess.
+  '''
+
   @abstractmethod
   def __call__(self, x):
     pass
@@ -39,7 +48,7 @@ class SumFunction(Function):
   functions = []
 
   def __init__(self, functions: list[Function]) -> None:
-    self.functions = functions if len(functions) else NullFunction()
+    self.functions = functions if len(functions) else [NullFunction()]
 
   def __call__(self, x):
     return np.array([v(x) for v in self.functions]).sum()
@@ -153,21 +162,21 @@ class X2D(Function):
     return np.array([self.functions[k](v) for k, v in enumerate(np.array(x).reshape(len(self)))]).sum()
 
   def deriv(self, x):
-    return np.array([f.deriv(x[k]) for k, f in enumerate(self.functions)]).reshape(-1)
+    return np.array([self.functions[k].deriv(v) for k, v in enumerate(np.array(x).reshape(len(self)))]).reshape(-1)
 
   def hess(self, x):
     ''' Each hess value should be an 1x1 matrix '''
-    return np.diag(np.array([f.hess(x[k]) for k, f in enumerate(self.functions)]).flatten())
+    return np.diag(np.array([self.functions[k].hess(v) for k, v in enumerate(np.array(x).reshape(len(self)))]).flatten())
 
 
 class RangesFunction(Function):
-  ''' Apply i-th function to the i-th range. Assumes input is a vector and has len equal to that
-  covered by the ranges '''
+  ''' Apply i-th function to the i-th range of the input vector. Assumes input is a vector and has length equal to that
+  covered by the ranges. '''
 
-  def __init__(self, functions: tuple[tuple[int, int], Function]) -> None:
-    self.ranges = [f[0] for f in functions]
+  def __init__(self, range_functions: tuple[tuple[int, int], Function]) -> None:
+    self.ranges = [f[0] for f in range_functions]
     self._validate_ranges(self.ranges)
-    self.functions = [f[1] for f in functions]
+    self.functions = [f[1] for f in range_functions]
     self._derivs = [f.deriv for f in self.functions]
     self._hessians = [f.hess for f in self.functions]
     self._len = self.ranges[-1][1]
@@ -198,7 +207,9 @@ class RangesFunction(Function):
 
 class InnerSumFunction(Function):
   ''' This is a special simple case of composition, f o g - because deriv of x.sum() is just ones.
-  TODO: Just impl composition and chain rule ..
+  TODO: Just implement a composition and the chain rule.
+  NOTE: This function assumes the outer_function accepts a scalar for all of __call__(), deriv(), hess(), but
+  this isn't the case for many functions ...
   '''
   def __init__(self, outer_function) -> None:
     self.outer_function = outer_function
