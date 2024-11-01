@@ -38,7 +38,7 @@ def step(device, p, s, stepsize=1, solver_options={}):
   return (s_next, ol)
 
 
-def solve(device, p, s0=None, solver_options={}, prox=None, cb=None):
+def solve(device, p=0, s0=None, solver_options={}, prox=None, cb=None):
   ''' Find the optimal demand for price for the given device and return it. Works on any device
   since only requires s and device.deriv. This method does not modify the device.
   Note AFAIK scipy.optimize only provides two methods that support constraints:

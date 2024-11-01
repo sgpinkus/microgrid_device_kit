@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
 import device_kit
-from device_kit import loaders
+from device_kit.loaders import builder_loader, module_loader
 
 
 logging.basicConfig()
@@ -39,11 +39,11 @@ def main():
   parser.add_argument('--loader', '-l', action='store', default='module', type=str,
     help='loader to use to load scenario file')
   args = parser.parse_args()
-  loader = getattr(loaders, f'{args.loader}_loader')
-  (deviceset, meta, cb) = loader(args.filename)
+  loader = globals()[f'{args.loader}_loader']
+  (deviceset, meta, cb) = loader.load_file(args.filename)
   deviceset.sbounds = (0,0)
   print(str(deviceset))
-  (x, solve_meta) = device_kit.solve(deviceset, solver_options={'ftol': 1e-6 }, cb=Cb(), p=0) # Convenience convex solver.
+  (x, solve_meta) = device_kit.solve(deviceset, solver_options={'ftol': 1e-6 }, cb=Cb()) # Convenience convex solver.
   print(solve_meta.message)
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
   plot_bars(df, meta.get('title') if meta else None, splitext(args.filename)[0] + '.png', cb)

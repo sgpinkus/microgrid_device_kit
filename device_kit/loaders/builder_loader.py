@@ -4,7 +4,6 @@ from os.path import basename
 import importlib
 import numpy as np
 import argparse
-from scipy.optimize import minimize
 import device_kit
 from device_kit.functions import *
 from device_kit.utils import flatten
@@ -23,11 +22,15 @@ def main():
     help='name of JSON file containing scenario to load'
   )
   args = parser.parse_args()
-  logger.info(load(args.filename))
+  logger.info(load_file(args.filename))
 
 
-def load(filename):
+def load_file(filename):
   data = json.load(open(filename, 'r'))
+  return (load_data(data), {}, None)
+
+
+def load_data(data):
   basis = data['basis']
   data = data['devices']
   devices = []
@@ -35,7 +38,7 @@ def load(filename):
     loader = globals()[f'load_{d['type']}_device']
     logger.info(f'found device with type={d['type']}')
     devices.append(loader(d, basis))
-  return (device_kit.DeviceSet('site', devices), {}, None)
+  return device_kit.DeviceSet(data['name'] if 'name' in data else 'site', devices)
 
 
 def load_load_device(d, basis: int):

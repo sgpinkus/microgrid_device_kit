@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "device_kit"
-version = "1.0.2"
+version = "1.0.3"
 authors = [
   { name="Sam Pinkus", email="sgpinkus@gmail.com" },
 ]
@@ -35,5 +35,5 @@ Homepage = "https://github.com/sgpinkus/device_kit"
 Issues = "https://github.com/sgpinkus/device_kit/issues"
 
 [tool.setuptools]
-packages = ["device_kit", "device_kit.sample_scenarios", "device_kit.projection"]
+packages = ["device_kit", "device_kit.sample_scenarios", "device_kit.projection", "device_kit.loaders"]
 
