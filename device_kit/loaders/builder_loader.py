@@ -35,8 +35,8 @@ def load_data(data):
   data = data['devices']
   devices = []
   for d in data:
-    loader = globals()[f'load_{d['type']}_device']
-    logger.info(f'found device with type={d['type']}')
+    loader = globals()['load_%s_device' % (d['type'],)]
+    logger.info(f'found device with type=%s' % (d['type'],))
     devices.append(loader(d, basis))
   return device_kit.DeviceSet(data['name'] if 'name' in data else 'site', devices)
 
@@ -109,22 +109,22 @@ def load_cost_function(d, bounds, cbounds, basis):
   costs_data = d['costs']
   costs = []
   if 'flow' in costs_data:
-    logger.info(f'\tfound flow cost for {d['type']}')
+    logger.info('\tfound flow cost for %s' % (d['type'],))
     coeffs = _reshape_offset_quad_coeffs(costs_data['flow'])
     costs += [Poly2DOffset(coeffs)]
   if 'cumulative_flow' in costs_data:
-    logger.info(f'\tfound cumulative_flow for {d['type']}')
+    logger.info(f'\tfound cumulative_flow for %s' % (d['type'],))
     raise Exception('Not implemented')
   if 'flow_bounds_relative' in costs_data:
-    logger.info(f'\tfound flow_bounds_relative cost for {d['type']}')
+    logger.info('\tfound flow_bounds_relative cost for %s' % (d['type'],))
     _functions = [HLQuadraticCost(v[0], v[1], bounds[i, 0], bounds[i, 1]) for i, v in enumerate(costs_data['flow_bounds_relative'])]
     costs += [X2D(_functions)]
   if 'cumulative_flow_bounds_relative' in costs_data:
-    logger.info(f'\tfound cumulative_flow_bounds_relative cost for {d['type']}: {costs_data['cumulative_flow_bounds_relative']}')
+    logger.info('\tfound cumulative_flow_bounds_relative cost for %s: %s', (d['type'], costs_data['cumulative_flow_bounds_relative']))
     p_l, p_h = costs_data['cumulative_flow_bounds_relative']
     costs += [RangesFunction([((c[2], c[3]), InnerSumFunction(HLQuadraticCost(p_l, p_h, c[0], c[1]))) for c in cbounds])]
   if 'peak_flow' in costs_data:
-    logger.info(f'\tfound peak_flow cost for {d['type']}')
+    logger.info('\tfound peak_flow cost for %s' % (d['type'],))
     costs += [DemandFunction(np.poly1d(costs_data['peak_flow']))]
   return SumFunction(costs) if len(costs) else None
 
