@@ -12,7 +12,7 @@ In practice a human user is going to define the parameters to the curve, so what
   + How the curvy-ness matches their understanding of their own utility.
 
 # Alt 1 (IDevice)
-`IDevice` instantaneous utility function tries to capture these things with 4 parameters. Refer to notes in [source](../device.py). [This figure](img/idevice-utility-curves.png) shows some example curves.
+`IDevice` instantaneous utility function tries to capture these things with 4 parameters. Refer to notes in [source](../device.py).
 
 # Alt 2 (IDevice2)
 User specifies `q_{t,min}`, `q_{t,max}` hard bounds. Consumption at `q_{t,max}` is utility maximizing and utility decreases towards `q_{t,min}`. It is unreasonable to expect the user to completely define the mathematical parameters to the utility function. An intuitive way for the user to specify flexibility is to specify at what price they wish to start compromising (from `q_{t,max}`) and at what price they are willing to stop compromising (at `q_{t,min}`). This corresponds to the derivative of the utility function at `q_{t,max}` and `q_{t,min}` respectively.
@@ -36,6 +36,6 @@ Where:
   - *a*, *b* are "positive constants".
   - *q_bar* is not defined, but we assume they mean be *q_max(t)*.
 
-The above utility function didn't make sense to me so build IDevice, IDevice2 instead.
+The above utility function didn't make sense to me so built IDevice, IDevice2 instead.
 
 [lcl]: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.650.167&rep=rep1&type=pdf
