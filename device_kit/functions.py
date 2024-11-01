@@ -143,13 +143,13 @@ class Poly2DOffset(Function):
   def deriv(self, x):
     if not self._deriv:
       _coeffs = [np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv().coeffs) for c in self.coeffs]
-      self._deriv = Poly2DOffset(np.concat((_coeffs, self.offsets.reshape((len(self),1))), axis=1))
+      self._deriv = Poly2DOffset(np.concatenate((_coeffs, self.offsets.reshape((len(self),1))), axis=1))
     return self._deriv.vector(x)
 
   def hess(self, x):
     if not self._hess:
       _coeffs = [np.polyadd(np.zeros(len(c)), np.poly1d(c).deriv(2).coeffs) for c in self.coeffs]
-      self._hess = Poly2DOffset(np.concat((_coeffs, self.offsets.reshape((len(self),1))), axis=1))
+      self._hess = Poly2DOffset(np.concatenate((_coeffs, self.offsets.reshape((len(self),1))), axis=1))
     return np.diag(self._hess.vector(x))
 
 

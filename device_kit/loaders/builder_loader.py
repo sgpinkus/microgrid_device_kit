@@ -132,7 +132,7 @@ def load_cost_function(d, bounds, cbounds, basis):
 def _reshape_offset_quad_coeffs(x):
   x = np.array(x)
   basis = len(x)
-  return np.concat((x[:, 0:2], np.zeros((basis, 1)), np.array(x[:, 2]).reshape((basis, 1))), axis=1)
+  return np.concatenate((x[:, 0:2], np.zeros((basis, 1)), np.array(x[:, 2]).reshape((basis, 1))), axis=1)
 
 
 if __name__ == '__main__':
