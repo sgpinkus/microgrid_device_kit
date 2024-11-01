@@ -25,7 +25,7 @@ np.set_printoptions(
 meta = {
   'title': 'The CDevice2 should want to consume at it\'s cbound limit because the marginal cost is less than the utility cost at max cbound',
 }
-dimension = 48
+basis = 48
 demand_bounds = (0, 2)
 supply_bounds = (-3,0)
 
@@ -34,7 +34,7 @@ def make_deviceset():
   return DeviceSet('nw', [
     CDevice2(
       'demand',
-      dimension,
+      basis,
       demand_bounds,
       cbounds=(0,10),
       p_l=-1.4,
@@ -42,8 +42,44 @@ def make_deviceset():
     ),
     GDevice(
       'supply',
-      dimension,
+      basis,
       supply_bounds,
       cost_coeffs=[1,1,0]
     )
   ])
+
+# This should be identical ..
+# def make_deviceset():
+#   return DeviceSet('nw', [
+#     ADevice(
+#       'demand',
+#       basis,
+#       demand_bounds,
+#       cbounds=(0,10),
+#       f=HLQuadraticCost(-1.4, 0, 0, 10)
+#     ),
+#     ADevice(
+#       'supply',
+#       basis,
+#       supply_bounds,
+#       f=ReflectedFunction(Poly1D(np.poly1d([1,1,0])))
+#     )
+#   ])
+
+# # As should this
+# def make_deviceset():
+#   return DeviceSet('nw', [
+#     ADevice(
+#       'demand',
+#       basis,
+#       demand_bounds,
+#       cbounds=(0,10),
+#       f=HLQuadraticCost(-1.4, 0, 0, 10)
+#     ),
+#     ADevice(
+#       'supply',
+#       basis,
+#       supply_bounds,
+#       f=ReflectedFunction(Poly2D(np.tile([1,1,0], basis).reshape(basis, 3)))
+#     )
+#   ])
