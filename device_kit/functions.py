@@ -200,7 +200,6 @@ class RangesFunction(Function):
     self._derivs = [f.deriv for f in self.functions]
     self._hessians = [f.hess for f in self.functions]
     self._len = self.ranges[-1][1]
-    print(len(self), self.ranges)
 
   def __len__(self):
     return self._len

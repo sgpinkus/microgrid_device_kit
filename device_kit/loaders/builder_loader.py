@@ -36,7 +36,7 @@ def load_data(data):
   devices = []
   for d in data:
     loader = globals()['load_%s_device' % (d['type'],)]
-    logger.info(f'found device with type=%s' % (d['type'],))
+    logger.info('found device with type=%s' % (d['type'],))
     devices.append(loader(d, basis))
   return device_kit.DeviceSet(data['name'] if 'name' in data else 'site', devices)
 
@@ -113,7 +113,7 @@ def load_cost_function(d, bounds, cbounds, basis):
     coeffs = _reshape_offset_quad_coeffs(costs_data['flow'])
     costs += [Poly2DOffset(coeffs)]
   if 'cumulative_flow' in costs_data:
-    logger.info(f'\tfound cumulative_flow for %s' % (d['type'],))
+    logger.info('\tfound cumulative_flow for %s' % (d['type'],))
     raise Exception('Not implemented')
   if 'flow_bounds_relative' in costs_data:
     logger.info('\tfound flow_bounds_relative cost for %s' % (d['type'],))
