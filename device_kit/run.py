@@ -46,14 +46,15 @@ def main():
   (x, solve_meta) = device_kit.solve(deviceset, solver_options={'ftol': 1e-6 }, cb=Cb()) # Convenience convex solver.
   print(solve_meta.message)
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
-  plot_bars(df, meta.get('title') if meta else None, splitext(args.filename)[0] + '.png', cb)
+  plot_bars(df, meta.get('title') if meta else None, splitext(args.filename)[0] + '.png')
   df.loc['total'] = df.sum()
+  df.loc['prices'] = -1*np.array(solve_meta.jac).reshape(deviceset.shape)[0] # sort of.
   df['cumulative'] = df.sum(axis=1)
   print(df.sort_index())
   df.to_csv(splitext(args.filename)[0] + '.csv', float_format='%.3f')
 
 
-def plot_bars(df, title, filename, cb=None, aggregation_level=2, ):
+def plot_bars(df, title, filename, aggregation_level=2):
   df_sums = df.groupby(lambda l: '.'.join(l.split('.')[0:aggregation_level])).sum()
   cm=plt.get_cmap('Paired', len(df_sums)+1)
   f = plt.figure(0)
@@ -64,8 +65,6 @@ def plot_bars(df, title, filename, cb=None, aggregation_level=2, ):
   plt.title(title)
   plt.ylabel('Power (kWh)')
   plt.xlabel('Time (H)')
-  if cb:
-    cb('after-update', f)
   plt.savefig(filename)
   plt.clf()
 
@@ -79,4 +78,5 @@ class Cb():
     self.i += 1
 
 
-main()
+if __name__ == '__main__':
+  main()
