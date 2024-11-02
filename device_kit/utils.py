@@ -102,3 +102,9 @@ def project(p, x0, bounds=[], constraints=[], solver_options={}):
 
 def flatten(x):
   return reduce(lambda a, b: list(a) + list(b), x, [])
+
+def get_device_by_id(deviceset, id):
+  try:
+    return list(filter(lambda v: v.id == id, deviceset.devices))[0]
+  except:
+    return None
