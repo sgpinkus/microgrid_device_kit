@@ -10,7 +10,7 @@ import argparse
 import device_kit
 from device_kit.loaders import builder_loader, module_loader
 # from device_kit.utils import get_device_by_id
-from plots import *
+from device_kit.plots import *
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -54,7 +54,7 @@ def main():
 
   output_filename = splitext(basename(args.filename))[0]
   title = meta.get('title') if meta else None
-  plot_stacked_bars(df, title, output_filename + '.png')
+  plot_dataframe_as_stacked_bars(df, title, output_filename + '.png')
   df['cumulative'] = df.sum(axis=1)
   print(df.sort_index())
   df.to_csv(output_filename + '.csv', float_format='%.3f')
