@@ -82,6 +82,7 @@ def make_home_devices():
         'c2': 0.05,
         'c3': 0.001,
         'damage_depth': 0.2,
+        'start': 0.5,
         'reserve': 0.5,
         'capacity': 7,
         'efficiency': 0.8,

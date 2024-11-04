@@ -65,17 +65,18 @@ def main():
   output_filename = 'run-out/' + splitext(basename(args.filename))[0]
 
   title = meta.get('title') if meta else None
-  fig, ax = plot_dataframe_as_stacked_bars(df)
+  fig, ax = plot_dataframe_as_stacked_bars(df, aggregation_level=3)
 
   for (label, d) in df_derivs.iterrows():
-    ax.plot(d.index, d, label=label + '_deriv')
+    if label.find('supply') >= 0:
+      ax.plot(d.index, d, label=label + '_deriv')
 
   _len = df.shape[1]
   ax.set_xlim(-2, _len+2)
-  ax.set_ylim(-1, 1)
+  # ax.set_ylim(df.min(), df.max())
   ax.set_title(title)
   ax.legend(
-    prop={'size': 12},
+    prop={'size': 10},
     # loc='upper right',
     framealpha=0.6,
     frameon=True,
@@ -83,7 +84,6 @@ def main():
     borderaxespad=-3
   )
   fig.savefig(output_filename + '.png', format='png')
-  df['cumulative'] = df.sum(axis=1)
   df.to_csv(output_filename + '.csv', float_format='%.3f')
 
   print('Total Costs')
