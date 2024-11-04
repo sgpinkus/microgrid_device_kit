@@ -22,13 +22,22 @@ def make_devices():
   basis = 24
   cost = np.stack((np.sin(np.linspace(0, np.pi, basis))*0.5+0.1, np.ones(basis)*0.001, np.zeros(basis)), axis=1)
   return {
-    'demand1': IDevice(
-      'demand1',
+    # 'demand1': IDevice(
+    #   'demand1',
+    #   basis,
+    #   np.stack((np.zeros(basis), np.ones(basis)*1), axis=1),
+    #   **{
+    #     'a': 0.1,
+    #     'b': np.concatenate((np.ones(int(basis/2))*2, np.ones(int(basis/2))*4))
+    #   }
+    # ),
+    'demand2': IDevice2(
+      'demand2',
       basis,
       np.stack((np.zeros(basis), np.ones(basis)*1), axis=1),
       **{
-        'a': 0.1,
-        'b': np.concatenate((np.ones(int(basis/2))*2, np.ones(int(basis/2))*4))
+        'p_l': -1,
+        'p_h': -0.1*np.concatenate((np.ones(int(basis/2))*2, np.ones(int(basis/2))*4))
       }
     ),
     'supply': GDevice(

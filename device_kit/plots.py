@@ -29,7 +29,7 @@ def plot_dataframe_as_bars(df, title, filename, aggregation_level=2):
 
 
 def plot_dataframe_as_stacked_bars_more(df, title, filename=None, fltr=None, aggregation_level=3):
-  fig, ax = plot_data_frame_as_stacked_bars(df, fltr, aggregation_level)
+  fig, ax = plot_dataframe_as_stacked_bars(df, fltr, aggregation_level)
   # Setup ax meta.
   _len = df.shape[1]
   ax.set_xlim(-2, _len+2)
@@ -50,7 +50,7 @@ def plot_dataframe_as_stacked_bars_more(df, title, filename=None, fltr=None, agg
   return fig, ax
 
 
-def plot_data_frame_as_stacked_bars(df, fltr=None, aggregation_level=2):
+def plot_dataframe_as_stacked_bars(df, fltr=None, aggregation_level=2):
   fig, ax = plt.subplots()
   ax.clear()
 

@@ -26,7 +26,7 @@ class IDevice2(Device):
     self._cost_fn = HLQuadraticCost(self.p_l, self.p_h, self.lbounds, self.hbounds)
 
   def costv(self, s, p):
-    return self._cost_fn(s) + s*p
+    return self._cost_fn(s)/len(self) + s*p
 
   def cost(self, s, p):
     return self.costv(s, p).sum()

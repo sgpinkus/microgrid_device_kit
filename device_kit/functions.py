@@ -319,7 +319,21 @@ class CobbDouglas():
     return (r**(a/a.sum())).prod()
 
 
-class ABCQuadraticCost():
+class ABCCost():
+  ''' Provides a convex, and decreasing function described by 3 params; a,b,c.
+
+  Consider the polynomial section between [0,1]:
+
+    f(x) = x^b
+
+  Let s(x) give x scaled from [x_max, x_min] -> [0,1]. Then  when `a` is zero this cost function is:
+
+    g(x) = c*f(s(x)
+
+  When a is not zero we get scaling [x_max, x_min] -> [a, 1]. This means when x = x_max the derivative
+  is not zero which is often what you want.
+
+  '''
   a = 0
   b = 2
   c = 1
@@ -327,10 +341,10 @@ class ABCQuadraticCost():
   x_h = None
 
   def __init__(self, a, b, c, x_l, x_h):
-    [self.a, self.a, self.c, self.x_l, self.x_h] = a, b, c, x_l, x_h
-    self._cost_fn = lambda x: np.vectorize(ABCQuadraticCost._cost, otypes=[float])(x, self.a, self.b, self.c, self.x_l, self.x_h)
-    self._deriv_fn = lambda x: np.vectorize(ABCQuadraticCost._deriv, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h)
-    self._hess_fn = lambda x: np.diag(np.vectorize(ABCQuadraticCost._hess, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h))
+    [self.a, self.b, self.c, self.x_l, self.x_h] = a, b, c, x_l, x_h
+    self._cost_fn = lambda x: np.vectorize(ABCCost._cost, otypes=[float])(x, self.a, self.b, self.c, self.x_l, self.x_h)
+    self._deriv_fn = lambda x: np.vectorize(ABCCost._deriv, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h)
+    self._hess_fn = lambda x: np.diag(np.vectorize(ABCCost._hess, otypes=[float])(np.array(x).reshape(-1), self.a, self.b, self.c, self.x_l, self.x_h))
 
   def __call__(self, x):
     return self._cost_fn(x).sum()
@@ -346,24 +360,29 @@ class ABCQuadraticCost():
     ''' The cost function on scalar. '''
     if x_l == x_h:
       return 0
-    return (c/(1-a**b))*((1 - ABCQuadraticCost.scale(x, x_l, x_h, a))**b)
+    return c*ABCCost.q(x, x_l, x_h, a)**b
 
   @staticmethod
   def _deriv(x, a, b, c, x_l, x_h):
     ''' The derivative of cost function on scalar. '''
     if x_l == x_h:
       return 0
-    return -(c/(1-a**b))*((1-a)/(x_h-x_l))*b*((1 - ABCQuadraticCost.scale(x, x_l, x_h, a))**(b-1))
+    return -c*b*ABCCost.q(x, x_l, x_h, a)**(b-1)
 
   @staticmethod
   def _hess(x, a, b, c, x_l, x_h):
     if x_l == x_h:
       return 0
-    return (c/(1-a**b))*((1-a)/(x_h-x_l))**2*b*(b-1)*((1 - ABCQuadraticCost.scale(x, x_l, x_h, a))**(b-2))
+    return c*(b-1)*ABCCost.q(x, x_l, x_h, a)**(b-2)
 
   @staticmethod
-  def scale(x, x_l, x_h, a):
-    return (1-a)*((x - x_l)/(x_h - x_l))
+  def s(x, x_l, x_h):
+    ''' scalce -> 0 as x -> x_h, -> 1 as x -> x_l '''
+    return (x_h - x)/(x_h - x_l)
+
+  @staticmethod
+  def q(x, x_l, x_h, a):
+    return (1 - ABCCost.s(x, x_l, x_h))*a + ABCCost.s(x, x_l, x_h)
 
 
 class HLQuadraticCost():

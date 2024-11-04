@@ -49,13 +49,11 @@ def main():
 
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
   df.loc['excess'] = df.sum()
-  df['cumulative'] = df.sum(axis=1)
   print('Flows:')
   print(df.sort_index())
   print('Derivatives:')
   df_derivs = pd.DataFrame.from_dict(dict(deviceset.map(deviceset.deriv(x, 0))), orient='index')
   print(df_derivs.sort_index())
-
 
   # x = dict(deviceset.map(x))['nw.supply']
   # d = get_device_by_id(deviceset, 'supply')
@@ -67,10 +65,31 @@ def main():
   output_filename = 'run-out/' + splitext(basename(args.filename))[0]
 
   title = meta.get('title') if meta else None
-  plot_dataframe_as_stacked_bars_more(df, title, output_filename + '.png')
+  fig, ax = plot_dataframe_as_stacked_bars(df)
 
+  for (label, d) in df_derivs.iterrows():
+    ax.plot(d.index, d, label=label + '_deriv')
 
+  _len = df.shape[1]
+  ax.set_xlim(-2, _len+2)
+  ax.set_ylim(-1, 1)
+  ax.set_title(title)
+  ax.legend(
+    prop={'size': 12},
+    # loc='upper right',
+    framealpha=0.6,
+    frameon=True,
+    fancybox=True,
+    borderaxespad=-3
+  )
+  fig.savefig(output_filename + '.png', format='png')
+  df['cumulative'] = df.sum(axis=1)
   df.to_csv(output_filename + '.csv', float_format='%.3f')
+
+  print('Total Costs')
+  print(pd.Series({ _id: d.cost(_x, 0) for (_id, d, _x) in deviceset.mapDevices(x)}))
+  print('Total Flows')
+  print(df.sum(axis=1))
 
 
 class Cb():

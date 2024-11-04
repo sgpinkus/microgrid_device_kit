@@ -162,6 +162,13 @@ class BaseDevice(ABC):
     for i, d in enumerate(self.leaf_devices()):
       yield (d[0], s[i:i+1,:].reshape(len(self)))
 
+  def mapDevices(self, s):
+    ''' Same as map but returns devices too. '''
+    s = s.reshape(self.shape)
+    for i, d in enumerate(self.leaf_devices()):
+      yield (d[0], d[1], s[i:i+1,:].reshape(len(self)))
+
+
   def validate_bounds(self, bounds):
     ''' Validate Device style bounds specification. Convert to consistent format which is a
     (len(self), 2) shaped ndarray. Input must have length shape (len(self), 2), or len 1 or len 2.
