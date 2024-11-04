@@ -28,33 +28,10 @@ def plot_dataframe_as_bars(df, title, filename, aggregation_level=2):
   plt.clf()
 
 
-def plot_dataframe_as_stacked_bars(df, title, filename=None, as_lines=False, fltr=None, aggregation_level=3):
-  fig, ax = plt.subplots()
-  ax.clear()
-
-  _len = df.shape[1]
-
-  # Sometimes nice to show some lines (ex price, total demand/supply line) with bars.
-  if as_lines:
-    for line in as_lines:
-      ax.plot(range(0, _len), df.loc[line], label=line)
-
-  # Plot possibly filtered list of items of network as stacked bars.
-  if fltr:
-    df_sums = df.filter(like=fltr, axis=0)
-  else:
-    df_sums = df.groupby(lambda l: '.'.join(l.split('.')[0:aggregation_level])).sum()
-  if as_lines:
-    df_sums = df_sums[~df_sums.index.isin(as_lines)]
-  bottom = np.zeros(_len)
-  neg_bottom = np.zeros(_len)
-  for (i, (label, r)) in enumerate(df_sums.iterrows()):
-    use_bottom = np.choose(np.array(r < 0, dtype=int), [bottom, neg_bottom])
-    ax.bar(range(0, _len), r, color=_colors[i%len(_colors)], label=label, bottom=use_bottom)
-    neg_bottom += np.minimum(np.zeros(_len), r)
-    bottom += np.maximum(np.zeros(_len), r)
-
+def plot_dataframe_as_stacked_bars_more(df, title, filename=None, fltr=None, aggregation_level=3):
+  fig, ax = plot_data_frame_as_stacked_bars(df, fltr, aggregation_level)
   # Setup ax meta.
+  _len = df.shape[1]
   ax.set_xlim(-2, _len+2)
   ax.set_ylim(*ylim)
   ax.set_title(title)
@@ -70,4 +47,25 @@ def plot_dataframe_as_stacked_bars(df, title, filename=None, as_lines=False, flt
   if filename:
     fig.savefig(filename, format='png')
 
+  return fig, ax
+
+
+def plot_data_frame_as_stacked_bars(df, fltr=None, aggregation_level=2):
+  fig, ax = plt.subplots()
+  ax.clear()
+
+  _len = df.shape[1]
+
+  # Plot possibly filtered list of items of network as stacked bars.
+  if fltr:
+    df_sums = df.filter(like=fltr, axis=0)
+  else:
+    df_sums = df.groupby(lambda l: '.'.join(l.split('.')[0:aggregation_level])).sum()
+  bottom = np.zeros(_len)
+  neg_bottom = np.zeros(_len)
+  for (i, (label, r)) in enumerate(df_sums.iterrows()):
+    use_bottom = np.choose(np.array(r < 0, dtype=int), [bottom, neg_bottom])
+    ax.bar(range(0, _len), r, color=_colors[i%len(_colors)], label=label, bottom=use_bottom)
+    neg_bottom += np.minimum(np.zeros(_len), r)
+    bottom += np.maximum(np.zeros(_len), r)
   return fig, ax

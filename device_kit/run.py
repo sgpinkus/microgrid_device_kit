@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 ''' Convenience script to just solve for outright cost minimized balanced flow - no market sim crap.
 '''
-from os.path import splitext, basename
+from os import mkdir
+from os.path import splitext, basename, exists
 import logging
 import numpy as np
 import pandas as pd
@@ -11,6 +12,7 @@ import device_kit
 from device_kit.loaders import builder_loader, module_loader
 # from device_kit.utils import get_device_by_id
 from device_kit.plots import *
+
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -25,6 +27,7 @@ np_printoptions = {
 }
 np.set_printoptions(**np_printoptions)
 pd.set_option('display.float_format', lambda v: '%+0.3f' % (v,),)
+
 
 def main():
   parser = argparse.ArgumentParser(
@@ -45,18 +48,28 @@ def main():
   print(solve_meta.message)
 
   df = pd.DataFrame.from_dict(dict(deviceset.map(x)), orient='index')
-  df.loc['total'] = df.sum()
+  df.loc['excess'] = df.sum()
+  df['cumulative'] = df.sum(axis=1)
+  print('Flows:')
+  print(df.sort_index())
+  print('Derivatives:')
+  df_derivs = pd.DataFrame.from_dict(dict(deviceset.map(deviceset.deriv(x, 0))), orient='index')
+  print(df_derivs.sort_index())
+
 
   # x = dict(deviceset.map(x))['nw.supply']
   # d = get_device_by_id(deviceset, 'supply')
   # print(d.costv(x, 0))
   # print(d.deriv(x, 0))
 
-  output_filename = splitext(basename(args.filename))[0]
+  if not exists('run-out/'):
+    mkdir('run-out')
+  output_filename = 'run-out/' + splitext(basename(args.filename))[0]
+
   title = meta.get('title') if meta else None
-  plot_dataframe_as_stacked_bars(df, title, output_filename + '.png')
-  df['cumulative'] = df.sum(axis=1)
-  print(df.sort_index())
+  plot_dataframe_as_stacked_bars_more(df, title, output_filename + '.png')
+
+
   df.to_csv(output_filename + '.csv', float_format='%.3f')
 
 

@@ -4,9 +4,9 @@ __pycache__/
 *$py.class
 # Distribution / packaging
 # .Python
-# build/
+build/
 # develop-eggs/
-# dist/
+dist/
 # eggs/
 # .eggs/
 # lib/
@@ -16,7 +16,7 @@ __pycache__/
 # var/
 # wheels/
 # share/python-wheels/
-# *.egg-info/
+*.egg-info/
 # .installed.cfg
 # *.egg
 # MANIFEST
