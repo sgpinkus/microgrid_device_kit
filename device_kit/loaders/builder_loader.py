@@ -43,7 +43,7 @@ def load_data(data):
 
 def load_load_device(d, basis: int):
   device_id = d['title'] if 'title' in d else d['type']
-  bounds = np.array(d['bounds']).reshape((basis, 2))
+  bounds = run_to_array(d['bounds'])
   cbounds = load_cbounds(d)
   params = {}
   cost_function = load_cost_function(d, bounds, cbounds, basis)
@@ -55,7 +55,7 @@ def load_load_device(d, basis: int):
 def load_fixed_load_device(d, basis: int):
   device_id = d['title'] if 'title' in d else d['type']
   #, id={device_id}')
-  bounds = np.array(d['bounds']).reshape((basis, 2))
+  bounds = run_to_array(d['bounds'])
   if (bounds[:,0] != bounds[:,1]).all():
     raise Exception('Invalid fixed load device')
   return device_kit.ADevice(device_id, basis, bounds)
@@ -75,7 +75,7 @@ def load_storage_device(d, basis: int):
     # disChargeRateClippingFactor?: number,
   }
   device_id = d['title'] if 'title' in d else d['type']
-  bounds = np.array(d['bounds']).reshape((basis, 2))
+  bounds = run_to_array(d['bounds'])
   params = { parameter_map[k]: v for k, v in d['parameters'].items() }
   rate_clip = (None, None)
   if 'disChargeRateClippingFactor' in d['parameters']:
@@ -88,7 +88,7 @@ def load_storage_device(d, basis: int):
 
 def load_supply_device(d, basis: int):
   device_id = d['title'] if 'title' in d else d['type']
-  bounds = -1*np.array(d['bounds']).reshape((basis, 2))
+  bounds = -1*run_to_array(d['bounds'])
   bounds = np.array([bounds[:,1], bounds[:,0]])
   cbounds = load_cbounds(d)
   params = {}
@@ -99,10 +99,9 @@ def load_supply_device(d, basis: int):
 
 
 def load_cbounds(d):
-  cbounds = [c[0:3] + [c[3]+1] for c in [flatten(c) for c in d['cumulative_bounds']]] if 'cumulative_bounds' in d else None
-  if cbounds:
-    logger.info(f'\tfound cbounds: {cbounds}')
-  return cbounds
+  if 'cumulative_bounds' in d:
+    logger.info(f'\tfound cbounds: {d['cumulative_bounds']}')
+    return run_to_cbounds_array(d['cumulative_bounds'])
 
 
 def load_cost_function(d, bounds, cbounds, basis):
@@ -110,14 +109,14 @@ def load_cost_function(d, bounds, cbounds, basis):
   costs = []
   if 'flow' in costs_data:
     logger.info('\tfound flow cost for %s' % (d['type'],))
-    coeffs = _reshape_offset_quad_coeffs(costs_data['flow'])
+    coeffs = _reshape_offset_quad_coeffs(run_to_array(costs_data['flow']))
     costs += [Poly2DOffset(coeffs)]
   if 'cumulative_flow' in costs_data:
     logger.info('\tfound cumulative_flow for %s' % (d['type'],))
     raise Exception('Not implemented')
   if 'flow_bounds_relative' in costs_data:
     logger.info('\tfound flow_bounds_relative cost for %s' % (d['type'],))
-    _functions = [HLQuadraticCost(v[0], v[1], bounds[i, 0], bounds[i, 1]) for i, v in enumerate(costs_data['flow_bounds_relative'])]
+    _functions = [HLQuadraticCost(v[0], v[1], bounds[i, 0], bounds[i, 1]) for i, v in enumerate(run_to_array(costs_data['flow_bounds_relative']))]
     costs += [X2D(_functions)]
   if 'cumulative_flow_bounds_relative' in costs_data:
     logger.info('\tfound cumulative_flow_bounds_relative cost for %s: %s', (d['type'], costs_data['cumulative_flow_bounds_relative']))
@@ -133,6 +132,27 @@ def _reshape_offset_quad_coeffs(x):
   x = np.array(x)
   basis = len(x)
   return np.concatenate((x[:, 0:2], np.zeros((basis, 1)), np.array(x[:, 2]).reshape((basis, 1))), axis=1)
+
+
+def run_to_array(run):
+  item_template = run['runs']['0']
+  shape = (run['basis'], len(item_template)) if hasattr(item_template, '__len__') else (run['basis'],)
+  _array = np.zeros(shape)
+  points = list(run['runs'].keys())
+  for i,v in enumerate(points):
+    e = int(points[i+1]) if i < len(points) - 1 else run['basis']
+    _array[int(v):e] = run['runs'][v]
+  return _array
+
+
+def run_to_cbounds_array(run):
+  _array = []
+  points = list(run['runs'].keys())
+  for i,v in enumerate(points):
+    [l, h] = run['runs'][v]
+    e = int(points[i+1]) if i < len(points) - 1 else run['basis']
+    _array.append([l,h,int(v),e])
+  return _array
 
 
 if __name__ == '__main__':
