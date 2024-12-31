@@ -97,6 +97,20 @@ def load_supply_device(d, basis: int):
     params = { 'f': ReflectedFunction(cost_function) }
   return device_kit.ADevice(device_id, basis, bounds, cbounds, **params)
 
+def load_thermal_load_device(d, basis: int):
+  parameter_map = {
+    'desiredTemperature': 't_optimal',
+    'initialTemperature': 't_init',
+    'thermalSustainment': 'sustainment',
+    'efficiencyFactor': 'efficiency',
+    'externalTemperatureProfile': 't_external',
+    # 'temperatureVariationCareFactor': 't_range'
+  }
+  device_id = d['title'] if 'title' in d else d['type']
+  bounds = run_to_array(d['bounds'])
+  params = { parameter_map[k]: v for k, v in d['parameters'].items() }
+  params['t_range'] = run_to_array(d['temperatureVariationCareFactor'])
+  return device_kit.TDevice(device_id, basis, bounds, **params)
 
 def load_cbounds(d):
   if 'cumulative_bounds' in d:
@@ -113,7 +127,7 @@ def load_cost_function(d, bounds, cbounds, basis):
     costs += [Poly2DOffset(coeffs)]
   if 'cumulative_flow' in costs_data:
     logger.info('\tfound cumulative_flow for %s' % (d['type'],))
-    raise Exception('Not implemented')
+    raise Exception('Not implemented: costs.cumulative_flow')
   if 'flow_bounds_relative' in costs_data:
     logger.info('\tfound flow_bounds_relative cost for %s' % (d['type'],))
     _functions = [HLQuadraticCost(v[0], v[1], bounds[i, 0], bounds[i, 1]) for i, v in enumerate(run_to_array(costs_data['flow_bounds_relative']))]
