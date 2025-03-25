@@ -8,11 +8,11 @@ class ADevice(Device):
   _f = NullFunction()
   _constraints = []
 
-  def cost(self, s, p):
+  def cost(self, s, p=0):
     s = s.reshape(len(self))
     return self.f(s) + (s*p).sum()
 
-  def deriv(self, s, p):
+  def deriv(self, s, p=0):
     s = s.reshape(len(self))
     return self.f.deriv(s) + p
 
